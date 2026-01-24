@@ -1,0 +1,66 @@
+# Git to WordPress Importer Configuration Template
+# Copy this file to config.yaml and fill in your details
+
+# Git Repository Source
+git:
+  # Repository URL (GitHub, GitLab, etc.) or local path
+  repository: "https://github.com/username/blog-repo"
+  # Or use local path:
+  # repository: "/path/to/local/repo"
+  
+  # Branch to use
+  branch: "main"
+  
+  # GitHub token (optional, only for private repos)
+  github_token: ""
+  
+  # Auto-pull before import
+  auto_pull: true
+
+# Target WordPress Site
+wordpress:
+  # WordPress site URL
+  site_url: "https://your-wordpress-site.com"
+  
+  # WordPress username
+  username: "admin"
+  
+  # WordPress Application Password
+  # Generate at: WordPress Dashboard → Users → Profile → Application Passwords
+  app_password: "xxxx xxxx xxxx xxxx xxxx xxxx"
+  
+  # Admin password (optional, for plugin installation)
+  admin_password: ""
+
+# Import Settings
+import:
+  # Content types to import
+  content_types:
+    - posts
+    - pages
+    - categories
+    - tags
+  
+  # Directory mappings (relative to repository root)
+  posts_directory: "posts"           # Where to find blog posts
+  pages_directory: "pages"           # Where to find pages
+  media_directory: "assets/images"   # Where to find media files
+  documentation_directory: "site_documentation"  # For v1.1 migration docs
+  
+  # Watch mode settings
+  watch_for_changes: false  # Enable continuous sync
+  sync_interval: 300        # Check interval in seconds (5 minutes)
+  
+  # Content handling
+  skip_existing: true       # Skip posts that already exist
+  update_existing: false    # Update existing posts
+  preserve_dates: true      # Keep original post dates
+  
+  # Plugin installation (future feature)
+  install_plugins: false
+  activate_plugins: false
+
+# Logging
+logging:
+  level: "INFO"            # DEBUG, INFO, WARNING, ERROR
+  log_file: "importer.log"

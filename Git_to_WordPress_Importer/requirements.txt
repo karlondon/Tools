@@ -1,0 +1,25 @@
+# Core dependencies
+requests>=2.31.0
+PyYAML>=6.0.1
+python-dotenv>=1.0.0
+
+# Git operations
+GitPython>=3.1.40
+PyGithub>=2.1.1
+
+# Markdown processing
+markdown>=3.5.1
+python-frontmatter>=1.1.0
+beautifulsoup4>=4.12.0
+
+# File watching
+watchdog>=3.0.0
+
+# CLI
+click>=8.1.7
+colorama>=0.4.6
+tqdm>=4.66.1
+
+# Utilities
+python-slugify>=8.0.1
+python-dateutil>=2.9.0

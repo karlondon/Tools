@@ -1,0 +1,137 @@
+# WordPress to Git Repository Converter - Configuration Template
+# Copy this file to config.yaml and fill in your credentials
+# IMPORTANT: Never commit config.yaml with real credentials to version control!
+
+# WordPress Site Configuration
+wordpress:
+  # Your WordPress site URL (without trailing slash)
+  site_url: "https://ksanks.myblognow.uk"
+  
+  # Authentication - Choose ONE method:
+  
+  # Method 1: Username and Password (Basic Auth)
+  username: "ksanks"
+  password: "yO9ucWU0SGrXe33UI@Gyuk3D"
+  
+  # Method 2: Application Password (Recommended for WordPress 5.6+)
+  # Generate at: WordPress Admin > Users > Profile > Application Passwords
+  # Leave username/password empty if using this
+  app_password: "r5vg 8r32 sUJX brZK diNr rb8d"
+  
+  # API Configuration
+  api_version: "wp/v2"  # WordPress REST API version
+  per_page: 100  # Number of items to fetch per request (max 100)
+  verify_ssl: true  # Set to false if using self-signed certificates
+
+# GitHub Repository Configuration
+github:
+  # GitHub Personal Access Token
+  # Generate at: GitHub Settings > Developer settings > Personal access tokens
+  # Required scopes: repo (full control)
+  token: "ghp_your_github_personal_access_token"
+  
+  # GitHub username
+  username: "karlondon"
+  
+  # Repository name (without username)
+  repository: "ksanks.myblognow.uk"
+  
+  # Target branch (use 'gh-pages' for GitHub Pages, or 'main' for regular repo)
+  branch: "main"
+  
+  # Create repository if it doesn't exist
+  create_if_missing: true
+  
+  # Repository visibility (public or private)
+  visibility: "private"
+
+# Migration Configuration
+migration:
+  # Content types to migrate
+  content_types:
+    - posts       # Blog posts
+    - pages       # Static pages
+    - media       # Images, videos, attachments
+    # - categories  # Coming soon
+    # - tags        # Coming soon
+  
+  # Output directory for generated files (relative or absolute path)
+  output_directory: "./output"
+  
+  # Markdown flavor/format
+  # Options: github, jekyll, hugo, mkdocs
+  markdown_flavor: "github"
+  
+  # Date handling
+  preserve_dates: true  # Use original WordPress post dates
+  date_format: "%Y-%m-%d"  # Date format for filenames
+  
+  # Media handling
+  download_media: true  # Download media files from WordPress
+  media_directory: "assets/images"  # Relative path in output
+  optimize_images: true  # Optimize images (reduce size)
+  max_image_width: 1920  # Max width for image optimization
+  
+  # File naming
+  use_slug_in_filename: true  # Use post slug in filename
+  sanitize_filenames: true  # Remove special characters
+  
+  # Content processing
+  convert_shortcodes: true  # Convert WordPress shortcodes to HTML
+  include_excerpts: true  # Include post excerpts in front matter
+  include_featured_image: true  # Include featured image in front matter
+  
+  # Index page
+  create_index: true  # Create an index.md with all posts
+  index_template: "list"  # Options: list, grid, timeline
+  
+  # Incremental updates
+  track_changes: true  # Only migrate changed content
+  state_file: ".migration_state.json"  # File to track migration state
+
+# Git Configuration
+git:
+  # Commit settings
+  commit_message: "Migrated from WordPress on {date}"
+  author_name: "WordPress Migration Bot"
+  author_email: "migration@example.com"
+  
+  # Push settings
+  auto_push: true  # Automatically push to GitHub after migration
+  force_push: false  # Force push (use with caution!)
+  
+  # .gitignore settings
+  create_gitignore: true
+  ignore_patterns:
+    - "*.log"
+    - ".DS_Store"
+    - "Thumbs.db"
+    - ".migration_state.json"
+
+# Logging Configuration
+logging:
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_file: "migration.log"
+  console_output: true
+  colorize: true
+
+# Advanced Options
+advanced:
+  # Retry settings for API calls
+  max_retries: 3
+  retry_delay: 5  # seconds
+  
+  # Timeout settings
+  request_timeout: 30  # seconds
+  
+  # Rate limiting
+  rate_limit_delay: 0.5  # seconds between requests
+  
+  # Custom front matter fields
+  custom_frontmatter:
+    layout: "post"
+    comments: true
+  
+  # Post-processing hooks
+  run_post_processors: false
+  post_processor_scripts: []
