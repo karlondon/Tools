@@ -1,0 +1,374 @@
+[
+  {
+    "id": 3,
+    "count": 1,
+    "description": "",
+    "link": "https://ksanks.myblognow.uk/category/landing-zone/certifications/",
+    "name": "Certifications",
+    "slug": "certifications",
+    "taxonomy": "category",
+    "parent": 2,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/3",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "up": [
+        {
+          "embeddable": true,
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/2"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/posts?categories=3"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  },
+  {
+    "id": 4,
+    "count": 3,
+    "description": "",
+    "link": "https://ksanks.myblognow.uk/category/landing-zone/cooking_recipe/",
+    "name": "Cook's Corner",
+    "slug": "cooking_recipe",
+    "taxonomy": "category",
+    "parent": 2,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/4",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "up": [
+        {
+          "embeddable": true,
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/2"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/posts?categories=4"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  },
+  {
+    "id": 5,
+    "count": 5,
+    "description": "",
+    "link": "https://ksanks.myblognow.uk/category/landing-zone/general-view/",
+    "name": "General View",
+    "slug": "general-view",
+    "taxonomy": "category",
+    "parent": 2,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/5",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "up": [
+        {
+          "embeddable": true,
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/2"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/posts?categories=5"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  },
+  {
+    "id": 6,
+    "count": 2,
+    "description": "",
+    "link": "https://ksanks.myblognow.uk/category/landing-zone/spiritist/",
+    "name": "Spiritist",
+    "slug": "spiritist",
+    "taxonomy": "category",
+    "parent": 2,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/6",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "up": [
+        {
+          "embeddable": true,
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/2"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/posts?categories=6"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  },
+  {
+    "id": 7,
+    "count": 35,
+    "description": "posts related to Microsoft Azure and technical knowledge sharing",
+    "link": "https://ksanks.myblognow.uk/category/landing-zone/azure_knowledge/",
+    "name": "Technical Knowledge Base",
+    "slug": "azure_knowledge",
+    "taxonomy": "category",
+    "parent": 2,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/7",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "up": [
+        {
+          "embeddable": true,
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/2"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/posts?categories=7"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  },
+  {
+    "id": 1,
+    "count": 0,
+    "description": "",
+    "link": "https://ksanks.myblognow.uk/category/uncategorized/",
+    "name": "Uncategorized",
+    "slug": "uncategorized",
+    "taxonomy": "category",
+    "parent": 0,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/1",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/posts?categories=1"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  },
+  {
+    "id": 2,
+    "count": 0,
+    "description": "",
+    "link": "https://ksanks.myblognow.uk/category/landing-zone/",
+    "name": "Welcome Page",
+    "slug": "landing-zone",
+    "taxonomy": "category",
+    "parent": 0,
+    "meta": [],
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories/2",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH",
+              "DELETE"
+            ]
+          }
+        }
+      ],
+      "collection": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/categories"
+        }
+      ],
+      "about": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/taxonomies/category"
+        }
+      ],
+      "wp:post_type": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/posts?categories=2"
+        }
+      ],
+      "curies": [
+        {
+          "name": "wp",
+          "href": "https://api.w.org/{rel}",
+          "templated": true
+        }
+      ]
+    }
+  }
+]

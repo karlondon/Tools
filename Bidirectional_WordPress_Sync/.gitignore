@@ -1,0 +1,89 @@
+# Bidirectional WordPress Sync - Git Ignore File
+
+# Configuration files with credentials
+config.yaml
+.env
+
+# Sync state files
+.sync_state.json
+sync_report.json
+
+# Log files
+*.log
+watch_service.log
+sync.log
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+temp/
+tmp/
+
+# Output directories
+output/
+converter/
+sync_coordinator/
+
+# Media files (if downloading locally)
+assets/images/*
+!assets/images/.gitkeep
+
+# Node modules (if using any Node.js tools)
+node_modules/
+
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Backup files
+*.orig
+*.rej

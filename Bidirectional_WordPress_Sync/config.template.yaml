@@ -1,0 +1,249 @@
+# Bidirectional WordPress ↔ GitHub Pages Sync Configuration
+
+# ============================================
+# WordPress Configuration
+# ============================================
+wordpress:
+  # Your WordPress site URL (no trailing slash)
+  site_url: "https://your-site.com"
+  
+  # WordPress username
+  username: "your_wordpress_username"
+  
+  # WordPress Application Password (recommended)
+  # Generate at: WP Admin > Users > Profile > Application Passwords
+  app_password: "your_wordpress_app_password"
+  
+  # Or use regular password (not recommended)
+  # password: "your_password"
+
+# ============================================
+# GitHub Configuration
+# ============================================
+github:
+  # GitHub Personal Access Token
+  # Generate at: GitHub Settings > Developer settings > Personal access tokens
+  # Required scopes: repo (Full control of private repositories)
+  token: "your_github_personal_access_token"
+  
+  # Your GitHub username
+  username: "your_github_username"
+  
+  # Repository name (without username)
+  repository: "your-blog-repo"
+  
+  # Branch to sync to/from
+  branch: "gh_pages"  # "main" for github or "gh-pages" for GitHub Pages
+
+# ============================================
+# Sync Settings
+# ============================================
+sync:
+  # Which source is primary (source of truth)
+  # Options: "wordpress" or "github"
+  primary_source: "wordpress"
+  
+  # WordPress → GitHub sync settings
+  wp_to_git:
+    # Enable WordPress to GitHub sync
+    enabled: true
+    
+    # Schedule for GitHub Actions (cron format)
+    # Examples:
+    #   "0 */2 * * *"  - Every 2 hours
+    #   "0 */6 * * *"  - Every 6 hours
+    #   "0 0 * * *"    - Daily at midnight
+    #   "0 */1 * * *"  - Every hour
+    schedule: "0 */2 * * *"
+  
+  # GitHub → WordPress sync settings
+  git_to_wp:
+    # Enable GitHub to WordPress sync
+    enabled: true
+    
+    # Watch interval in seconds (for local watch service)
+    # Examples:
+    #   60   - Check every minute
+    #   300  - Check every 5 minutes (recommended)
+    #   600  - Check every 10 minutes
+    watch_interval: 300
+  
+  # Conflict resolution strategy
+  # Options:
+  #   "newest_wins"     - Use the most recently modified version
+  #   "wordpress_wins"  - Always prefer WordPress version
+  #   "github_wins"     - Always prefer GitHub version
+  #   "manual"          - Require manual resolution
+  conflict_strategy: "newest_wins"
+  
+  # Loop prevention
+  # Set to true to prevent infinite sync loops
+  prevent_loops: true
+  
+  # Sync state file (tracks what's been synced)
+  sync_state_file: ".sync_state.json"
+  
+  # Content types to sync
+  sync_content:
+    - posts
+    - pages
+    - media
+    - categories
+    - tags
+
+# ============================================
+# Migration Settings (WordPress → GitHub)
+# ============================================
+migration:
+  # Content types to export from WordPress
+  content_types:
+    - posts
+    - pages
+    - media
+  
+  # Output directory for generated files
+  output_directory: "."
+  
+  # Markdown flavor
+  # Options: "github", "jekyll", "hugo"
+  markdown_flavor: "jekyll"
+  
+  # Download media files from WordPress
+  download_media: true
+  
+  # Media settings
+  media:
+    # Directory for media files
+    directory: "assets/images"
+    
+    # Maximum file size in MB (0 = no limit)
+    max_size: 10
+    
+    # File extensions to download
+    extensions:
+      - jpg
+      - jpeg
+      - png
+      - gif
+      - svg
+      - webp
+
+# ============================================
+# Import Settings (GitHub → WordPress)
+# ============================================
+import:
+  # Content types to import to WordPress
+  content_types:
+    - posts
+    - pages
+    - media
+    - categories
+    - tags
+  
+  # Directory structure in repository
+  posts_directory: "posts"      # or "_posts" for Jekyll
+  pages_directory: "pages"      # or "_pages" for Jekyll
+  media_directory: "assets/images"
+  
+  # Documentation directory (from v1.1 migration)
+  documentation_directory: "site_documentation"
+  
+  # Plugin installation
+  install_plugins: true
+  activate_plugins: true
+  
+  # Default post settings
+  defaults:
+    # Default author ID (WordPress user ID)
+    author_id: 1
+    
+    # Default post status
+    # Options: "publish", "draft", "pending"
+    status: "publish"
+    
+    # Default comment status
+    # Options: "open", "closed"
+    comment_status: "open"
+
+# ============================================
+# Notifications (Optional)
+# ============================================
+notifications:
+  # Enable notifications
+  enabled: false
+  
+  # Notification methods
+  methods:
+    - email
+    # - slack
+    # - discord
+  
+  # Email notifications
+  email:
+    smtp_host: "smtp.gmail.com"
+    smtp_port: 587
+    smtp_user: "your_email@gmail.com"
+    smtp_password: "your_app_password"
+    from: "sync@example.com"
+    to: "admin@example.com"
+  
+  # Slack notifications
+  slack:
+    webhook_url: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
+    channel: "#blog-sync"
+    username: "Sync Bot"
+  
+  # Events to notify about
+  events:
+    - sync_completed
+    - sync_failed
+    - conflict_detected
+    - new_content_synced
+
+# ============================================
+# Advanced Settings
+# ============================================
+advanced:
+  # Request timeout in seconds
+  request_timeout: 30
+  
+  # Maximum retries for failed requests
+  max_retries: 3
+  
+  # Delay between retries (seconds)
+  retry_delay: 5
+  
+  # Enable verbose logging
+  verbose: false
+  
+  # Log file location
+  log_file: "sync.log"
+  
+  # Git settings
+  git:
+    # Commit message template
+    commit_message: "🔄 Sync: {direction} - {timestamp}"
+    
+    # Git author name
+    author_name: "Sync Bot"
+    
+    # Git author email
+    author_email: "sync-bot@example.com"
+
+# ============================================
+# GitHub Actions Secrets
+# ============================================
+# For GitHub Actions, set these secrets in your repository:
+# 
+# Required secrets:
+#   - WP_SITE_URL: Your WordPress site URL
+#   - WP_USERNAME: WordPress username
+#   - WP_APP_PASSWORD: WordPress application password
+#   - GITHUB_TOKEN: Automatically provided by GitHub
+# 
+# Optional secrets (for notifications):
+#   - SLACK_WEBHOOK: Slack webhook URL
+#   - SMTP_PASSWORD: Email SMTP password
+#
+# Set secrets at:
+# https://github.com/[username]/[repository]/settings/secrets/actions

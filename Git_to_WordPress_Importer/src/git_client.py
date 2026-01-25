@@ -37,13 +37,14 @@ class GitClient:
         Returns:
             Path to local repository
         """
-        self.local_path = Path(local_path)
-        
         # If it's a local path, use it directly
         if self.is_local_path():
             print(f"Using local repository: {self.repo_url}")
+            self.local_path = Path(self.repo_url)
             self.repo = Repo(self.repo_url)
             return self.repo_url
+        
+        self.local_path = Path(local_path)
         
         # Clone or pull remote repository
         if self.local_path.exists():

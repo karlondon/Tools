@@ -4,7 +4,7 @@
 # Git Repository Source
 git:
   # Repository URL (GitHub, GitLab, etc.) or local path
-  repository: "https://github.com/username/blog-repo"
+  repository: "https://github.com/yourusername/yourrepo"
   # Or use local path:
   # repository: "/path/to/local/repo"
   
@@ -12,7 +12,7 @@ git:
   branch: "main"
   
   # GitHub token (optional, only for private repos)
-  github_token: ""
+  github_token: "your_github_token_here"
   
   # Auto-pull before import
   auto_pull: true
@@ -20,14 +20,14 @@ git:
 # Target WordPress Site
 wordpress:
   # WordPress site URL
-  site_url: "https://your-wordpress-site.com"
+  site_url: "https://yoursite.com"
   
   # WordPress username
-  username: "admin"
+  username: "your_username"
   
   # WordPress Application Password
   # Generate at: WordPress Dashboard → Users → Profile → Application Passwords
-  app_password: "xxxx xxxx xxxx xxxx xxxx xxxx"
+  app_password: "your application password here"
   
   # Admin password (optional, for plugin installation)
   admin_password: ""

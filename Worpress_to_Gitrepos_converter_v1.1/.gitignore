@@ -1,69 +1,59 @@
-# WordPress to Git Repository Converter - .gitignore
-
 # Configuration files with credentials
+# IDEs
+# Logs
+# Migration state
+# OS specific
+# Output directory
+# Python
+# Temporary files
+# Test files
+# Virtual Environments
+# WordPress to Git Repository Converter - .gitignore
+*$py.class
+*.egg
+*.egg-info/
+*.log
+*.py[cod]
+*.so
+*.state
+*.swo
+*.swp
+*.tmp
+*~
+.DS_Store
+.Python
+.coverage
+.eggs/
+.env
+.idea/
+.installed.cfg
+.migration_state.json
+.pytest_cache/
+.venv
+.vscode/
+ENV/
+Thumbs.db
+__pycache__/
+build/
 config.yaml
 config.yml
-.env
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
+desktop.ini
 develop-eggs/
 dist/
 downloads/
 eggs/
-.eggs/
+env/
+exports/
+htmlcov/
 lib/
 lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-
-# Virtual Environments
-venv/
-env/
-ENV/
-.venv
-
-# IDEs
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Logs
-*.log
 logs/
 migration.log
-
-# Output directory
 output/
-exports/
-
-# Migration state
-.migration_state.json
-*.state
-
-# OS specific
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Temporary files
-*.tmp
+parts/
+sdist/
 temp/
 tmp/
-
-# Test files
-.pytest_cache/
-.coverage
-htmlcov/
+var/
+venv/
+wheels/

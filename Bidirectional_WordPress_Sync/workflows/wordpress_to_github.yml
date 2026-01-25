@@ -1,0 +1,222 @@
+name: WordPress to GitHub Sync
+
+on:
+  # Scheduled sync - runs every 2 hours by default
+  schedule:
+    - cron: '0 */2 * * *'  # At minute 0 past every 2nd hour
+  
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      sync_type:
+        description: 'Sync type'
+        required: false
+        default: 'incremental'
+        type: choice
+        options:
+          - incremental
+          - full
+      
+  # Webhook trigger (optional)
+  repository_dispatch:
+    types: [wordpress-publish]
+
+jobs:
+  sync-wordpress-to-github:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml requests python-frontmatter markdown gitpython
+
+      - name: Create config file
+        run: |
+          cat > config.yaml << EOF
+          wordpress:
+            site_url: "${{ secrets.WP_SITE_URL }}"
+            username: "${{ secrets.WP_USERNAME }}"
+            app_password: "${{ secrets.WP_APP_PASSWORD }}"
+          
+          github:
+            token: "${{ secrets.GITHUB_TOKEN }}"
+            username: "${{ github.repository_owner }}"
+            repository: "${{ github.event.repository.name }}"
+            branch: "${{ github.ref_name }}"
+          
+          migration:
+            content_types:
+              - posts
+              - pages
+              - media
+            output_directory: "."
+            markdown_flavor: "jekyll"
+            download_media: true
+          
+          sync:
+            prevent_loops: true
+            sync_state_file: ".sync_state.json"
+          EOF
+      
+      - name: Download WordPress to Git Converter
+        run: |
+          # Clone or download the converter tool
+          git clone --depth 1 https://github.com/${{ github.repository_owner }}/Tools.git temp_tools || true
+          
+          # Copy the converter to working directory
+          if [ -d "temp_tools/Worpress_to_Gitrepos_converter_v1.1" ]; then
+            cp -r temp_tools/Worpress_to_Gitrepos_converter_v1.1 ./converter
+          else
+            echo "Converter not found, using local version"
+          fi
+          
+          # Copy sync coordinator
+          if [ -d "temp_tools/Bidirectional_WordPress_Sync" ]; then
+            cp -r temp_tools/Bidirectional_WordPress_Sync/src ./sync_coordinator
+          fi
+          
+          rm -rf temp_tools
+      
+      - name: Run WordPress to GitHub sync
+        env:
+          SYNC_TYPE: ${{ github.event.inputs.sync_type || 'incremental' }}
+        run: |
+          # Set Python path to include converter
+          export PYTHONPATH="${PYTHONPATH}:./converter:./sync_coordinator"
+          
+          # Run the sync with coordinator
+          python3 << 'PYTHON_SCRIPT'
+          import os
+          import sys
+          import json
+          import yaml
+          from pathlib import Path
+          
+          # Add paths
+          sys.path.insert(0, './converter')
+          sys.path.insert(0, './sync_coordinator')
+          
+          try:
+              from src.sync_coordinator import SyncCoordinator
+              from src.main import WordPressToGitMigrator
+              
+              # Load config
+              with open('config.yaml', 'r') as f:
+                  config = yaml.safe_load(f)
+              
+              # Initialize sync coordinator
+              coordinator = SyncCoordinator(config)
+              
+              # Initialize migrator
+              migrator = WordPressToGitMigrator(config)
+              
+              print("🔄 Starting WordPress → GitHub sync...")
+              print(f"Sync type: {os.environ.get('SYNC_TYPE', 'incremental')}")
+              
+              # Fetch WordPress posts
+              posts = migrator.wordpress_client.get_posts()
+              print(f"Found {len(posts)} posts in WordPress")
+              
+              synced_count = 0
+              skipped_count = 0
+              
+              for post in posts:
+                  post_id = post['id']
+                  
+                  # Check if should sync using coordinator
+                  if coordinator.should_sync_to_github(post_id, post):
+                      # Convert and save post
+                      file_path = migrator.process_post(post)
+                      
+                      # Record sync
+                      coordinator.record_wp_to_git_sync(post_id, file_path, post)
+                      synced_count += 1
+                      print(f"✅ Synced post {post_id}: {post['title']['rendered']}")
+                  else:
+                      skipped_count += 1
+                      print(f"⏭️  Skipped post {post_id} (no changes or originated from GitHub)")
+              
+              print(f"\n📊 Sync Summary:")
+              print(f"  - Synced: {synced_count} posts")
+              print(f"  - Skipped: {skipped_count} posts")
+              print(f"  - Total: {len(posts)} posts")
+              
+              # Export sync report
+              coordinator.export_sync_report('sync_report.json')
+              
+          except ImportError as e:
+              print(f"⚠️  Import error: {e}")
+              print("Running basic sync without coordinator...")
+              # Fallback to basic sync
+              os.system('python3 converter/run.py')
+          
+          PYTHON_SCRIPT
+      
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          # Add all changes
+          git add .
+          
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "🔄 WordPress sync: $(date +'%Y-%m-%d %H:%M:%S')"
+            git push
+            echo "✅ Changes pushed to GitHub"
+          fi
+      
+      - name: Create sync summary
+        if: always()
+        run: |
+          if [ -f "sync_report.json" ]; then
+            echo "## 📊 WordPress → GitHub Sync Report" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Time:** $(date)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            
+            # Extract stats from report
+            python3 << 'PYTHON_SCRIPT'
+          import json
+          import os
+          
+          try:
+              with open('sync_report.json', 'r') as f:
+                  report = json.load(f)
+              
+              stats = report.get('statistics', {})
+              
+              print(f"**Total Synced Posts:** {stats.get('total_synced_posts', 0)}")
+              print(f"**WordPress Origin:** {stats.get('wordpress_origin', 0)}")
+              print(f"**GitHub Origin:** {stats.get('github_origin', 0)}")
+              print(f"**Last Sync:** {stats.get('last_wp_to_git', 'Never')}")
+          except Exception as e:
+              print(f"Could not read sync report: {e}")
+          PYTHON_SCRIPT
+          fi
+      
+      - name: Upload sync artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: sync-reports
+          path: |
+            sync_report.json
+            .sync_state.json
+            *.log
+          retention-days: 30

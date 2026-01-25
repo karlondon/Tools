@@ -1,0 +1,514 @@
+[
+  {
+    "plugin": "blockonomics-bitcoin-payments/blockonomics-woocommerce",
+    "status": "network-active",
+    "name": "Bitcoin Payments - Blockonomics",
+    "plugin_uri": "https://github.com/blockonomics/woocommerce-plugin",
+    "author": "Blockonomics",
+    "author_uri": "https://www.blockonomics.co",
+    "description": {
+      "raw": "Accept Bitcoin Payments on your WooCommerce-powered website with Blockonomics",
+      "rendered": "Accept Bitcoin Payments on your WooCommerce-powered website with Blockonomics <cite>By <a href=\"https://www.blockonomics.co\">Blockonomics</a>.</cite>"
+    },
+    "version": "3.8.1",
+    "network_only": false,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "blockonomics-bitcoin-payments",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/blockonomics-bitcoin-payments/blockonomics-woocommerce",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "blogger-importer/blogger-importer",
+    "status": "network-active",
+    "name": "Blogger Importer",
+    "plugin_uri": "http://wordpress.org/extend/plugins/blogger-importer/",
+    "author": "wordpressdotorg",
+    "author_uri": "http://wordpress.org/",
+    "description": {
+      "raw": "Import posts, comments, and categories from a Blogger blog and migrate authors to WordPress users.",
+      "rendered": "Import posts, comments, and categories from a Blogger blog and migrate authors to WordPress users. <cite>By <a href=\"http://wordpress.org/\">wordpressdotorg</a>.</cite>"
+    },
+    "version": "0.9.3",
+    "network_only": false,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "blogger-importer",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/blogger-importer/blogger-importer",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "wpcat2tag-importer/wpcat2tag-importer",
+    "status": "network-active",
+    "name": "Categories to Tags Converter Importer",
+    "plugin_uri": "https://wordpress.org/extend/plugins/wpcat2tag-importer/",
+    "author": "wordpressdotorg",
+    "author_uri": "https://wordpress.org/",
+    "description": {
+      "raw": "Convert existing categories to tags or tags to categories, selectively.",
+      "rendered": "Convert existing categories to tags or tags to categories, selectively. <cite>By <a href=\"https://wordpress.org/\">wordpressdotorg</a>.</cite>"
+    },
+    "version": "0.6.3",
+    "network_only": false,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "wpcat2tag-importer",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/wpcat2tag-importer/wpcat2tag-importer",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "database-cleaner/database-cleaner",
+    "status": "network-active",
+    "name": "Database Cleaner",
+    "plugin_uri": "https://meowapps.com",
+    "author": "Jordy Meow",
+    "author_uri": "https://meowapps.com",
+    "description": {
+      "raw": "User-friendly tool to clean and optimize databases. Efficiently manages large databases, simplifying repair and ensuring peak performance.",
+      "rendered": "User-friendly tool to clean and optimize databases. Efficiently manages large databases, simplifying repair and ensuring peak performance. <cite>By <a href=\"https://meowapps.com\">Jordy Meow</a>.</cite>"
+    },
+    "version": "1.2.8",
+    "network_only": false,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "database-cleaner",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/database-cleaner/database-cleaner",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "duplicator/duplicator",
+    "status": "network-active",
+    "name": "Duplicator",
+    "plugin_uri": "https://duplicator.com/",
+    "author": "Duplicator",
+    "author_uri": "https://duplicator.com/",
+    "description": {
+      "raw": "Migrate and back up a copy of your WordPress files and database. Duplicate and move a site from one location to another quickly.",
+      "rendered": "Migrate and back up a copy of your WordPress files and database. Duplicate and move a site from one location to another quickly. <cite>By <a href=\"https://duplicator.com/\">Duplicator</a>.</cite>"
+    },
+    "version": "1.5.14",
+    "network_only": true,
+    "requires_wp": "5.3",
+    "requires_php": "7.4",
+    "textdomain": "duplicator",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/duplicator/duplicator",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "movabletype-importer/movabletype-importer",
+    "status": "network-active",
+    "name": "Movable Type and TypePad Importer",
+    "plugin_uri": "https://wordpress.org/extend/plugins/movabletype-importer/",
+    "author": "wordpressdotorg",
+    "author_uri": "https://wordpress.org/",
+    "description": {
+      "raw": "Import posts and comments from a Movable Type or TypePad blog.",
+      "rendered": "Import posts and comments from a Movable Type or TypePad blog. <cite>By <a href=\"https://wordpress.org/\">wordpressdotorg</a>.</cite>"
+    },
+    "version": "0.6.3",
+    "network_only": false,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "movabletype-importer",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/movabletype-importer/movabletype-importer",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "rss-importer/rss-importer",
+    "status": "network-active",
+    "name": "RSS Importer",
+    "plugin_uri": "https://wordpress.org/extend/plugins/rss-importer/",
+    "author": "wordpressdotorg",
+    "author_uri": "https://wordpress.org/",
+    "description": {
+      "raw": "Import posts from an RSS feed.",
+      "rendered": "Import posts from an RSS feed. <cite>By <a href=\"https://wordpress.org/\">wordpressdotorg</a>.</cite>"
+    },
+    "version": "0.3.2",
+    "network_only": false,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "rss-importer",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/rss-importer/rss-importer",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "sinatra-core/sinatra-core",
+    "status": "network-active",
+    "name": "Sinatra Core",
+    "plugin_uri": "https://sinatrawp.com",
+    "author": "Sinatra",
+    "author_uri": "https://sinatrawp.com",
+    "description": {
+      "raw": "Additional features for Sinatra WordPress Theme.",
+      "rendered": "Additional features for Sinatra WordPress Theme. <cite>By <a href=\"https://sinatrawp.com\">Sinatra</a>.</cite>"
+    },
+    "version": "1.0.5",
+    "network_only": false,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "sinatra-core",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/sinatra-core/sinatra-core",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "astra-sites/astra-sites",
+    "status": "network-active",
+    "name": "Starter Templates",
+    "plugin_uri": "https://wpastra.com/",
+    "author": "Brainstorm Force",
+    "author_uri": "https://www.brainstormforce.com",
+    "description": {
+      "raw": "Starter Templates is all in one solution for complete starter sites, single page templates, blocks &amp; images. This plugin offers the premium library of ready templates &amp; provides quick access to beautiful Pixabay images that can be imported in your website easily.",
+      "rendered": "Starter Templates is all in one solution for complete starter sites, single page templates, blocks &amp; images. This plugin offers the premium library of ready templates &amp; provides quick access to beautiful Pixabay images that can be imported in your website easily. <cite>By <a href=\"https://www.brainstormforce.com\">Brainstorm Force</a>.</cite>"
+    },
+    "version": "4.4.40",
+    "network_only": false,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "astra-sites",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/astra-sites/astra-sites",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "boldgrid-backup/boldgrid-backup",
+    "status": "network-active",
+    "name": "Total Upkeep",
+    "plugin_uri": "https://www.boldgrid.com/boldgrid-backup/",
+    "author": "BoldGrid",
+    "author_uri": "https://www.boldgrid.com/",
+    "description": {
+      "raw": "Automated backups, remote backup to Amazon S3 and Google Drive, stop website crashes before they happen and more. Total Upkeep is the backup solution you need.",
+      "rendered": "Automated backups, remote backup to Amazon S3 and Google Drive, stop website crashes before they happen and more. Total Upkeep is the backup solution you need. <cite>By <a href=\"https://www.boldgrid.com/\">BoldGrid</a>.</cite>"
+    },
+    "version": "1.17.1",
+    "network_only": false,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "boldgrid-backup",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/boldgrid-backup/boldgrid-backup",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "w3-total-cache/w3-total-cache",
+    "status": "network-active",
+    "name": "W3 Total Cache",
+    "plugin_uri": "https://www.boldgrid.com/totalcache/",
+    "author": "BoldGrid",
+    "author_uri": "https://www.boldgrid.com/",
+    "description": {
+      "raw": "The highest rated and most complete WordPress performance plugin. Dramatically improve the speed and user experience of your site. Add browser, page, object and database caching as well as minify and content delivery network (CDN) to WordPress.",
+      "rendered": "The highest rated and most complete WordPress performance plugin. Dramatically improve the speed and user experience of your site. Add browser, page, object and database caching as well as minify and content delivery network (CDN) to WordPress. <cite>By <a href=\"https://www.boldgrid.com/\">BoldGrid</a>.</cite>"
+    },
+    "version": "2.8.13",
+    "network_only": true,
+    "requires_wp": "5.3",
+    "requires_php": "7.2.5",
+    "textdomain": "w3-total-cache",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/w3-total-cache/w3-total-cache",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "woocommerce/woocommerce",
+    "status": "network-active",
+    "name": "WooCommerce",
+    "plugin_uri": "https://woocommerce.com/",
+    "author": "Automattic",
+    "author_uri": "https://woocommerce.com",
+    "description": {
+      "raw": "An eCommerce toolkit that helps you sell anything. Beautifully.",
+      "rendered": "An eCommerce toolkit that helps you sell anything. Beautifully. <cite>By <a href=\"https://woocommerce.com\">Automattic</a>.</cite>"
+    },
+    "version": "10.2.2",
+    "network_only": false,
+    "requires_wp": "6.7",
+    "requires_php": "7.4",
+    "textdomain": "woocommerce",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/woocommerce/woocommerce",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "wordpress-importer/wordpress-importer",
+    "status": "network-active",
+    "name": "WordPress Importer",
+    "plugin_uri": "https://en-gb.wordpress.org/plugins/wordpress-importer/",
+    "author": "wordpressdotorg",
+    "author_uri": "https://wordpress.org/",
+    "description": {
+      "raw": "Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file.",
+      "rendered": "Import posts, pages, comments, custom fields, categories, tags and more from a WordPress export file. <cite>By <a href=\"https://wordpress.org/\">wordpressdotorg</a>.</cite>"
+    },
+    "version": "0.9.4",
+    "network_only": false,
+    "requires_wp": "5.2",
+    "requires_php": "7.2",
+    "textdomain": "wordpress-importer",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/wordpress-importer/wordpress-importer",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "wp-site-migrate/wpengine",
+    "status": "network-active",
+    "name": "WP Engine Automated Migration",
+    "plugin_uri": "https://wpengine.com",
+    "author": "WPEngine",
+    "author_uri": "https://wpengine.com",
+    "description": {
+      "raw": "The easiest way to migrate your site to WP Engine",
+      "rendered": "The easiest way to migrate your site to WP Engine <cite>By <a href=\"https://wpengine.com\">WPEngine</a>.</cite>"
+    },
+    "version": "5.25",
+    "network_only": true,
+    "requires_wp": "",
+    "requires_php": "",
+    "textdomain": "wp-site-migrate",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/wp-site-migrate/wpengine",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "wpforms-lite/wpforms",
+    "status": "active",
+    "name": "WPForms Lite",
+    "plugin_uri": "https://wpforms.com",
+    "author": "WPForms",
+    "author_uri": "https://wpforms.com",
+    "description": {
+      "raw": "Beginner friendly WordPress contact form plugin. Use our Drag &amp; Drop form builder to create your WordPress forms.",
+      "rendered": "Beginner friendly WordPress contact form plugin. Use our Drag &amp; Drop form builder to create your WordPress forms. <cite>By <a href=\"https://wpforms.com\">WPForms</a>.</cite>"
+    },
+    "version": "1.9.8.2",
+    "network_only": false,
+    "requires_wp": "5.5",
+    "requires_php": "7.2",
+    "textdomain": "wpforms-lite",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/wpforms-lite/wpforms",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  },
+  {
+    "plugin": "wp-mail-smtp/wp_mail_smtp",
+    "status": "network-active",
+    "name": "WP Mail SMTP",
+    "plugin_uri": "https://wpmailsmtp.com/",
+    "author": "WP Mail SMTP",
+    "author_uri": "https://wpmailsmtp.com/",
+    "description": {
+      "raw": "Reconfigures the <code>wp_mail()</code> function to use Gmail/Mailgun/SendGrid/SMTP instead of the default <code>mail()</code> and creates an options page to manage the settings.",
+      "rendered": "Reconfigures the <code>wp_mail()</code> function to use Gmail/Mailgun/SendGrid/SMTP instead of the default <code>mail()</code> and creates an options page to manage the settings. <cite>By <a href=\"https://wpmailsmtp.com/\">WP Mail SMTP</a>.</cite>"
+    },
+    "version": "4.6.0",
+    "network_only": false,
+    "requires_wp": "5.5",
+    "requires_php": "7.4",
+    "textdomain": "wp-mail-smtp",
+    "_links": {
+      "self": [
+        {
+          "href": "https://ksanks.myblognow.uk/wp-json/wp/v2/plugins/wp-mail-smtp/wp_mail_smtp",
+          "targetHints": {
+            "allow": [
+              "GET",
+              "POST",
+              "PUT",
+              "PATCH"
+            ]
+          }
+        }
+      ]
+    }
+  }
+]
