@@ -1,0 +1,696 @@
+/* ============================================
+   TECH BLOG REDESIGN - PROFESSIONAL DEVELOPER THEME
+   Website: https://ksanks.myblognow.uk/
+   Design: Dark mode tech aesthetic with code-focused styling
+   ============================================ */
+
+/* ============================================
+   1. COLOR SCHEME - TECH/DEVELOPER FOCUSED
+   ============================================ */
+
+:root {
+    /* Dark Tech Colors */
+    --bg-primary: #0d1117;
+    --bg-secondary: #161b22;
+    --bg-tertiary: #21262d;
+    --bg-code: #1f2937;
+    
+    /* Accent Colors */
+    --accent-blue: #58a6ff;
+    --accent-green: #3fb950;
+    --accent-purple: #a371f7;
+    --accent-orange: #f78166;
+    
+    /* Text Colors */
+    --text-primary: #c9d1d9;
+    --text-secondary: #8b949e;
+    --text-bright: #ffffff;
+    
+    /* Border Colors */
+    --border-primary: #30363d;
+    --border-accent: #58a6ff;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.7);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.8);
+    --shadow-glow: 0 0 20px rgba(88, 166, 255, 0.3);
+    
+    /* Transitions */
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================
+   2. GLOBAL STYLES
+   ============================================ */
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.7;
+    font-size: 16px;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-primary);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-blue);
+}
+
+/* ============================================
+   3. HEADER & NAVIGATION - TECH STYLE
+   ============================================ */
+
+.site-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-primary);
+    padding: 1rem 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-md);
+}
+
+.site-branding-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+.site-logo img {
+    max-height: 50px;
+    filter: brightness(1.1) contrast(1.1);
+    transition: var(--transition);
+}
+
+.site-logo img:hover {
+    filter: brightness(1.3) drop-shadow(0 0 10px var(--accent-blue));
+    transform: translateY(-2px);
+}
+
+.site-description {
+    color: var(--text-secondary);
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-style: normal;
+}
+
+.site-description::before {
+    content: '> ';
+    color: var(--accent-green);
+}
+
+/* Navigation Styling */
+.wp-block-navigation {
+    background: transparent !important;
+}
+
+.wp-block-navigation-item a {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+    padding: 0.6rem 1.2rem !important;
+    border: 1px solid transparent !important;
+    border-radius: 6px !important;
+    transition: var(--transition);
+    text-decoration: none !important;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+}
+
+.wp-block-navigation-item a:hover {
+    background: var(--bg-tertiary) !important;
+    border-color: var(--accent-blue) !important;
+    color: var(--accent-blue) !important;
+    box-shadow: var(--shadow-glow);
+}
+
+.wp-block-navigation__submenu-container {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-primary) !important;
+    border-radius: 8px !important;
+    box-shadow: var(--shadow-lg) !important;
+    padding: 0.5rem !important;
+}
+
+/* ============================================
+   4. CONTENT AREA - CODE EDITOR AESTHETIC
+   ============================================ */
+
+.site-content {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.content-area {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 12px;
+    padding: 3rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow-md);
+}
+
+/* Entry Header */
+.entry-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid var(--border-primary);
+    position: relative;
+}
+
+.entry-header::before {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100px;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
+}
+
+.entry-title {
+    color: var(--text-bright);
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.2;
+    text-shadow: 0 2px 10px rgba(88, 166, 255, 0.3);
+}
+
+/* Entry Content */
+.entry-content {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: var(--text-primary);
+}
+
+.entry-content p {
+    margin-bottom: 1.5rem;
+}
+
+.entry-content p:first-of-type {
+    font-size: 1.15rem;
+    color: var(--text-bright);
+    padding-left: 1rem;
+    border-left: 3px solid var(--accent-blue);
+}
+
+/* ============================================
+   5. TYPOGRAPHY - TECH FOCUSED
+   ============================================ */
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-bright);
+    font-weight: 700;
+    line-height: 1.3;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-family: 'Inter', sans-serif;
+}
+
+h2 {
+    font-size: 2rem;
+    padding-left: 1rem;
+    border-left: 4px solid var(--accent-blue);
+    position: relative;
+}
+
+h2::before {
+    content: '//';
+    position: absolute;
+    left: -2rem;
+    color: var(--accent-green);
+    font-family: 'Fira Code', monospace;
+}
+
+h3 {
+    font-size: 1.5rem;
+    color: var(--accent-blue);
+}
+
+/* Links */
+a {
+    color: var(--accent-blue);
+    text-decoration: none;
+    transition: var(--transition);
+    position: relative;
+}
+
+a:hover {
+    color: var(--accent-purple);
+    text-decoration: underline;
+    text-decoration-color: var(--accent-purple);
+    text-decoration-thickness: 2px;
+}
+
+/* Code Inline */
+code {
+    background: var(--bg-code);
+    color: var(--accent-orange);
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'Fira Code', 'Courier New', monospace;
+    font-size: 0.9em;
+    border: 1px solid var(--border-primary);
+}
+
+/* Code Blocks */
+pre {
+    background: var(--bg-code);
+    color: var(--text-primary);
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    border: 1px solid var(--border-primary);
+    box-shadow: var(--shadow-md);
+    font-family: 'Fira Code', monospace;
+    line-height: 1.6;
+}
+
+pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+/* ============================================
+   6. WIDGETS - SIDEBAR TECH PANELS
+   ============================================ */
+
+.widget-area {
+    background: transparent;
+    padding: 0;
+}
+
+.widget {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+}
+
+.widget:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+}
+
+.widget h2,
+.widget .wp-block-heading {
+    color: var(--text-bright) !important;
+    font-size: 1.2rem !important;
+    margin: 0 0 1rem 0 !important;
+    padding: 0 0 0.75rem 0 !important;
+    border-bottom: 2px solid var(--border-primary) !important;
+    font-family: 'Fira Code', monospace !important;
+    font-weight: 600 !important;
+    border-left: none !important;
+}
+
+.widget h2::before,
+.widget .wp-block-heading::before {
+    content: '# ';
+    color: var(--accent-green);
+}
+
+/* Recent Posts Widget - FIX FOR WHITE PANELS */
+.wp-block-latest-posts__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.wp-block-latest-posts__list li {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    transition: var(--transition);
+    border-left: 3px solid var(--accent-blue) !important;
+}
+
+.wp-block-latest-posts__list li:hover {
+    background: var(--bg-code) !important;
+    border-left-color: var(--accent-purple) !important;
+    transform: translateX(5px);
+}
+
+.wp-block-latest-posts__post-title {
+    color: var(--text-primary) !important;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.wp-block-latest-posts__post-title:hover {
+    color: var(--accent-blue) !important;
+}
+
+/* Categories & Archives - FIXED */
+.wp-block-categories-list,
+.wp-block-archives-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.wp-block-categories-list li,
+.wp-block-archives-list li {
+    margin-bottom: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    transition: var(--transition);
+}
+
+.wp-block-categories-list li:hover,
+.wp-block-archives-list li:hover {
+    background: var(--bg-code) !important;
+    border-color: var(--accent-blue);
+}
+
+.wp-block-categories-list li a,
+.wp-block-archives-list li a {
+    color: var(--text-primary) !important;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.wp-block-categories-list li:hover a,
+.wp-block-archives-list li:hover a {
+    color: var(--accent-blue) !important;
+}
+
+/* Search Widget */
+.wp-block-search {
+    background: transparent;
+    padding: 0;
+}
+
+.wp-block-search__label {
+    color: var(--text-primary);
+    font-family: 'Fira Code', monospace;
+    margin-bottom: 0.5rem;
+}
+
+.wp-block-search__input {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-primary) !important;
+    border-radius: 6px !important;
+    padding: 0.75rem 1rem !important;
+    color: var(--text-primary) !important;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.wp-block-search__input:focus {
+    border-color: var(--accent-blue) !important;
+    outline: none !important;
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2) !important;
+    background: var(--bg-code) !important;
+}
+
+.wp-block-search__input::placeholder {
+    color: var(--text-secondary);
+}
+
+.wp-block-search__button {
+    background: var(--accent-blue) !important;
+    color: var(--bg-primary) !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 0.75rem 1.5rem !important;
+    font-weight: 600 !important;
+    font-family: 'Fira Code', monospace;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.wp-block-search__button:hover {
+    background: var(--accent-purple) !important;
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+}
+
+/* Recent Comments - FIXED */
+.wp-block-latest-comments {
+    padding: 0;
+    margin: 0;
+}
+
+.wp-block-latest-comments__comment {
+    background: var(--bg-tertiary) !important;
+    border: 1px solid var(--border-primary);
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.no-comments {
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 1rem;
+    text-align: center;
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+}
+
+/* ============================================
+   7. FOOTER - DARK TECH STYLE
+   ============================================ */
+
+.site-footer {
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-primary);
+    padding: 3rem 0 1rem;
+    margin-top: 4rem;
+}
+
+.site-footer .widget-area {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.site-footer .widget {
+    background: var(--bg-tertiary);
+    border-color: var(--border-primary);
+}
+
+.site-footer a {
+    color: var(--text-primary);
+}
+
+.site-footer a:hover {
+    color: var(--accent-blue);
+}
+
+/* ============================================
+   8. BUTTONS & FORMS
+   ============================================ */
+
+button,
+.wp-block-button__link,
+input[type="submit"],
+input[type="button"] {
+    background: var(--accent-blue);
+    color: var(--bg-primary);
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-family: 'Fira Code', monospace;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.95rem;
+}
+
+button:hover,
+.wp-block-button__link:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover {
+    background: var(--accent-purple);
+    box-shadow: var(--shadow-glow);
+    transform: translateY(-2px);
+}
+
+/* ============================================
+   9. BLOCKQUOTES
+   ============================================ */
+
+blockquote {
+    background: var(--bg-tertiary);
+    border-left: 4px solid var(--accent-blue);
+    padding: 1.5rem;
+    margin: 2rem 0;
+    border-radius: 0 8px 8px 0;
+    font-style: italic;
+    color: var(--text-primary);
+    position: relative;
+}
+
+blockquote::before {
+    content: '"';
+    font-size: 4rem;
+    color: var(--accent-blue);
+    opacity: 0.3;
+    position: absolute;
+    top: -1rem;
+    left: 1rem;
+    font-family: Georgia, serif;
+}
+
+/* ============================================
+   10. TABLES
+   ============================================ */
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2rem 0;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 1rem;
+    border: 1px solid var(--border-primary);
+    text-align: left;
+}
+
+th {
+    background: var(--bg-code);
+    color: var(--accent-blue);
+    font-weight: 600;
+    font-family: 'Fira Code', monospace;
+}
+
+tr:hover {
+    background: var(--bg-code);
+}
+
+/* ============================================
+   11. IMAGES
+   ============================================ */
+
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border-primary);
+    transition: var(--transition);
+}
+
+img:hover {
+    border-color: var(--accent-blue);
+    box-shadow: var(--shadow-glow);
+    transform: scale(1.02);
+}
+
+/* ============================================
+   12. MOBILE RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .content-area {
+        padding: 1.5rem;
+    }
+    
+    .entry-title {
+        font-size: 1.8rem;
+    }
+    
+    .site-content {
+        padding: 0 1rem;
+    }
+    
+    .site-footer .widget-area {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================
+   13. ANIMATIONS
+   ============================================ */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.entry-content > *,
+.widget {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+/* Smooth Scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Selection */
+::selection {
+    background: var(--accent-blue);
+    color: var(--bg-primary);
+}
+
+/* Focus */
+:focus {
+    outline: 2px solid var(--accent-blue);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   14. TECH ACCENTS & DECORATIONS
+   ============================================ */
+
+/* Loading indicator */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid var(--border-primary);
+    border-radius: 50%;
+    border-top-color: var(--accent-blue);
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ============================================
+   END OF TECH BLOG STYLES
+   ============================================ */
