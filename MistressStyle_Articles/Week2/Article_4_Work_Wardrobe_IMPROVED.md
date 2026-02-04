@@ -6,6 +6,7 @@
 **Tags:** Work Wardrobe, Professional Style, Budget Fashion, Capsule Wardrobe, Office Style, Career Outfits, Business Casual, Business Professional  
 **Featured Image:** [IMAGE: Flatlay of mix-and-match professional pieces with price tags, neutral color palette]  
 
+https://tse1.mm.bing.net/th/id/OIP.JjSVdu7dp2jPKE5zseMykAHaHa?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3
 ---
 
 ## Introduction: Look Professional Without Blowing Your Budget
@@ -74,6 +75,7 @@ Before spending a single pound or dollar, you must know **what “professional�
 **Common In:** Startups, creative industries, remote‑first companies.
 
 **[VIDEO: 60-second explainer – “Which Office Dress Code Do You Have?” showing side‑by‑side outfit examples]**
+https://encrypted-vtbn0.gstatic.com/video?q=tbn:ANd9GcRcuZzYJLwd2EJib3BAtaPxlVakii6Of8F1zg
 
 ---
 
@@ -113,7 +115,6 @@ You do not have to buy everything at once. It is better to:
 - 1 extra pair shoes  
 - 1 outerwear piece (trench or wool coat)  
 
-**[IMAGE: Simple bar chart showing three budget levels with example item counts]**
 
 ---
 
@@ -121,7 +122,6 @@ You do not have to buy everything at once. It is better to:
 
 This is a **core capsule** that can work for business professional and business casual environments.
 
-**[IMAGE: Flatlay of all 15 pieces labelled with numbers 1–15]**
 
 ### 1–3: Bottoms (3 Pieces)
 
@@ -156,6 +156,8 @@ These cover:
 
 **[IMAGE: Row of five tops on identical hangers, color‑coordinated from light to dark]**
 
+https://media.istockphoto.com/id/499555887/photo/closeup-with-color-coordinated-clothes-on-hangers-in-a-store.jpg?s=612x612&w=is&k=20&c=uXwsnFpqAz-7dmskRI3TRqhkLECN58YRSoAFd-q0YeM=
+
 ---
 
 ### 9–10: Layering Pieces (2 Pieces)
@@ -174,6 +176,7 @@ Cardigan = softer, more approachable, great for business casual.
 - Length: mid‑hip is most versatile  
 
 **[IMAGE: Diagram highlighting blazer fit points: shoulder, waist, length, sleeve]**
+https://img.myshopline.com/image/store/1696294396270/WhatsApp-Image-2023-12-30-at-8-12-53-PM-copy.jpeg?w=587&h=460
 
 ---
 
@@ -190,6 +193,7 @@ Look for:
 - Sleeves optional (you can add blazer or cardigan)  
 
 **[IMAGE: Two dresses on hangers: one solid dark sheath, one subtle print wrap dress]**
+https://as1.ftcdn.net/v2/jpg/16/09/21/40/1000_F_1609214099_mpyWhAUfhbiFSRsDFgRbUBsuLiO9vb3p.jpg
 
 ---
 
@@ -205,7 +209,8 @@ Heels do not need to be high. 1–2 inches is enough. Prioritize **comfort and s
 - Clarks, Naturalizer, Marks & Spencer for comfort  
 
 **[IMAGE: Close‑up of classic black and nude pumps side by side]**
-
+https://thumbs.dreamstime.com/b/woman-stiletto-high-heel-shoes-isolated-front-back-cross-side-black-124819089.jpg
+https://m.media-amazon.com/images/I/51pvyDBJWvL._AC_UY900_.jpg
 ---
 
 ### 15: Accessories (1–3 Items Count as 1 “Slot”)
@@ -218,6 +223,8 @@ Heels do not need to be high. 1–2 inches is enough. Prioritize **comfort and s
 These tiny details make your outfits look intentional and polished.
 
 **[IMAGE: Flatlay of belt, watch, studs, and necklace on neutral fabric background]**
+https://www.shutterstock.com/search/woman-watch-flat-lay
+https://thumbs.dreamstime.com/b/illustration-antique-jewelry-set-velvet-pocket-watches-necklace-bracelet-pearls-gemstones-vintage-gold-accessories-419882457.jpg
 
 ---
 
@@ -226,6 +233,9 @@ These tiny details make your outfits look intentional and polished.
 Now the fun part. Here is how to turn 15 pieces into **weeks of outfits**.
 
 **[IMAGE: 9‑tile grid showing 9 different work outfits built from the capsule]**
+https://www.pinterest.com/pin/9-pieces-9-outfits--518758450839446026/
+
+https://www.josephineeve.com/wp-content/uploads/2023/11/Back-to-Work-Wardrobe-for-New-Mums-600x748-1.jpg
 
 ### Classic Business Professional Combinations
 
@@ -281,7 +291,6 @@ Now the fun part. Here is how to turn 15 pieces into **weeks of outfits**.
 14. **Sheath Dress + Button‑Down Layered Underneath (collar visible)**  
 15. **Dress + Belt + No Blazer (if your office allows more casual)**  
 
-**[VIDEO: 30–45 sec “15 Office Outfits from 15 Pieces” reel, with quick transitions between looks]**
 
 ---
 
@@ -290,6 +299,7 @@ Now the fun part. Here is how to turn 15 pieces into **weeks of outfits**.
 You can build this entire capsule **without designer prices**.
 
 **[IMAGE: Map or collage of store logos: Uniqlo, H&M, Zara, Target, Primark, M&S, etc.]**
+https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEijOCDhoHyvsQ5wFc7-icEjPQtKs_-S0ceoQfdd1mN3oUzYO0joG9IgVzGJuk9vapp1G42Umu-1vU89XiqDgyxSEUYpV6WBcngpZO0M5fRFs85LOqH8qugKNJvA-UbG4j1gXu3SwmIg7_zm/s640/Marketing+Map+Image.jpg
 
 ### Budget–Friendly Stores (New)
 
@@ -312,6 +322,9 @@ Look especially for:
 - Higher‑end shoes and bags  
 
 **[IMAGE: Photo of curated rail in a consignment shop with blazers and dresses]**
+https://media.istockphoto.com/id/2231393096/photo/colorful-casual-shirts-hanging-in-clothing-store-rainbow-fashion-display.jpg?s=612x612&w=0&k=20&c=m33CUWvjfu4Qvgf_O4B-Y8mSplfUBpdJGk3VuI5PndA=
+
+https://media.istockphoto.com/id/2193809205/photo/clothing-rack-in-retail-store.jpg?s=612x612&w=0&k=20&c=rJAw4L9J6YWgNQWEpSxgpKngtgn8T_WExR6iaZeaf14=
 
 ---
 
@@ -327,7 +340,7 @@ Before you shop, stand in front of your wardrobe and ask:
 
 If yes, **reuse those** and adjust your shopping list. Do **not** duplicate items you already have in good condition.
 
-**[IMAGE: Closet with “Already Own” vs “Need to Buy” sticky notes on hangers]**
+
 
 ---
 
@@ -366,6 +379,8 @@ Spend **less** on:
 - Statement pieces you will not wear weekly  
 
 **[IMAGE: Cost‑per‑wear infographic comparing smart vs impulse purchases]**
+
+https://awisee.com/wp-content/uploads/2025/07/ChatGPT-Image-Aug-5-2025-10_47_37-AM-1024x683.png
 
 ---
 
@@ -412,7 +427,7 @@ You can combine this with your Article 3 body type work.
   - Keep tops simple, bottoms slightly more interesting  
 
 **[IMAGE: Simple 5‑body‑type infographic with best work silhouettes for each]**
-
+https://abbyyoungstyling.com/wp-content/uploads/2022/01/IMG_8574.jpg
 ---
 
 ## Step 8: Care and Maintenance (Make Clothes Last Longer)
@@ -435,7 +450,6 @@ Looking professional is not only about what you buy; it is also about how you **
 - Midweek: Quick spot‑clean and steam  
 - End of week: Wash, repair buttons, check scuffs on shoes  
 
-**[VIDEO: 45‑second “Sunday Night Work Outfit Prep Routine” – steaming, laying outfits out]**
 
 ---
 
@@ -443,7 +457,6 @@ Looking professional is not only about what you buy; it is also about how you **
 
 Here is an example of how you might allocate a **$500 (~£380)** budget:
 
-**[IMAGE: Table graphic showing each item + estimated price]**
 
 - Black trousers – $60  
 - Navy trousers – $60  
