@@ -14,6 +14,7 @@ from .utils.contact_manager import ContactManager
 from .utils.notification import NotificationManager
 from .connectors.telegram_connector import TelegramConnector
 from .connectors.whatsapp_connector import WhatsAppConnector
+from .connectors.userbot_connector import UserbotConnector
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ class BotManager:
 
     def __init__(self):
         self.telegram: Optional[TelegramConnector] = None
+        self.userbot: Optional[UserbotConnector] = None
         self.whatsapp: Optional[WhatsAppConnector] = None
         self.contact_manager: Optional[ContactManager] = None
         self._initialized = False
@@ -111,6 +113,43 @@ class BotManager:
             scam_reporter=scam_reporter,
         )
 
+        # Initialize Userbot connector (if configured)
+        userbot_enabled = os.getenv("USERBOT_ENABLED", "false").lower() == "true"
+        if userbot_enabled:
+            api_id_str = os.getenv("TELEGRAM_API_ID", "")
+            api_hash = os.getenv("TELEGRAM_API_HASH", "")
+
+            if not api_id_str or api_id_str == "your_api_id_here":
+                logger.warning(
+                    "USERBOT_ENABLED=true but TELEGRAM_API_ID not configured. "
+                    "Get it from https://my.telegram.org"
+                )
+            elif not api_hash or api_hash == "your_api_hash_here":
+                logger.warning(
+                    "USERBOT_ENABLED=true but TELEGRAM_API_HASH not configured. "
+                    "Get it from https://my.telegram.org"
+                )
+            else:
+                session_name = os.getenv("USERBOT_SESSION", "data/scamguard_userbot")
+                monitor_mode = os.getenv("USERBOT_MONITOR_MODE", "all_unknown")
+                auto_respond = os.getenv("USERBOT_AUTO_RESPOND", "true").lower() == "true"
+
+                self.userbot = UserbotConnector(
+                    api_id=int(api_id_str),
+                    api_hash=api_hash,
+                    owner_id=owner_id,
+                    session_name=session_name,
+                    scam_detector=scam_detector,
+                    scam_responder=scam_responder,
+                    legitimate_handler=legitimate_handler,
+                    contact_manager=self.contact_manager,
+                    notification_manager=notification_manager,
+                    scam_reporter=scam_reporter,
+                    monitor_mode=monitor_mode,
+                    auto_respond=auto_respond,
+                )
+                logger.info("Userbot connector initialized (mode=%s)", monitor_mode)
+
         # Initialize WhatsApp connector (if configured)
         whatsapp_enabled = os.getenv("WHATSAPP_ENABLED", "false").lower() == "true"
         if whatsapp_enabled:
@@ -133,6 +172,9 @@ class BotManager:
         if self.telegram:
             await self.telegram.start()
 
+        if self.userbot:
+            await self.userbot.start()
+
         if self.whatsapp and self.whatsapp.is_enabled:
             await self.whatsapp.start()
 
@@ -144,6 +186,9 @@ class BotManager:
 
         if self.telegram:
             await self.telegram.stop()
+
+        if self.userbot:
+            await self.userbot.stop()
 
         if self.whatsapp:
             await self.whatsapp.stop()

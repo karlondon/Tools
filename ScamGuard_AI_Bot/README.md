@@ -111,7 +111,7 @@ cd ~/scamguard
 pip install -r requirements.txt
 cp .env.example .env
 # Edit .env with your API keys (see AWS_LIGHTSAIL_DEPLOYMENT_GUIDE.md for details)
-python -m src.main
+python3 -m src.main
 ```
 
 **Alternative: Direct SCP from local machine (if you have the files already)**

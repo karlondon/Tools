@@ -4,6 +4,9 @@
 # Telegram Bot API
 python-telegram-bot[ext]==21.*
 
+# Telegram Userbot (monitors your personal account)
+telethon>=1.34.0
+
 # AI / LLM Integration
 openai>=1.0.0
 httpx>=0.25.0
