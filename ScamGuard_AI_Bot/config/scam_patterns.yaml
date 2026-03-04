@@ -1,0 +1,244 @@
+# ScamGuard AI Bot - Scam Pattern Database
+# These patterns are used for fast rule-based detection (Layer 1)
+# before AI analysis (Layer 2)
+
+# ============================================
+# KEYWORD PATTERNS
+# Each pattern has a weight (0.0-1.0) that contributes to the scam score
+# ============================================
+
+urgency_keywords:
+  weight: 0.3
+  patterns:
+    - "act now"
+    - "urgent"
+    - "immediately"
+    - "last chance"
+    - "expires today"
+    - "limited time"
+    - "don't delay"
+    - "time sensitive"
+    - "act fast"
+    - "hurry"
+    - "deadline"
+    - "final notice"
+    - "within 24 hours"
+    - "account will be closed"
+    - "suspended"
+
+financial_keywords:
+  weight: 0.4
+  patterns:
+    - "send money"
+    - "wire transfer"
+    - "western union"
+    - "moneygram"
+    - "bitcoin"
+    - "cryptocurrency"
+    - "investment opportunity"
+    - "guaranteed returns"
+    - "double your money"
+    - "bank account details"
+    - "routing number"
+    - "gift card"
+    - "itunes card"
+    - "google play card"
+    - "steam card"
+    - "processing fee"
+    - "advance fee"
+    - "inheritance"
+    - "lottery winner"
+    - "you have won"
+    - "claim your prize"
+    - "million dollars"
+    - "million pounds"
+    - "unclaimed funds"
+
+phishing_keywords:
+  weight: 0.5
+  patterns:
+    - "verify your account"
+    - "confirm your identity"
+    - "update your payment"
+    - "click here to verify"
+    - "login to your account"
+    - "your account has been compromised"
+    - "unusual activity"
+    - "security alert"
+    - "password expired"
+    - "reset your password"
+    - "confirm your details"
+    - "social security number"
+    - "national insurance number"
+
+romance_scam_keywords:
+  weight: 0.3
+  patterns:
+    - "i fell in love with you"
+    - "you are beautiful"
+    - "i am a soldier"
+    - "deployed overseas"
+    - "i need help with money"
+    - "stuck in another country"
+    - "can't access my funds"
+    - "i trust you"
+    - "god brought us together"
+    - "soulmate"
+    - "i'm a widow"
+    - "oil rig"
+    - "united nations"
+
+tech_support_keywords:
+  weight: 0.4
+  patterns:
+    - "your computer has a virus"
+    - "microsoft support"
+    - "apple support"
+    - "remote access"
+    - "teamviewer"
+    - "anydesk"
+    - "your device is infected"
+    - "we detected a problem"
+    - "tech support"
+    - "refund department"
+    - "overpayment"
+
+job_scam_keywords:
+  weight: 0.3
+  patterns:
+    - "work from home"
+    - "make money fast"
+    - "no experience needed"
+    - "earn £5000 per week"
+    - "earn $5000 per week"
+    - "secret shopper"
+    - "mystery shopper"
+    - "hiring immediately"
+    - "easy money"
+    - "passive income"
+    - "financial freedom"
+    - "be your own boss"
+    - "mlm"
+    - "network marketing opportunity"
+
+delivery_scam_keywords:
+  weight: 0.3
+  patterns:
+    - "failed delivery"
+    - "package waiting"
+    - "customs fee"
+    - "delivery charge"
+    - "reschedule delivery"
+    - "royal mail"
+    - "dhl shipment"
+    - "fedex delivery"
+    - "usps package"
+    - "tracking number"
+
+threat_keywords:
+  weight: 0.5
+  patterns:
+    - "legal action"
+    - "arrest warrant"
+    - "police will come"
+    - "you will be arrested"
+    - "hmrc"
+    - "irs"
+    - "tax fraud"
+    - "court summons"
+    - "lawsuit"
+    - "we have your photos"
+    - "we recorded you"
+    - "sextortion"
+    - "expose you"
+    - "your browsing history"
+
+# ============================================
+# URL PATTERNS
+# Suspicious URL characteristics
+# ============================================
+
+suspicious_url_patterns:
+  weight: 0.4
+  patterns:
+    - "bit\\.ly/"
+    - "tinyurl\\.com/"
+    - "t\\.co/"
+    - "goo\\.gl/"
+    - "rb\\.gy/"
+    - "is\\.gd/"
+    - "shorturl\\.at/"
+    - "\\.xyz/"
+    - "\\.top/"
+    - "\\.click/"
+    - "\\.loan/"
+    - "\\.work/"
+    - "login.*\\.php"
+    - "verify.*\\.html"
+    - "secure.*account"
+    - "paypal.*\\.(?!com)"
+    - "amazon.*\\.(?!com|co\\.uk)"
+    - "apple.*\\.(?!com)"
+    - "microsoft.*\\.(?!com)"
+
+# ============================================
+# MESSAGE STRUCTURE PATTERNS
+# Structural indicators of scam messages
+# ============================================
+
+structure_indicators:
+  excessive_caps:
+    weight: 0.1
+    description: "More than 30% of message is uppercase"
+    threshold: 0.3
+  
+  excessive_emojis:
+    weight: 0.1
+    description: "More than 10 emojis in a message"
+    threshold: 10
+  
+  excessive_exclamation:
+    weight: 0.1
+    description: "More than 3 exclamation marks"
+    threshold: 3
+  
+  contains_phone_number:
+    weight: 0.1
+    description: "Message contains a phone number from unknown contact"
+  
+  contains_url:
+    weight: 0.15
+    description: "Message contains a URL from unknown contact"
+  
+  very_first_message_asks_for_info:
+    weight: 0.3
+    description: "First message immediately asks for personal information"
+
+# ============================================
+# WHITELISTED PATTERNS
+# These reduce the scam score (indicate legitimacy)
+# ============================================
+
+legitimate_indicators:
+  professional_greeting:
+    weight: -0.2
+    patterns:
+      - "hi, i found your contact"
+      - "we met at"
+      - "referred by"
+      - "your colleague"
+      - "following up on"
+      - "regarding our meeting"
+  
+  specific_context:
+    weight: -0.3
+    description: "Message references specific shared context or mutual connections"
+  
+  business_context:
+    weight: -0.2
+    patterns:
+      - "regarding the project"
+      - "about the proposal"
+      - "meeting scheduled"
+      - "interview"
+      - "application"
