@@ -120,19 +120,41 @@ python3 --version
 
 ### Step 5: Deploy the ScamGuard Bot
 
+> **Note:** ScamGuard_AI_Bot is a subfolder inside the `karlondon/Tools` repository, not its own separate repo. Use one of the options below to get just the bot files onto your server.
+
+**Option A: Clone the repo and copy the subfolder (Recommended)**
+
 ```bash
-# Create a directory for the bot
-mkdir -p ~/scamguard && cd ~/scamguard
+# Clone the full Tools repo to a temp location
+cd /tmp
+git clone https://github.com/karlondon/Tools.git
 
-# Option A: Clone from your GitHub repo (if you pushed it)
-# git clone https://github.com/YOUR_USERNAME/ScamGuard_AI_Bot.git .
+# Copy just the ScamGuard_AI_Bot folder to your home directory
+cp -r /tmp/Tools/ScamGuard_AI_Bot ~/scamguard
 
-# Option B: Upload files using SCP from your computer
-# (Run this from YOUR computer, not the server)
-# scp -i ~/Downloads/LightsailDefaultKey.pem -r ScamGuard_AI_Bot/* ubuntu@YOUR_STATIC_IP:~/scamguard/
+# Clean up the temp clone
+rm -rf /tmp/Tools
+
+# Go to the bot directory
+cd ~/scamguard
 ```
 
-**If uploading from your Mac (run on your Mac, not the server):**
+**Option B: Use git sparse checkout (advanced, clones only the bot folder)**
+
+```bash
+mkdir ~/scamguard && cd ~/scamguard
+git init
+git remote add origin https://github.com/karlondon/Tools.git
+git config core.sparseCheckout true
+echo "ScamGuard_AI_Bot/*" >> .git/info/sparse-checkout
+git pull origin main
+# Move files up from the subfolder
+mv ScamGuard_AI_Bot/* . && mv ScamGuard_AI_Bot/.* . 2>/dev/null; rmdir ScamGuard_AI_Bot
+```
+
+**Option C: Upload files using SCP from your Mac**
+
+Run this from **your Mac** (not the server):
 ```bash
 cd "/Users/karthiksankaran/Library/CloudStorage/OneDrive-Deloitte(O365D)/Documents/___REPOS/PS-Scripts"
 scp -i ~/Downloads/LightsailDefaultKey.pem -r ScamGuard_AI_Bot/* ubuntu@YOUR_STATIC_IP:~/scamguard/
@@ -397,13 +419,17 @@ When you make changes to the code:
 # SSH into your server
 ssh -i ~/Downloads/LightsailDefaultKey.pem ubuntu@YOUR_STATIC_IP
 
-# If using git:
-cd ~/scamguard && git pull
-
-# If uploading manually (from your Mac):
+# Option A: If you deployed using SCP (Option C above), re-upload from your Mac:
+# (Run from your Mac, not the server)
 # scp -i ~/Downloads/LightsailDefaultKey.pem -r ScamGuard_AI_Bot/* ubuntu@YOUR_STATIC_IP:~/scamguard/
 
-# Restart the bot
+# Option B: If you deployed using git clone (Option A above), re-clone and copy:
+cd /tmp && rm -rf Tools
+git clone https://github.com/karlondon/Tools.git
+cp -r /tmp/Tools/ScamGuard_AI_Bot/* ~/scamguard/
+rm -rf /tmp/Tools
+
+# Then restart the bot
 sudo systemctl restart scamguard
 
 # Verify it's running

@@ -97,12 +97,26 @@ An intelligent bot system that automatically screens messages from unknown conta
 
 ### Installation
 
+> **Note:** ScamGuard_AI_Bot is a subfolder inside the [`karlondon/Tools`](https://github.com/karlondon/Tools) repository. You don't need to clone the entire repo — just extract this folder.
+
 ```bash
-cd ScamGuard_AI_Bot
+# Clone the Tools repo and extract only the ScamGuard_AI_Bot folder
+cd /tmp
+git clone https://github.com/karlondon/Tools.git
+cp -r /tmp/Tools/ScamGuard_AI_Bot ~/scamguard
+rm -rf /tmp/Tools
+
+# Set up the bot
+cd ~/scamguard
 pip install -r requirements.txt
 cp .env.example .env
-# Edit .env with your API keys
-python src/main.py
+# Edit .env with your API keys (see AWS_LIGHTSAIL_DEPLOYMENT_GUIDE.md for details)
+python -m src.main
+```
+
+**Alternative: Direct SCP from local machine (if you have the files already)**
+```bash
+scp -r ScamGuard_AI_Bot/* ubuntu@YOUR_SERVER_IP:~/scamguard/
 ```
 
 ### Mobile Access
