@@ -16,7 +16,8 @@ as if you sent them personally.
 import asyncio
 import logging
 import os
-from typing import Optional
+import time
+from typing import Optional, Set
 
 from telethon import TelegramClient, events
 from telethon.tl.types import User
@@ -29,6 +30,11 @@ from ..utils.contact_manager import ContactManager
 from ..utils.notification import NotificationManager
 
 logger = logging.getLogger(__name__)
+
+# Maximum messages to process per sender per minute (prevents loops)
+MAX_MESSAGES_PER_SENDER_PER_MINUTE = 3
+# Maximum total messages to process per minute across all senders
+MAX_TOTAL_MESSAGES_PER_MINUTE = 10
 
 
 class UserbotConnector:
@@ -43,6 +49,12 @@ class UserbotConnector:
     - For scams: auto-responds with time-wasting messages (appears as YOU typing)
     - For legitimate: sends polite auto-reply and notifies you via the bot
     - For known/whitelisted contacts: does nothing (lets messages through)
+
+    Safety features:
+    - ALWAYS ignores messages from bot accounts (prevents feedback loops)
+    - Ignores messages from the ScamGuard bot itself
+    - Rate limiting prevents runaway API costs
+    - Loop detection stops processing if too many messages from same sender
 
     Modes:
     - "all_unknown": Monitor messages from anyone not in your phone contacts
@@ -64,6 +76,7 @@ class UserbotConnector:
         scam_reporter: ScamReporter,
         monitor_mode: str = "all_unknown",
         auto_respond: bool = True,
+        excluded_ids: Optional[Set[str]] = None,
     ):
         self.api_id = api_id
         self.api_hash = api_hash
@@ -78,13 +91,21 @@ class UserbotConnector:
         self.monitor_mode = monitor_mode
         self.auto_respond = auto_respond
 
+        # IDs to always ignore (e.g., the ScamGuard bot's own ID)
+        self._excluded_ids: Set[str] = excluded_ids or set()
+
         self.client: Optional[TelegramClient] = None
+        self._my_id: Optional[int] = None
         self._my_contacts: set[int] = set()
         self._pending_responses: dict[str, asyncio.Task] = {}
 
+        # Rate limiting: {sender_id: [timestamps]}
+        self._message_timestamps: dict[str, list[float]] = {}
+        self._global_timestamps: list[float] = []
+
         logger.info(
-            "UserbotConnector initialized (mode=%s, auto_respond=%s)",
-            monitor_mode, auto_respond
+            "UserbotConnector initialized (mode=%s, auto_respond=%s, excluded_ids=%s)",
+            monitor_mode, auto_respond, self._excluded_ids
         )
 
     async def start(self) -> None:
@@ -103,6 +124,11 @@ class UserbotConnector:
         await self.client.start()
 
         me = await self.client.get_me()
+        if me:
+            self._my_id = me.id
+            # Also exclude our own user ID
+            self._excluded_ids.add(str(me.id))
+
         logger.info(
             "Userbot connected as: %s (ID: %s)",
             me.first_name if me else "Unknown",
@@ -119,8 +145,8 @@ class UserbotConnector:
         )
 
         logger.info(
-            "Userbot monitoring started (mode=%s, contacts=%d)",
-            self.monitor_mode, len(self._my_contacts)
+            "Userbot monitoring started (mode=%s, contacts=%d, excluded=%d IDs)",
+            self.monitor_mode, len(self._my_contacts), len(self._excluded_ids)
         )
 
         # Notify owner via bot
@@ -128,6 +154,7 @@ class UserbotConnector:
             "👁️ Userbot monitor is now active.\n"
             f"Mode: {self.monitor_mode}\n"
             f"Phone contacts loaded: {len(self._my_contacts)}\n"
+            f"Excluded IDs (bots/self): {len(self._excluded_ids)}\n"
             f"Auto-respond: {'ON' if self.auto_respond else 'OFF (notify only)'}"
         )
 
@@ -159,39 +186,100 @@ class UserbotConnector:
             logger.warning("Could not load contacts: %s", e)
             self._my_contacts = set()
 
+    def _is_rate_limited(self, sender_id: str) -> bool:
+        """Check if we've hit rate limits for this sender or globally."""
+        now = time.time()
+        one_minute_ago = now - 60
+
+        # Check per-sender rate limit
+        if sender_id in self._message_timestamps:
+            # Clean old timestamps
+            self._message_timestamps[sender_id] = [
+                t for t in self._message_timestamps[sender_id] if t > one_minute_ago
+            ]
+            if len(self._message_timestamps[sender_id]) >= MAX_MESSAGES_PER_SENDER_PER_MINUTE:
+                logger.warning(
+                    "[Userbot] Rate limited: sender %s sent %d messages in last minute (max %d)",
+                    sender_id,
+                    len(self._message_timestamps[sender_id]),
+                    MAX_MESSAGES_PER_SENDER_PER_MINUTE,
+                )
+                return True
+
+        # Check global rate limit
+        self._global_timestamps = [t for t in self._global_timestamps if t > one_minute_ago]
+        if len(self._global_timestamps) >= MAX_TOTAL_MESSAGES_PER_MINUTE:
+            logger.warning(
+                "[Userbot] Global rate limit hit: %d messages in last minute (max %d)",
+                len(self._global_timestamps),
+                MAX_TOTAL_MESSAGES_PER_MINUTE,
+            )
+            return True
+
+        return False
+
+    def _record_message(self, sender_id: str) -> None:
+        """Record a message timestamp for rate limiting."""
+        now = time.time()
+        if sender_id not in self._message_timestamps:
+            self._message_timestamps[sender_id] = []
+        self._message_timestamps[sender_id].append(now)
+        self._global_timestamps.append(now)
+
     def _should_monitor(self, sender: User) -> bool:
         """Determine if we should monitor messages from this sender."""
         sender_id = str(sender.id)
 
-        # Never monitor the owner's own messages
+        # ============================================
+        # CRITICAL: Prevent feedback loops
+        # ============================================
+
+        # 1. NEVER monitor bot accounts (this prevents the ScamGuard bot
+        #    or any other bot from being analyzed/responded to)
+        if getattr(sender, 'bot', False):
+            logger.debug(
+                "[Userbot] Ignoring message from bot account: %s (%s)",
+                sender.first_name, sender_id
+            )
+            return False
+
+        # 2. NEVER monitor explicitly excluded IDs (ScamGuard bot, self, etc.)
+        if sender_id in self._excluded_ids:
+            logger.debug(
+                "[Userbot] Ignoring message from excluded ID: %s", sender_id
+            )
+            return False
+
+        # 3. NEVER monitor the owner's own account
         if sender_id == self.owner_id:
             return False
+
+        # ============================================
+        # Standard filtering
+        # ============================================
 
         # Never monitor whitelisted contacts
         if self.contact_manager.is_known_contact(sender_id):
             return False
 
-        # Check blocked contacts - ignore silently
+        # Ignore blocked contacts silently
         if self.contact_manager.is_blocked(sender_id):
+            return False
+
+        # Check rate limiting
+        if self._is_rate_limited(sender_id):
             return False
 
         # Check based on monitor mode
         if self.monitor_mode == "all_private":
-            # Monitor ALL private messages except whitelisted
             return True
         elif self.monitor_mode == "non_contacts_only":
-            # Only monitor people NOT in phone contacts
             return sender.id not in self._my_contacts
         elif self.monitor_mode == "all_unknown":
-            # Monitor non-contacts AND contacts not in whitelist
-            # This is the most protective mode
             if sender.id in self._my_contacts:
-                # Phone contact but not whitelisted — optionally monitor
-                # For now, let phone contacts through
                 return False
             return True
         else:
-            # Default: monitor non-contacts
             return sender.id not in self._my_contacts
 
     async def _handle_incoming_message(self, event) -> None:
@@ -212,6 +300,9 @@ class UserbotConnector:
         if not sender_name:
             sender_name = sender.username or f"User-{sender_id}"
         message_text = event.message.text
+
+        # Record this message for rate limiting
+        self._record_message(sender_id)
 
         logger.info(
             "[Userbot] Message from %s (%s): %s",

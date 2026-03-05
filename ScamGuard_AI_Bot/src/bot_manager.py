@@ -134,6 +134,20 @@ class BotManager:
                 monitor_mode = os.getenv("USERBOT_MONITOR_MODE", "all_unknown")
                 auto_respond = os.getenv("USERBOT_AUTO_RESPOND", "true").lower() == "true"
 
+                # Extract the bot's user ID from the token to exclude it
+                # Bot tokens are formatted as: <bot_user_id>:<hash>
+                # This prevents the userbot from analyzing the bot's own messages
+                excluded_ids = set()
+                try:
+                    bot_user_id = bot_token.split(":")[0]
+                    excluded_ids.add(bot_user_id)
+                    logger.info("Bot user ID %s added to userbot exclusion list", bot_user_id)
+                except (ValueError, IndexError):
+                    logger.warning("Could not extract bot user ID from token")
+
+                # Also exclude the owner
+                excluded_ids.add(owner_id)
+
                 self.userbot = UserbotConnector(
                     api_id=int(api_id_str),
                     api_hash=api_hash,
@@ -147,8 +161,9 @@ class BotManager:
                     scam_reporter=scam_reporter,
                     monitor_mode=monitor_mode,
                     auto_respond=auto_respond,
+                    excluded_ids=excluded_ids,
                 )
-                logger.info("Userbot connector initialized (mode=%s)", monitor_mode)
+                logger.info("Userbot connector initialized (mode=%s, excluded_ids=%s)", monitor_mode, excluded_ids)
 
         # Initialize WhatsApp connector (if configured)
         whatsapp_enabled = os.getenv("WHATSAPP_ENABLED", "false").lower() == "true"
