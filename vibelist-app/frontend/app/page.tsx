@@ -1,40 +1,72 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
-interface Vibe { id:number; title:string; description:string; category:string; emoji:string; upvotes:number; created_at:string; author?:string; }
-interface User { id:number; email:string; display_name:string; subscription_status:string; }
+// Types
+interface Listing { id:number; title:string; description:string; category:string; city:string; price:string|null; contact_info:string|null; status:string; views:number; featured:boolean; created_at:string; updated_at:string; author?:string; author_id?:number; user_id?:number; image?:string; images?:{id:number;file_path:string;thumbnail_path:string|null;sort_order:number}[]; }
+interface User { id:number; email:string; display_name:string; subscription_status:string; is_admin?:boolean; }
+interface Message { id:number; sender_id:number; receiver_id:number; listing_id:number|null; message_text:string; read:boolean; created_at:string; sender_name?:string; }
 
-const CATS = ['all','food','outdoors','music','wellness','culture','nightlife','general'];
+const CATEGORIES = ['all','services','events','jobs','property','vehicles','electronics','fashion','beauty','health','community','other'];
+const CITIES = ['all','london','manchester','birmingham','leeds','glasgow','liverpool','bristol','edinburgh','cardiff','belfast','sheffield','nottingham','other'];
+const CAT_ICONS: Record<string,string> = {all:'🌐',services:'🔧',events:'🎉',jobs:'💼',property:'🏠',vehicles:'🚗',electronics:'💻',fashion:'👗',beauty:'💄',health:'💪',community:'🤝',other:'📦'};
+const CITY_ICONS: Record<string,string> = {all:'🌍',london:'🇬🇧',manchester:'⚽',birmingham:'🏭',leeds:'🦁',glasgow:'🏴󠁧󠁢󠁳󠁣󠁴󠁿',liverpool:'🎸',bristol:'🌉',edinburgh:'🏰',cardiff:'🐉',belfast:'☘️',sheffield:'⚒️',nottingham:'🏹',other:'📍'};
+const EMOJIS = ['✨','🔥','💎','⭐','🎯','💡','🚀','❤️','🎨','🎵','🌟','💰','📸','🏆','🌈','🍕','🎁','🔑','💼','🏠','🚗','💻','👗','💄','💪','🤝','📦','🎉','🔧','📍'];
 const API = '/api';
+
+// Styles
 const S: Record<string,React.CSSProperties> = {
-  inp: {width:'100%',padding:12,marginBottom:10,background:'#222',color:'#fff',border:'1px solid #333',borderRadius:8,boxSizing:'border-box' as const,fontSize:'0.95rem'},
-  btn: {width:'100%',padding:14,background:'#6366f1',color:'#fff',border:'none',borderRadius:12,fontSize:'1rem',cursor:'pointer',fontWeight:600},
-  card: {background:'#1a1a1a',padding:20,borderRadius:12,marginBottom:20},
+  inp: {width:'100%',padding:'12px 14px',marginBottom:10,background:'#181818',color:'#fff',border:'1px solid #2a2a2a',borderRadius:10,boxSizing:'border-box' as const,fontSize:'0.95rem',outline:'none',transition:'border 0.2s'},
+  btn: {width:'100%',padding:14,background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',border:'none',borderRadius:12,fontSize:'1rem',cursor:'pointer',fontWeight:600,transition:'opacity 0.2s'},
+  btnSec: {padding:'10px 20px',background:'transparent',color:'#888',border:'1px solid #333',borderRadius:10,cursor:'pointer',fontSize:'0.9rem',transition:'all 0.2s'},
+  card: {background:'#141414',padding:24,borderRadius:16,marginBottom:16,border:'1px solid #1e1e1e',transition:'border 0.2s'},
+  tag: {display:'inline-block',padding:'4px 12px',borderRadius:20,fontSize:'0.8rem',fontWeight:500},
 };
 
 export default function Home() {
-  const [vibes, setVibes] = useState<Vibe[]>([]);
-  const [filter, setFilter] = useState('all');
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({title:'',description:'',category:'general',emoji:'✨'});
+  // State
+  const [listings, setListings] = useState<Listing[]>([]);
+  const [catFilter, setCatFilter] = useState('all');
+  const [cityFilter, setCityFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User|null>(null);
   const [token, setToken] = useState('');
-  const [view, setView] = useState<'home'|'login'|'register'|'subscribe'>('home');
+  const [view, setView] = useState<'home'|'login'|'register'|'subscribe'|'create'|'detail'|'my-listings'|'messages'|'admin'>('home');
   const [af, setAf] = useState({email:'',password:'',name:'',dob_d:'',dob_m:'',dob_y:''});
   const [err, setErr] = useState('');
+  const [selectedListing, setSelectedListing] = useState<Listing|null>(null);
+  const [myListings, setMyListings] = useState<Listing[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [adminListings, setAdminListings] = useState<Listing[]>([]);
+  const [adminStats, setAdminStats] = useState<any>(null);
+  const [msgText, setMsgText] = useState('');
+  const [page, setPage] = useState(1);
 
+  // Create form state
+  const [form, setForm] = useState({title:'',description:'',category:'services',city:'london',price:'',contact_info:'',emoji:'✨'});
+  const [formImages, setFormImages] = useState<string[]>([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // Auth init
   useEffect(() => {
     const t = localStorage.getItem('vl_token');
     if (t) { setToken(t); fetch(`${API}/auth/me`,{headers:{Authorization:`Bearer ${t}`}}).then(r=>r.ok?r.json():null).then(u=>{if(u)setUser(u);else{localStorage.removeItem('vl_token');setToken('');}}).catch(()=>{}); }
   }, []);
 
-  const fetchVibes = useCallback(async () => {
-    try { const u = filter==='all'?`${API}/vibes`:`${API}/vibes/category/${filter}`; const r=await fetch(u); if(r.ok)setVibes(await r.json()); } catch{} finally{setLoading(false);}
-  }, [filter]);
-  useEffect(() => { fetchVibes(); }, [fetchVibes]);
+  // Fetch listings
+  const fetchListings = useCallback(async () => {
+    try {
+      let url = `${API}/listings?page=${page}&limit=20`;
+      if (catFilter !== 'all') url += `&category=${catFilter}`;
+      if (cityFilter !== 'all') url += `&city=${cityFilter}`;
+      const r = await fetch(url);
+      if (r.ok) { const d = await r.json(); setListings(d.listings || []); }
+    } catch {} finally { setLoading(false); }
+  }, [catFilter, cityFilter, page]);
+  useEffect(() => { fetchListings(); }, [fetchListings]);
 
-  // Check PayPal return
+  // PayPal return handler
   useEffect(() => {
     const p = new URLSearchParams(window.location.search);
     const sid = p.get('subscription_id');
@@ -44,6 +76,7 @@ export default function Home() {
     }
   }, [token]);
 
+  // Auth handler
   const doAuth = async (e:React.FormEvent) => {
     e.preventDefault(); setErr('');
     const isReg = view==='register';
@@ -57,38 +90,122 @@ export default function Home() {
 
   const logout = () => { setUser(null); setToken(''); localStorage.removeItem('vl_token'); setView('home'); };
 
-  const postVibe = async (e:React.FormEvent) => {
-    e.preventDefault();
-    const r = await fetch(`${API}/vibes`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify(form)});
-    if (r.ok) { setForm({title:'',description:'',category:'general',emoji:'✨'}); setShowForm(false); fetchVibes(); }
-    else { const d=await r.json(); if(d.code==='NO_SUBSCRIPTION')setView('subscribe'); else alert(d.error||'Failed'); }
+  // Image handling
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+    Array.from(files).forEach(file => {
+      if (formImages.length >= 5) return;
+      if (file.size > 5 * 1024 * 1024) { alert('Image must be under 5MB'); return; }
+      const reader = new FileReader();
+      reader.onload = () => { setFormImages(prev => prev.length < 5 ? [...prev, reader.result as string] : prev); };
+      reader.readAsDataURL(file);
+    });
+    if (fileRef.current) fileRef.current.value = '';
   };
 
-  const upvote = async (id: number) => {
-    await fetch(`${API}/vibes/${id}/upvote`, { method: 'POST' });
-    fetchVibes();
+  const removeImage = (idx: number) => { setFormImages(prev => prev.filter((_,i) => i !== idx)); };
+
+  // Insert emoji into description
+  const insertEmoji = (emoji: string) => { setForm(f => ({...f, description: f.description + emoji})); setShowEmojiPicker(false); };
+
+  // Create listing
+  const createListing = async (e:React.FormEvent) => {
+    e.preventDefault(); setUploading(true); setErr('');
+    try {
+      const r = await fetch(`${API}/listings`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({
+        title: `${form.emoji} ${form.title}`,
+        description: form.description,
+        category: form.category,
+        city: form.city,
+        price: form.price ? parseFloat(form.price) : null,
+        contact_info: form.contact_info || null,
+      })});
+      if (!r.ok) { const d = await r.json(); if (d.code === 'NO_SUBSCRIPTION') { setView('subscribe'); return; } setErr(d.error || 'Failed to create listing'); return; }
+      const listing = await r.json();
+      // Upload images
+      for (const img of formImages) {
+        await fetch(`${API}/listings/${listing.id}/images`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({image_data:img})});
+      }
+      setForm({title:'',description:'',category:'services',city:'london',price:'',contact_info:'',emoji:'✨'});
+      setFormImages([]);
+      setView('home');
+      fetchListings();
+    } catch { setErr('Failed to create listing'); } finally { setUploading(false); }
+  };
+
+  // View listing detail
+  const viewListing = async (id: number) => {
+    try {
+      const r = await fetch(`${API}/listings/${id}`);
+      if (r.ok) { setSelectedListing(await r.json()); setView('detail'); }
+    } catch {}
+  };
+
+  // My listings
+  const fetchMyListings = async () => {
+    const r = await fetch(`${API}/listings/user/mine`,{headers:{Authorization:`Bearer ${token}`}});
+    if (r.ok) setMyListings(await r.json());
+  };
+
+  // Messages
+  const fetchMessages = async () => {
+    const r = await fetch(`${API}/messages`,{headers:{Authorization:`Bearer ${token}`}});
+    if (r.ok) setMessages(await r.json());
+  };
+
+  const sendMessage = async (receiverId: number, listingId?: number) => {
+    if (!msgText.trim()) return;
+    await fetch(`${API}/messages`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({receiver_id:receiverId,listing_id:listingId,message_text:msgText})});
+    setMsgText('');
+    alert('📨 Message sent!');
+  };
+
+  // Admin
+  const fetchAdmin = async () => {
+    const [l, s] = await Promise.all([
+      fetch(`${API}/admin/listings?status=pending`,{headers:{Authorization:`Bearer ${token}`}}).then(r=>r.json()),
+      fetch(`${API}/admin/stats`,{headers:{Authorization:`Bearer ${token}`}}).then(r=>r.json()),
+    ]);
+    setAdminListings(l);
+    setAdminStats(s);
+  };
+
+  const adminAction = async (id: number, action: 'approve'|'reject') => {
+    await fetch(`${API}/admin/listings/${id}/${action}`,{method:'POST',headers:{Authorization:`Bearer ${token}`}});
+    fetchAdmin();
   };
 
   const startPayPal = async () => {
     const r = await fetch(`${API}/subscription/paypal/create`,{method:'POST',headers:{Authorization:`Bearer ${token}`}});
     const d = await r.json();
     if (d.approve_url) window.location.href = d.approve_url;
-    else alert(d.error || 'PayPal not configured yet. Contact support for manual activation.');
+    else alert(d.error || 'PayPal not configured. Contact support@vibelist.uk');
   };
 
+  const deleteListing = async (id: number) => {
+    if (!confirm('Delete this listing?')) return;
+    await fetch(`${API}/listings/${id}`,{method:'DELETE',headers:{Authorization:`Bearer ${token}`}});
+    fetchMyListings();
+    if (view === 'detail') { setView('home'); fetchListings(); }
+  };
+
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  const formatPrice = (p: string|null) => p ? `£${parseFloat(p).toFixed(2)}` : 'Free';
+
   // ========== AUTH VIEWS ==========
-  if (view==='login'||view==='register') return (
+  if (view === 'login' || view === 'register') return (
     <div style={{maxWidth:440,margin:'0 auto',padding:20}}>
-      <h1 style={{textAlign:'center',fontSize:'2.5rem',margin:'40px 0 10px'}}>✨ VibeList</h1>
+      <h1 style={{textAlign:'center',fontSize:'2.5rem',margin:'40px 0 10px',background:'linear-gradient(135deg,#6366f1,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>✨ VibeList</h1>
       <div style={S.card}>
-        <h2 style={{margin:'0 0 20px',textAlign:'center'}}>{view==='login'?'Sign In':'Create Account'}</h2>
-        {err && <p style={{color:'#ef4444',textAlign:'center',margin:'0 0 10px'}}>{err}</p>}
+        <h2 style={{margin:'0 0 20px',textAlign:'center'}}>{view==='login'?'Welcome Back':'Create Account'}</h2>
+        {err && <p style={{color:'#ef4444',textAlign:'center',margin:'0 0 10px',fontSize:'0.9rem'}}>{err}</p>}
         <form onSubmit={doAuth}>
           {view==='register' && <input placeholder="Display name" value={af.name} onChange={e=>setAf({...af,name:e.target.value})} style={S.inp} />}
           <input placeholder="Email" type="email" required value={af.email} onChange={e=>setAf({...af,email:e.target.value})} style={S.inp} />
-          <input placeholder="Password (8+ chars)" type="password" required minLength={8} value={af.password} onChange={e=>setAf({...af,password:e.target.value})} style={S.inp} />
+          <input placeholder="Password (8+ characters)" type="password" required minLength={8} value={af.password} onChange={e=>setAf({...af,password:e.target.value})} style={S.inp} />
           {view==='register' && (<>
-            <p style={{color:'#aaa',margin:'10px 0 6px',fontSize:'0.85rem'}}>Date of Birth (must be 18+)</p>
+            <p style={{color:'#888',margin:'10px 0 6px',fontSize:'0.85rem'}}>📅 Date of Birth (must be 18+)</p>
             <div style={{display:'flex',gap:8,marginBottom:10}}>
               <input placeholder="DD" required maxLength={2} value={af.dob_d} onChange={e=>setAf({...af,dob_d:e.target.value})} style={{...S.inp,width:'30%',textAlign:'center'}} />
               <input placeholder="MM" required maxLength={2} value={af.dob_m} onChange={e=>setAf({...af,dob_m:e.target.value})} style={{...S.inp,width:'30%',textAlign:'center'}} />
@@ -101,112 +218,378 @@ export default function Home() {
           {view==='login'?<>No account? <span style={{color:'#6366f1',cursor:'pointer'}} onClick={()=>{setView('register');setErr('');}}>Register</span></>
             :<>Have an account? <span style={{color:'#6366f1',cursor:'pointer'}} onClick={()=>{setView('login');setErr('');}}>Sign in</span></>}
         </p>
-        <p style={{textAlign:'center',marginTop:8}}><span style={{color:'#666',cursor:'pointer'}} onClick={()=>setView('home')}>← Back to vibes</span></p>
+        <p style={{textAlign:'center',marginTop:8}}><span style={{color:'#555',cursor:'pointer'}} onClick={()=>setView('home')}>← Back</span></p>
       </div>
     </div>
   );
 
   // ========== SUBSCRIBE VIEW ==========
-  if (view==='subscribe') return (
+  if (view === 'subscribe') return (
     <div style={{maxWidth:500,margin:'0 auto',padding:20}}>
-      <h1 style={{textAlign:'center',fontSize:'2.5rem',margin:'40px 0 10px'}}>✨ VibeList Pro</h1>
+      <h1 style={{textAlign:'center',fontSize:'2.5rem',margin:'40px 0 10px',background:'linear-gradient(135deg,#6366f1,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>✨ VibeList Pro</h1>
       <div style={S.card}>
-        <h2 style={{textAlign:'center',margin:'0 0 10px'}}>Subscription Required</h2>
-        <p style={{textAlign:'center',color:'#aaa',margin:'0 0 20px'}}>Post listings and access premium features</p>
-        <div style={{background:'#222',borderRadius:12,padding:20,textAlign:'center',marginBottom:20}}>
-          <p style={{fontSize:'2.5rem',fontWeight:700,margin:'0 0 4px'}}>£25<span style={{fontSize:'1rem',color:'#888'}}>/month</span></p>
-          <ul style={{listStyle:'none',padding:0,margin:'16px 0',textAlign:'left'}}>
-            <li style={{padding:'6px 0',color:'#ccc'}}>✅ Post unlimited listings</li>
-            <li style={{padding:'6px 0',color:'#ccc'}}>✅ Featured placement</li>
-            <li style={{padding:'6px 0',color:'#ccc'}}>✅ Direct messaging</li>
-            <li style={{padding:'6px 0',color:'#ccc'}}>✅ Analytics dashboard</li>
+        <h2 style={{textAlign:'center',margin:'0 0 10px'}}>🚀 Unlock Full Access</h2>
+        <p style={{textAlign:'center',color:'#888',margin:'0 0 20px'}}>Post listings, upload images, and connect with buyers</p>
+        <div style={{background:'#1a1a1a',borderRadius:12,padding:24,textAlign:'center',marginBottom:20,border:'1px solid #2a2a2a'}}>
+          <p style={{fontSize:'2.5rem',fontWeight:700,margin:'0 0 4px'}}>£25<span style={{fontSize:'1rem',color:'#666'}}>/month</span></p>
+          <ul style={{listStyle:'none',padding:0,margin:'16px 0',textAlign:'left',maxWidth:280,marginLeft:'auto',marginRight:'auto'}}>
+            {['📝 Post unlimited listings','📸 Upload up to 5 images each','💬 Direct messaging','🎯 Featured placement','📊 Analytics dashboard','🛡️ Priority support'].map(f=>
+              <li key={f} style={{padding:'8px 0',color:'#ccc',fontSize:'0.95rem'}}>{f}</li>)}
           </ul>
         </div>
-        <button onClick={startPayPal} style={{...S.btn,background:'#0070ba',marginBottom:10}}>💳 Subscribe with PayPal</button>
-        <div style={{textAlign:'center',margin:'16px 0',color:'#666'}}>
-          <p style={{fontSize:'0.85rem'}}>🪙 <strong>Crypto payment?</strong> Contact us at <span style={{color:'#6366f1'}}>support@vibelist.uk</span></p>
-          <p style={{fontSize:'0.85rem'}}>We accept BTC, ETH via manual activation</p>
+        <button onClick={startPayPal} style={{...S.btn,background:'linear-gradient(135deg,#0070ba,#00457c)',marginBottom:12}}>💳 Subscribe with PayPal</button>
+        <div style={{textAlign:'center',margin:'16px 0',color:'#555',fontSize:'0.85rem'}}>
+          <p>🪙 <strong>Crypto payment?</strong> Contact <span style={{color:'#6366f1'}}>support@vibelist.uk</span></p>
+          <p>We accept BTC, ETH via manual activation</p>
         </div>
-        <button onClick={()=>setView('home')} style={{...S.btn,background:'transparent',border:'1px solid #333',marginTop:10}}>← Back</button>
+        <button onClick={()=>setView('home')} style={{...S.btnSec,width:'100%',marginTop:10}}>← Back</button>
       </div>
     </div>
   );
 
+  // ========== CREATE LISTING VIEW ==========
+  if (view === 'create') return (
+    <div style={{maxWidth:640,margin:'0 auto',padding:20}}>
+      <h1 style={{textAlign:'center',fontSize:'2rem',margin:'30px 0 10px'}}>📝 Create a Listing</h1>
+      <p style={{textAlign:'center',color:'#888',marginBottom:24}}>Share what you&apos;re offering with the community</p>
+      {err && <p style={{color:'#ef4444',textAlign:'center',margin:'0 0 10px'}}>{err}</p>}
+      <form onSubmit={createListing} style={S.card}>
+        {/* Emoji + Title */}
+        <label style={{color:'#888',fontSize:'0.85rem',marginBottom:4,display:'block'}}>Title *</label>
+        <div style={{display:'flex',gap:8,marginBottom:10}}>
+          <div style={{position:'relative'}}>
+            <button type="button" onClick={()=>setShowEmojiPicker(!showEmojiPicker)} style={{width:50,height:48,background:'#181818',border:'1px solid #2a2a2a',borderRadius:10,fontSize:'1.5rem',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}>{form.emoji}</button>
+            {showEmojiPicker && (
+              <div style={{position:'absolute',top:54,left:0,background:'#1a1a1a',border:'1px solid #333',borderRadius:12,padding:12,display:'grid',gridTemplateColumns:'repeat(6,1fr)',gap:6,zIndex:100,width:240}}>
+                {EMOJIS.map(e=><button key={e} type="button" onClick={()=>insertEmoji(e)} style={{background:'none',border:'none',fontSize:'1.4rem',cursor:'pointer',padding:6,borderRadius:8,transition:'background 0.2s'}} onMouseOver={ev=>(ev.target as HTMLElement).style.background='#333'} onMouseOut={ev=>(ev.target as HTMLElement).style.background='none'}>{e}</button>)}
+              </div>
+            )}
+          </div>
+          <input placeholder="e.g. Professional Photography Services" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} required minLength={5} style={{...S.inp,flex:1,marginBottom:0}} />
+        </div>
+
+        {/* Description with formatting toolbar */}
+        <label style={{color:'#888',fontSize:'0.85rem',marginBottom:4,display:'block'}}>Description *</label>
+        <div style={{marginBottom:10}}>
+          <div style={{display:'flex',gap:4,marginBottom:6,flexWrap:'wrap'}}>
+            {['✅','⭐','📍','📞','💰','🕐','🔗','❤️','🎯','💡'].map(e=>
+              <button key={e} type="button" onClick={()=>setForm(f=>({...f,description:f.description+e}))} style={{background:'#1a1a1a',border:'1px solid #2a2a2a',borderRadius:6,padding:'4px 8px',fontSize:'1rem',cursor:'pointer'}} title={`Insert ${e}`}>{e}</button>
+            )}
+            <button type="button" onClick={()=>setForm(f=>({...f,description:f.description+'\n• '}))} style={{background:'#1a1a1a',border:'1px solid #2a2a2a',borderRadius:6,padding:'4px 10px',fontSize:'0.8rem',cursor:'pointer',color:'#888'}}>• List</button>
+            <button type="button" onClick={()=>setForm(f=>({...f,description:f.description+'\n---\n'}))} style={{background:'#1a1a1a',border:'1px solid #2a2a2a',borderRadius:6,padding:'4px 10px',fontSize:'0.8rem',cursor:'pointer',color:'#888'}}>— Line</button>
+          </div>
+          <textarea placeholder={'Describe your listing in detail...\n\n✅ What you offer\n📍 Location details\n💰 Pricing info\n📞 How to contact you'} value={form.description} onChange={e=>setForm({...form,description:e.target.value})} required minLength={10} rows={8} style={{...S.inp,resize:'vertical',minHeight:160,lineHeight:1.6}} />
+          <p style={{color:'#555',fontSize:'0.75rem',margin:'4px 0 0',textAlign:'right'}}>{form.description.length} characters</p>
+        </div>
+
+        {/* Category & City */}
+        <div style={{display:'flex',gap:10,marginBottom:10}}>
+          <div style={{flex:1}}>
+            <label style={{color:'#888',fontSize:'0.85rem',marginBottom:4,display:'block'}}>Category *</label>
+            <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})} style={S.inp}>
+              {CATEGORIES.filter(c=>c!=='all').map(c=><option key={c} value={c}>{CAT_ICONS[c]} {c.charAt(0).toUpperCase()+c.slice(1)}</option>)}
+            </select>
+          </div>
+          <div style={{flex:1}}>
+            <label style={{color:'#888',fontSize:'0.85rem',marginBottom:4,display:'block'}}>City *</label>
+            <select value={form.city} onChange={e=>setForm({...form,city:e.target.value})} style={S.inp}>
+              {CITIES.filter(c=>c!=='all').map(c=><option key={c} value={c}>{CITY_ICONS[c]} {c.charAt(0).toUpperCase()+c.slice(1)}</option>)}
+            </select>
+          </div>
+        </div>
+
+        {/* Price & Contact */}
+        <div style={{display:'flex',gap:10,marginBottom:10}}>
+          <div style={{flex:1}}>
+            <label style={{color:'#888',fontSize:'0.85rem',marginBottom:4,display:'block'}}>Price (£)</label>
+            <input type="number" step="0.01" min="0" placeholder="0.00 (leave blank for free)" value={form.price} onChange={e=>setForm({...form,price:e.target.value})} style={S.inp} />
+          </div>
+          <div style={{flex:1}}>
+            <label style={{color:'#888',fontSize:'0.85rem',marginBottom:4,display:'block'}}>Contact Info</label>
+            <input placeholder="Email, phone, or website" value={form.contact_info} onChange={e=>setForm({...form,contact_info:e.target.value})} style={S.inp} />
+          </div>
+        </div>
+
+        {/* Image Upload */}
+        <label style={{color:'#888',fontSize:'0.85rem',marginBottom:8,display:'block'}}>📸 Images (up to 5)</label>
+        <div style={{display:'flex',gap:10,flexWrap:'wrap',marginBottom:16}}>
+          {formImages.map((img,i) => (
+            <div key={i} style={{position:'relative',width:100,height:100,borderRadius:10,overflow:'hidden',border:'1px solid #2a2a2a'}}>
+              <img src={img} alt="" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+              <button type="button" onClick={()=>removeImage(i)} style={{position:'absolute',top:4,right:4,background:'rgba(0,0,0,0.7)',color:'#fff',border:'none',borderRadius:'50%',width:24,height:24,cursor:'pointer',fontSize:'0.8rem',display:'flex',alignItems:'center',justifyContent:'center'}}>✕</button>
+            </div>
+          ))}
+          {formImages.length < 5 && (
+            <button type="button" onClick={()=>fileRef.current?.click()} style={{width:100,height:100,background:'#181818',border:'2px dashed #333',borderRadius:10,cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',color:'#666',fontSize:'0.8rem',gap:4}}>
+              <span style={{fontSize:'1.5rem'}}>📷</span>
+              Add Photo
+            </button>
+          )}
+        </div>
+        <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={handleImageSelect} style={{display:'none'}} />
+
+        <button type="submit" disabled={uploading} style={{...S.btn,opacity:uploading?0.6:1}}>{uploading ? '⏳ Creating...' : '🚀 Publish Listing'}</button>
+        <button type="button" onClick={()=>{setView('home');setErr('');}} style={{...S.btnSec,width:'100%',marginTop:10}}>Cancel</button>
+      </form>
+    </div>
+  );
+
+  // ========== LISTING DETAIL VIEW ==========
+  if (view === 'detail' && selectedListing) {
+    const l = selectedListing;
+    return (
+      <div style={{maxWidth:700,margin:'0 auto',padding:20}}>
+        <button onClick={()=>{setView('home');setSelectedListing(null);}} style={{...S.btnSec,marginBottom:20}}>← Back to listings</button>
+        <div style={S.card}>
+          {/* Images gallery */}
+          {l.images && l.images.length > 0 && (
+            <div style={{display:'flex',gap:8,marginBottom:20,overflowX:'auto',paddingBottom:8}}>
+              {l.images.map((img,i) => (
+                <img key={i} src={`/uploads/${img.file_path}`} alt="" style={{width:l.images!.length===1?'100%':280,height:220,objectFit:'cover',borderRadius:12,flexShrink:0}} />
+              ))}
+            </div>
+          )}
+
+          <div style={{display:'flex',gap:8,marginBottom:12,flexWrap:'wrap'}}>
+            <span style={{...S.tag,background:'#1e1b4b',color:'#818cf8'}}>{CAT_ICONS[l.category]} {l.category}</span>
+            <span style={{...S.tag,background:'#1a1a2e',color:'#888'}}>{CITY_ICONS[l.city] || '📍'} {l.city}</span>
+            <span style={{...S.tag,background:'#1a1a2e',color:'#666'}}>👁 {l.views} views</span>
+            {l.status === 'pending' && <span style={{...S.tag,background:'#422006',color:'#f59e0b'}}>⏳ Pending approval</span>}
+          </div>
+
+          <h1 style={{margin:'0 0 12px',fontSize:'1.8rem',lineHeight:1.3}}>{l.title}</h1>
+          <p style={{color:'#aaa',fontSize:'1rem',lineHeight:1.8,whiteSpace:'pre-wrap',margin:'0 0 20px'}}>{l.description}</p>
+
+          <div style={{background:'#1a1a1a',borderRadius:12,padding:16,marginBottom:16}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+              <div>
+                <p style={{margin:'0 0 4px',fontSize:'1.4rem',fontWeight:700,color:'#22c55e'}}>{formatPrice(l.price)}</p>
+                <p style={{margin:0,color:'#666',fontSize:'0.85rem'}}>Posted by <strong style={{color:'#aaa'}}>{l.author || 'Anonymous'}</strong> on {formatDate(l.created_at)}</p>
+              </div>
+              {l.contact_info && <p style={{margin:0,color:'#6366f1',fontSize:'0.9rem'}}>📞 {l.contact_info}</p>}
+            </div>
+          </div>
+
+          {/* Message seller */}
+          {user && l.author_id && l.author_id !== user.id && (
+            <div style={{marginBottom:16}}>
+              <h3 style={{margin:'0 0 8px',fontSize:'1rem',color:'#888'}}>💬 Message the seller</h3>
+              <div style={{display:'flex',gap:8}}>
+                <input placeholder="Type your message..." value={msgText} onChange={e=>setMsgText(e.target.value)} style={{...S.inp,flex:1,marginBottom:0}} />
+                <button onClick={()=>sendMessage(l.author_id!, l.id)} style={{padding:'12px 20px',background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',border:'none',borderRadius:10,cursor:'pointer',fontWeight:600}}>Send</button>
+              </div>
+            </div>
+          )}
+
+          {/* Owner/Admin actions */}
+          {user && (l.user_id === user.id || user.is_admin) && (
+            <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+              {user.is_admin && l.status === 'pending' && <>
+                <button onClick={()=>{adminAction(l.id,'approve');setSelectedListing({...l,status:'approved'});}} style={{padding:'10px 20px',background:'#22c55e',color:'#fff',border:'none',borderRadius:10,cursor:'pointer'}}>✅ Approve</button>
+                <button onClick={()=>{adminAction(l.id,'reject');setView('home');}} style={{padding:'10px 20px',background:'#ef4444',color:'#fff',border:'none',borderRadius:10,cursor:'pointer'}}>❌ Reject</button>
+              </>}
+              <button onClick={()=>deleteListing(l.id)} style={{padding:'10px 20px',background:'#7f1d1d',color:'#fca5a5',border:'none',borderRadius:10,cursor:'pointer'}}>🗑 Delete</button>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ========== MY LISTINGS VIEW ==========
+  if (view === 'my-listings') {
+    if (myListings.length === 0 && loading) fetchMyListings();
+    return (
+      <div style={{maxWidth:700,margin:'0 auto',padding:20}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+          <h1 style={{margin:0}}>📋 My Listings</h1>
+          <button onClick={()=>setView('home')} style={S.btnSec}>← Back</button>
+        </div>
+        {myListings.length === 0 ? <p style={{color:'#666',textAlign:'center',padding:40}}>No listings yet. Create your first one!</p> :
+          myListings.map(l => (
+            <div key={l.id} style={{...S.card,display:'flex',gap:16,alignItems:'center',cursor:'pointer'}} onClick={()=>viewListing(l.id)}>
+              {l.image ? <img src={`/uploads/${l.image}`} alt="" style={{width:80,height:80,objectFit:'cover',borderRadius:10}} /> :
+                <div style={{width:80,height:80,background:'#1a1a1a',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'2rem'}}>{CAT_ICONS[l.category]}</div>}
+              <div style={{flex:1}}>
+                <h3 style={{margin:'0 0 4px'}}>{l.title}</h3>
+                <div style={{display:'flex',gap:8,flexWrap:'wrap'}}>
+                  <span style={{...S.tag,background: l.status==='approved'?'#052e16':'#422006',color:l.status==='approved'?'#22c55e':'#f59e0b'}}>{l.status}</span>
+                  <span style={{color:'#666',fontSize:'0.8rem'}}>👁 {l.views} views</span>
+                </div>
+              </div>
+              <span style={{color:'#22c55e',fontWeight:700}}>{formatPrice(l.price)}</span>
+            </div>
+          ))}
+      </div>
+    );
+  }
+
+  // ========== MESSAGES VIEW ==========
+  if (view === 'messages') {
+    if (messages.length === 0) fetchMessages();
+    return (
+      <div style={{maxWidth:700,margin:'0 auto',padding:20}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+          <h1 style={{margin:0}}>💬 Messages</h1>
+          <button onClick={()=>setView('home')} style={S.btnSec}>← Back</button>
+        </div>
+        {messages.length === 0 ? <p style={{color:'#666',textAlign:'center',padding:40}}>No messages yet.</p> :
+          messages.map(m => (
+            <div key={m.id} style={{...S.card,opacity:m.read?0.7:1}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:8}}>
+                <span style={{color:'#6366f1',fontWeight:600}}>From: {m.sender_name}</span>
+                <span style={{color:'#555',fontSize:'0.8rem'}}>{formatDate(m.created_at)}</span>
+              </div>
+              <p style={{margin:0,color:'#ccc',lineHeight:1.6}}>{m.message_text}</p>
+              {!m.read && <span style={{...S.tag,background:'#1e1b4b',color:'#818cf8',marginTop:8,display:'inline-block'}}>New</span>}
+            </div>
+          ))}
+      </div>
+    );
+  }
+
+  // ========== ADMIN VIEW ==========
+  if (view === 'admin' && user?.is_admin) {
+    if (!adminStats) fetchAdmin();
+    return (
+      <div style={{maxWidth:800,margin:'0 auto',padding:20}}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+          <h1 style={{margin:0}}>🛡️ Admin Dashboard</h1>
+          <button onClick={()=>setView('home')} style={S.btnSec}>← Back</button>
+        </div>
+
+        {adminStats && (
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:12,marginBottom:24}}>
+            {[['👥 Users',adminStats.total_users],['📋 Listings',adminStats.total_listings],['⏳ Pending',adminStats.pending_listings],['💳 Subscribers',adminStats.active_subscribers],['🚨 Reports',adminStats.pending_reports]].map(([label,val]) =>
+              <div key={label as string} style={{background:'#141414',borderRadius:12,padding:16,textAlign:'center',border:'1px solid #1e1e1e'}}>
+                <p style={{margin:'0 0 4px',fontSize:'0.85rem',color:'#888'}}>{label as string}</p>
+                <p style={{margin:0,fontSize:'1.8rem',fontWeight:700}}>{val as number}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        <h2 style={{margin:'0 0 16px',fontSize:'1.2rem'}}>⏳ Pending Listings</h2>
+        {adminListings.length === 0 ? <p style={{color:'#666'}}>No pending listings.</p> :
+          adminListings.map(l => (
+            <div key={l.id} style={{...S.card,display:'flex',gap:16,alignItems:'center'}}>
+              <div style={{width:50,height:50,background:'#1a1a1a',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.5rem'}}>{CAT_ICONS[l.category]}</div>
+              <div style={{flex:1,cursor:'pointer'}} onClick={()=>viewListing(l.id)}>
+                <h3 style={{margin:'0 0 4px'}}>{l.title}</h3>
+                <p style={{margin:0,color:'#666',fontSize:'0.85rem'}}>by {l.author} • {l.city} • {formatDate(l.created_at)}</p>
+              </div>
+              <div style={{display:'flex',gap:6}}>
+                <button onClick={()=>adminAction(l.id,'approve')} style={{padding:'8px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>✅</button>
+                <button onClick={()=>adminAction(l.id,'reject')} style={{padding:'8px 14px',background:'#ef4444',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>❌</button>
+              </div>
+            </div>
+          ))}
+      </div>
+    );
+  }
+
   // ========== HOME VIEW ==========
   return (
-    <div style={{maxWidth:800,margin:'0 auto',padding:20}}>
-      <header style={{textAlign:'center',padding:'40px 0 10px'}}>
-        <h1 style={{fontSize:'3rem',margin:0}}>✨ VibeList</h1>
-        <p style={{color:'#888',fontSize:'1.2rem'}}>Discover & share the best vibes in your city</p>
-        <div style={{marginTop:12}}>
+    <div style={{maxWidth:900,margin:'0 auto',padding:20}}>
+      {/* Header */}
+      <header style={{textAlign:'center',padding:'40px 0 20px'}}>
+        <h1 style={{fontSize:'3rem',margin:'0 0 8px',background:'linear-gradient(135deg,#6366f1,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>✨ VibeList</h1>
+        <p style={{color:'#666',fontSize:'1.1rem',margin:0}}>UK&apos;s classifieds marketplace — find &amp; post services, jobs, property &amp; more</p>
+
+        {/* User bar */}
+        <div style={{marginTop:16}}>
           {user ? (
-            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:12}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,flexWrap:'wrap'}}>
               <span style={{color:'#aaa'}}>👤 {user.display_name}</span>
-              {user.subscription_status==='active' ? <span style={{background:'#22c55e',color:'#fff',padding:'3px 10px',borderRadius:12,fontSize:'0.8rem'}}>PRO</span>
-                : <button onClick={()=>setView('subscribe')} style={{background:'#6366f1',color:'#fff',border:'none',padding:'6px 14px',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>Upgrade to Pro</button>}
-              <button onClick={logout} style={{background:'none',border:'1px solid #444',color:'#888',padding:'6px 14px',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>Sign Out</button>
+              {user.subscription_status === 'active' ?
+                <span style={{background:'linear-gradient(135deg,#22c55e,#16a34a)',color:'#fff',padding:'4px 12px',borderRadius:12,fontSize:'0.8rem',fontWeight:600}}>PRO</span> :
+                <button onClick={()=>setView('subscribe')} style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',border:'none',padding:'6px 14px',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>⚡ Upgrade</button>}
+              <button onClick={()=>{setView('my-listings');fetchMyListings();}} style={S.btnSec}>📋 My Listings</button>
+              <button onClick={()=>{setView('messages');fetchMessages();}} style={S.btnSec}>💬 Messages</button>
+              {user.is_admin && <button onClick={()=>{setView('admin');fetchAdmin();}} style={{...S.btnSec,borderColor:'#f59e0b',color:'#f59e0b'}}>🛡️ Admin</button>}
+              <button onClick={logout} style={S.btnSec}>Sign Out</button>
             </div>
           ) : (
             <div style={{display:'flex',gap:8,justifyContent:'center'}}>
-              <button onClick={()=>setView('login')} style={{background:'#6366f1',color:'#fff',border:'none',padding:'8px 20px',borderRadius:8,cursor:'pointer'}}>Sign In</button>
-              <button onClick={()=>setView('register')} style={{background:'transparent',color:'#6366f1',border:'1px solid #6366f1',padding:'8px 20px',borderRadius:8,cursor:'pointer'}}>Register</button>
+              <button onClick={()=>setView('login')} style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',border:'none',padding:'10px 24px',borderRadius:10,cursor:'pointer',fontWeight:600}}>Sign In</button>
+              <button onClick={()=>setView('register')} style={{background:'transparent',color:'#6366f1',border:'1px solid #6366f1',padding:'10px 24px',borderRadius:10,cursor:'pointer',fontWeight:600}}>Register</button>
             </div>
           )}
         </div>
       </header>
 
-      <div style={{display:'flex',gap:8,flexWrap:'wrap',justifyContent:'center',margin:'20px 0'}}>
-        {CATS.map(c=>(
-          <button key={c} onClick={()=>setFilter(c)} style={{padding:'8px 16px',borderRadius:20,border:'none',cursor:'pointer',background:filter===c?'#6366f1':'#222',color:filter===c?'#fff':'#aaa',fontSize:'0.9rem',textTransform:'capitalize'}}>{c}</button>
-        ))}
+      {/* Category Filter */}
+      <div style={{marginBottom:12}}>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap',justifyContent:'center'}}>
+          {CATEGORIES.map(c => (
+            <button key={c} onClick={()=>{setCatFilter(c);setPage(1);}} style={{padding:'8px 14px',borderRadius:20,border:'none',cursor:'pointer',background:catFilter===c?'linear-gradient(135deg,#6366f1,#8b5cf6)':'#181818',color:catFilter===c?'#fff':'#888',fontSize:'0.85rem',fontWeight:catFilter===c?600:400,transition:'all 0.2s',textTransform:'capitalize'}}>
+              {CAT_ICONS[c]} {c}
+            </button>
+          ))}
+        </div>
       </div>
 
+      {/* City Filter */}
+      <div style={{marginBottom:20}}>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap',justifyContent:'center'}}>
+          {CITIES.map(c => (
+            <button key={c} onClick={()=>{setCityFilter(c);setPage(1);}} style={{padding:'6px 12px',borderRadius:16,border:cityFilter===c?'1px solid #6366f1':'1px solid #222',cursor:'pointer',background:'transparent',color:cityFilter===c?'#6366f1':'#666',fontSize:'0.8rem',transition:'all 0.2s',textTransform:'capitalize'}}>
+              {CITY_ICONS[c]} {c}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Create Button */}
       {user && (
-        <button onClick={()=>{if(user.subscription_status!=='active'){setView('subscribe');}else setShowForm(!showForm);}}
-          style={{...S.btn,display:'block',marginBottom:20}}>
-          {showForm?'✕ Cancel':'+ Add a Vibe'}
+        <button onClick={()=>{if(user.subscription_status!=='active'){setView('subscribe');}else{setView('create');setErr('');}}} style={{...S.btn,display:'block',marginBottom:24,maxWidth:400,marginLeft:'auto',marginRight:'auto'}}>
+          ✨ Create a Listing
         </button>
       )}
-
-      {showForm && user?.subscription_status==='active' && (
-        <form onSubmit={postVibe} style={S.card}>
-          <input placeholder="What's the vibe?" value={form.title} onChange={e=>setForm({...form,title:e.target.value})} required style={S.inp} />
-          <input placeholder="Tell us more..." value={form.description} onChange={e=>setForm({...form,description:e.target.value})} style={S.inp} />
-          <div style={{display:'flex',gap:10,marginBottom:10}}>
-            <select value={form.category} onChange={e=>setForm({...form,category:e.target.value})} style={{...S.inp,flex:1}}>
-              {CATS.filter(c=>c!=='all').map(c=><option key={c} value={c}>{c}</option>)}
-            </select>
-            <input placeholder="Emoji" value={form.emoji} onChange={e=>setForm({...form,emoji:e.target.value})} style={{...S.inp,width:60,textAlign:'center'}} />
-          </div>
-          <button type="submit" style={{...S.btn,background:'#22c55e'}}>Submit Vibe</button>
-        </form>
-      )}
-
-      {!user && <div style={{...S.card,textAlign:'center'}}><p style={{color:'#aaa',margin:0}}>🔒 <span style={{color:'#6366f1',cursor:'pointer'}} onClick={()=>setView('register')}>Create an account</span> and subscribe to post vibes</p></div>}
-
-      {loading ? <p style={{textAlign:'center',color:'#666'}}>Loading vibes...</p> : (
-        <div style={{display:'flex',flexDirection:'column',gap:12}}>
-          {vibes.map(v=>(
-            <div key={v.id} style={{background:'#1a1a1a',padding:16,borderRadius:12,display:'flex',alignItems:'center',gap:16}}>
-              <span style={{fontSize:'2rem'}}>{v.emoji}</span>
-              <div style={{flex:1}}>
-                <h3 style={{margin:'0 0 4px'}}>{v.title}</h3>
-                <p style={{margin:0,color:'#888',fontSize:'0.9rem'}}>{v.description}</p>
-                <div style={{display:'flex',gap:8,marginTop:4}}>
-                  <span style={{fontSize:'0.75rem',color:'#6366f1',textTransform:'capitalize'}}>{v.category}</span>
-                  {v.author && <span style={{fontSize:'0.75rem',color:'#666'}}>by {v.author}</span>}
-                </div>
-              </div>
-              <button onClick={()=>upvote(v.id)} style={{background:'#222',border:'1px solid #333',borderRadius:8,padding:'8px 12px',color:'#fff',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center'}}>
-                <span>▲</span><span style={{fontSize:'0.9rem'}}>{v.upvotes}</span>
-              </button>
-            </div>
-          ))}
-          {vibes.length===0 && <p style={{textAlign:'center',color:'#666'}}>No vibes yet. Be the first!</p>}
+      {!user && (
+        <div style={{...S.card,textAlign:'center',maxWidth:500,margin:'0 auto 24px'}}>
+          <p style={{color:'#888',margin:0}}>🔒 <span style={{color:'#6366f1',cursor:'pointer'}} onClick={()=>setView('register')}>Create an account</span> and subscribe to post listings</p>
         </div>
       )}
 
-      <footer style={{textAlign:'center',padding:'40px 0',color:'#444'}}><p>VibeList.uk © 2025 | Users must be 18+</p></footer>
+      {/* Listings Grid */}
+      {loading ? <p style={{textAlign:'center',color:'#555',padding:40}}>Loading listings...</p> : (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))',gap:16}}>
+          {listings.map(l => (
+            <div key={l.id} onClick={()=>viewListing(l.id)} style={{...S.card,cursor:'pointer',padding:0,overflow:'hidden',transition:'border 0.2s,transform 0.2s'}} onMouseOver={e=>(e.currentTarget.style.borderColor='#333')} onMouseOut={e=>(e.currentTarget.style.borderColor='#1e1e1e')}>
+              {/* Image or placeholder */}
+              {l.image ? <img src={`/uploads/${l.image}`} alt="" style={{width:'100%',height:180,objectFit:'cover'}} /> :
+                <div style={{width:'100%',height:180,background:'linear-gradient(135deg,#1a1a2e,#0f172a)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'3rem'}}>{CAT_ICONS[l.category]}</div>}
+              <div style={{padding:16}}>
+                <div style={{display:'flex',gap:6,marginBottom:8}}>
+                  <span style={{...S.tag,background:'#1e1b4b',color:'#818cf8',fontSize:'0.75rem'}}>{l.category}</span>
+                  <span style={{...S.tag,background:'#1a1a2e',color:'#666',fontSize:'0.75rem'}}>{CITY_ICONS[l.city]} {l.city}</span>
+                </div>
+                <h3 style={{margin:'0 0 6px',fontSize:'1.05rem',lineHeight:1.3,overflow:'hidden',textOverflow:'ellipsis',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any}}>{l.title}</h3>
+                <p style={{margin:'0 0 10px',color:'#666',fontSize:'0.85rem',overflow:'hidden',textOverflow:'ellipsis',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical' as any,lineHeight:1.5}}>{l.description}</p>
+                <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                  <span style={{color:'#22c55e',fontWeight:700,fontSize:'1.1rem'}}>{formatPrice(l.price)}</span>
+                  <span style={{color:'#555',fontSize:'0.75rem'}}>{l.author} • {formatDate(l.created_at)}</span>
+                </div>
+              </div>
+            </div>
+          ))}
+          {listings.length === 0 && <div style={{gridColumn:'1/-1',textAlign:'center',padding:60,color:'#555'}}><p style={{fontSize:'2rem',margin:'0 0 8px'}}>🔍</p><p>No listings found. Try changing your filters or be the first to post!</p></div>}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {listings.length > 0 && (
+        <div style={{display:'flex',justifyContent:'center',gap:8,margin:'30px 0'}}>
+          {page > 1 && <button onClick={()=>setPage(p=>p-1)} style={S.btnSec}>← Previous</button>}
+          <span style={{padding:'10px 16px',color:'#666'}}>Page {page}</span>
+          {listings.length === 20 && <button onClick={()=>setPage(p=>p+1)} style={S.btnSec}>Next →</button>}
+        </div>
+      )}
+
+      <footer style={{textAlign:'center',padding:'40px 0 20px',color:'#333',borderTop:'1px solid #1a1a1a',marginTop:20}}>
+        <p style={{margin:0}}>VibeList.uk © 2025 | UK Classifieds Marketplace | Users must be 18+</p>
+      </footer>
     </div>
   );
 }
