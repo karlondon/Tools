@@ -3,7 +3,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 
 // Types
 interface Listing { id:number; title:string; description:string; category:string; city:string; price:string|null; contact_info:string|null; status:string; views:number; featured:boolean; created_at:string; updated_at:string; author?:string; author_id?:number; user_id?:number; image?:string; images?:{id:number;file_path:string;thumbnail_path:string|null;sort_order:number}[]; }
-interface User { id:number; email:string; display_name:string; subscription_status:string; is_admin?:boolean; }
+interface User { id:number; email:string; display_name:string; subscription_status:string; is_admin?:boolean; is_founding_member?:boolean; founding_member_number?:number; }
+interface AdminUser { id:number; email:string; display_name:string; subscription_status:string; subscription_provider?:string; is_admin:boolean; is_founding_member:boolean; founding_member_number:number|null; created_at:string; }
 interface Message { id:number; sender_id:number; receiver_id:number; listing_id:number|null; message_text:string; read:boolean; created_at:string; sender_name?:string; }
 
 const CATEGORIES = ['all','services','events','jobs','property','vehicles','electronics','fashion','beauty','health','community','other'];
@@ -38,6 +39,8 @@ export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [adminListings, setAdminListings] = useState<Listing[]>([]);
   const [adminStats, setAdminStats] = useState<any>(null);
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [adminTab, setAdminTab] = useState<'overview'|'users'|'pending'>('overview');
   const [msgText, setMsgText] = useState('');
   const [page, setPage] = useState(1);
 
@@ -169,6 +172,19 @@ export default function Home() {
     ]);
     setAdminListings(l);
     setAdminStats(s);
+  };
+
+  const fetchAdminUsers = async () => {
+    const r = await fetch(`${API}/admin/users`,{headers:{Authorization:`Bearer ${token}`}});
+    if (r.ok) setAdminUsers(await r.json());
+  };
+
+  const adminUserAction = async (userId: number, action: string) => {
+    const r = await fetch(`${API}/admin/users/${userId}/${action}`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`}});
+    const d = await r.json();
+    alert(d.message || d.error);
+    fetchAdminUsers();
+    fetchAdmin();
   };
 
   const adminAction = async (id: number, action: 'approve'|'reject') => {
@@ -452,38 +468,111 @@ export default function Home() {
   if (view === 'admin' && user?.is_admin) {
     if (!adminStats) fetchAdmin();
     return (
-      <div style={{maxWidth:800,margin:'0 auto',padding:20}}>
+      <div style={{maxWidth:900,margin:'0 auto',padding:20}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
           <h1 style={{margin:0}}>🛡️ Admin Dashboard</h1>
           <button onClick={()=>setView('home')} style={S.btnSec}>← Back</button>
         </div>
 
-        {adminStats && (
-          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(140px,1fr))',gap:12,marginBottom:24}}>
-            {[['👥 Users',adminStats.total_users],['📋 Listings',adminStats.total_listings],['⏳ Pending',adminStats.pending_listings],['💳 Subscribers',adminStats.active_subscribers],['🚨 Reports',adminStats.pending_reports]].map(([label,val]) =>
-              <div key={label as string} style={{background:'#141414',borderRadius:12,padding:16,textAlign:'center',border:'1px solid #1e1e1e'}}>
-                <p style={{margin:'0 0 4px',fontSize:'0.85rem',color:'#888'}}>{label as string}</p>
-                <p style={{margin:0,fontSize:'1.8rem',fontWeight:700}}>{val as number}</p>
+        {/* Admin Tabs */}
+        <div style={{display:'flex',gap:8,marginBottom:20}}>
+          {(['overview','users','pending'] as const).map(tab => (
+            <button key={tab} onClick={()=>{setAdminTab(tab); if(tab==='users' && adminUsers.length===0) fetchAdminUsers();}}
+              style={{padding:'10px 20px',borderRadius:10,border:'none',cursor:'pointer',background:adminTab===tab?'linear-gradient(135deg,#6366f1,#8b5cf6)':'#181818',color:adminTab===tab?'#fff':'#888',fontWeight:adminTab===tab?600:400,fontSize:'0.9rem',textTransform:'capitalize'}}>
+              {tab === 'overview' ? '📊 Overview' : tab === 'users' ? '👥 Users' : '⏳ Pending'}
+            </button>
+          ))}
+        </div>
+
+        {/* Overview Tab */}
+        {adminTab === 'overview' && adminStats && (
+          <>
+            <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(130px,1fr))',gap:12,marginBottom:24}}>
+              {[['👥 Users',adminStats.total_users],['📋 Listings',adminStats.total_listings],['⏳ Pending',adminStats.pending_listings],['💳 Subscribers',adminStats.active_subscribers],['🚨 Reports',adminStats.pending_reports],['🌟 Founders',`${adminStats.founding_members || 0}/${adminStats.founding_member_limit || 25}`]].map(([label,val]) =>
+                <div key={label as string} style={{background:'#141414',borderRadius:12,padding:16,textAlign:'center',border:'1px solid #1e1e1e'}}>
+                  <p style={{margin:'0 0 4px',fontSize:'0.85rem',color:'#888'}}>{label as string}</p>
+                  <p style={{margin:0,fontSize:'1.6rem',fontWeight:700}}>{val as any}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Founding Member Progress */}
+            {adminStats && (
+              <div style={{...S.card,background:'linear-gradient(135deg,#1a1a2e,#0f172a)',border:'1px solid #2d2b55',marginBottom:20}}>
+                <h3 style={{margin:'0 0 12px',color:'#f59e0b'}}>🌟 Founding Members Programme</h3>
+                <p style={{color:'#aaa',margin:'0 0 12px',fontSize:'0.9rem'}}>First 25 members get <strong style={{color:'#f59e0b'}}>permanent free access</strong> — no subscription needed. They help spread the word!</p>
+                <div style={{background:'#0a0a0a',borderRadius:8,height:24,overflow:'hidden',marginBottom:8}}>
+                  <div style={{height:'100%',background:'linear-gradient(90deg,#f59e0b,#eab308)',borderRadius:8,width:`${Math.min(100,((adminStats.founding_members||0)/(adminStats.founding_member_limit||25))*100)}%`,transition:'width 0.5s'}} />
+                </div>
+                <p style={{margin:0,color:'#666',fontSize:'0.85rem'}}>{adminStats.founding_members || 0} of {adminStats.founding_member_limit || 25} founding member slots filled ({Math.max(0,(adminStats.founding_member_limit||25)-(adminStats.founding_members||0))} remaining)</p>
               </div>
             )}
-          </div>
+          </>
         )}
 
-        <h2 style={{margin:'0 0 16px',fontSize:'1.2rem'}}>⏳ Pending Listings</h2>
-        {adminListings.length === 0 ? <p style={{color:'#666'}}>No pending listings.</p> :
-          adminListings.map(l => (
-            <div key={l.id} style={{...S.card,display:'flex',gap:16,alignItems:'center'}}>
-              <div style={{width:50,height:50,background:'#1a1a1a',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.5rem'}}>{CAT_ICONS[l.category]}</div>
-              <div style={{flex:1,cursor:'pointer'}} onClick={()=>viewListing(l.id)}>
-                <h3 style={{margin:'0 0 4px'}}>{l.title}</h3>
-                <p style={{margin:0,color:'#666',fontSize:'0.85rem'}}>by {l.author} • {l.city} • {formatDate(l.created_at)}</p>
-              </div>
-              <div style={{display:'flex',gap:6}}>
-                <button onClick={()=>adminAction(l.id,'approve')} style={{padding:'8px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>✅</button>
-                <button onClick={()=>adminAction(l.id,'reject')} style={{padding:'8px 14px',background:'#ef4444',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>❌</button>
-              </div>
-            </div>
-          ))}
+        {/* Users Tab */}
+        {adminTab === 'users' && (
+          <>
+            <h2 style={{margin:'0 0 16px',fontSize:'1.2rem'}}>👥 All Users ({adminUsers.length})</h2>
+            {adminUsers.length === 0 ? <p style={{color:'#666'}}>Loading users...</p> :
+              adminUsers.map(u => (
+                <div key={u.id} style={{...S.card,padding:16}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:12}}>
+                    <div style={{flex:1,minWidth:200}}>
+                      <div style={{display:'flex',alignItems:'center',gap:8,marginBottom:4}}>
+                        <strong style={{fontSize:'1rem'}}>{u.display_name}</strong>
+                        {u.is_founding_member && <span style={{background:'linear-gradient(135deg,#f59e0b,#d97706)',color:'#000',padding:'2px 8px',borderRadius:10,fontSize:'0.7rem',fontWeight:700}}>🌟 FOUNDER #{u.founding_member_number}</span>}
+                        {u.is_admin && <span style={{background:'#7c3aed',color:'#fff',padding:'2px 8px',borderRadius:10,fontSize:'0.7rem',fontWeight:600}}>ADMIN</span>}
+                        {u.subscription_status === 'active' && !u.is_founding_member && <span style={{background:'#22c55e',color:'#fff',padding:'2px 8px',borderRadius:10,fontSize:'0.7rem',fontWeight:600}}>PRO</span>}
+                      </div>
+                      <p style={{margin:0,color:'#666',fontSize:'0.85rem'}}>{u.email} • Joined {formatDate(u.created_at)} • Status: <span style={{color:u.subscription_status==='active'?'#22c55e':u.subscription_status==='suspended'?'#ef4444':'#888'}}>{u.subscription_status}</span></p>
+                    </div>
+                    <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+                      {!u.is_founding_member && (
+                        <button onClick={()=>{if(confirm(`Grant founding member status to ${u.display_name}? This gives permanent free access.`)) adminUserAction(u.id,'grant-founding');}}
+                          style={{padding:'6px 12px',background:'#422006',color:'#f59e0b',border:'1px solid #f59e0b',borderRadius:8,cursor:'pointer',fontSize:'0.8rem'}}>🌟 Grant Founder</button>
+                      )}
+                      {u.is_founding_member && (
+                        <button onClick={()=>{if(confirm(`Revoke founding member status from ${u.display_name}?`)) adminUserAction(u.id,'revoke-founding');}}
+                          style={{padding:'6px 12px',background:'#1a1a1a',color:'#888',border:'1px solid #333',borderRadius:8,cursor:'pointer',fontSize:'0.8rem'}}>Revoke Founder</button>
+                      )}
+                      {!u.is_founding_member && u.subscription_status !== 'active' && (
+                        <button onClick={()=>adminUserAction(u.id,'activate')}
+                          style={{padding:'6px 12px',background:'#052e16',color:'#22c55e',border:'1px solid #22c55e',borderRadius:8,cursor:'pointer',fontSize:'0.8rem'}}>✅ Activate</button>
+                      )}
+                      <button onClick={()=>adminUserAction(u.id,'toggle-admin')}
+                        style={{padding:'6px 12px',background:u.is_admin?'#1a1a1a':'#1e1b4b',color:u.is_admin?'#888':'#818cf8',border:`1px solid ${u.is_admin?'#333':'#818cf8'}`,borderRadius:8,cursor:'pointer',fontSize:'0.8rem'}}>{u.is_admin ? 'Remove Admin' : '🛡️ Make Admin'}</button>
+                      {u.subscription_status !== 'suspended' && (
+                        <button onClick={()=>{if(confirm(`Suspend ${u.display_name}?`)) adminUserAction(u.id,'suspend');}}
+                          style={{padding:'6px 12px',background:'#1a1a1a',color:'#ef4444',border:'1px solid #333',borderRadius:8,cursor:'pointer',fontSize:'0.8rem'}}>⛔ Suspend</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </>
+        )}
+
+        {/* Pending Tab */}
+        {adminTab === 'pending' && (
+          <>
+            <h2 style={{margin:'0 0 16px',fontSize:'1.2rem'}}>⏳ Pending Listings</h2>
+            {adminListings.length === 0 ? <p style={{color:'#666'}}>No pending listings.</p> :
+              adminListings.map(l => (
+                <div key={l.id} style={{...S.card,display:'flex',gap:16,alignItems:'center'}}>
+                  <div style={{width:50,height:50,background:'#1a1a1a',borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center',fontSize:'1.5rem'}}>{CAT_ICONS[l.category]}</div>
+                  <div style={{flex:1,cursor:'pointer'}} onClick={()=>viewListing(l.id)}>
+                    <h3 style={{margin:'0 0 4px'}}>{l.title}</h3>
+                    <p style={{margin:0,color:'#666',fontSize:'0.85rem'}}>by {l.author} • {l.city} • {formatDate(l.created_at)}</p>
+                  </div>
+                  <div style={{display:'flex',gap:6}}>
+                    <button onClick={()=>adminAction(l.id,'approve')} style={{padding:'8px 14px',background:'#22c55e',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>✅</button>
+                    <button onClick={()=>adminAction(l.id,'reject')} style={{padding:'8px 14px',background:'#ef4444',color:'#fff',border:'none',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>❌</button>
+                  </div>
+                </div>
+              ))}
+          </>
+        )}
       </div>
     );
   }
@@ -501,7 +590,9 @@ export default function Home() {
           {user ? (
             <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:10,flexWrap:'wrap'}}>
               <span style={{color:'#aaa'}}>👤 {user.display_name}</span>
-              {user.subscription_status === 'active' ?
+              {user.is_founding_member ?
+                <span style={{background:'linear-gradient(135deg,#f59e0b,#d97706)',color:'#000',padding:'4px 12px',borderRadius:12,fontSize:'0.8rem',fontWeight:700}}>🌟 FOUNDER #{user.founding_member_number}</span> :
+               user.subscription_status === 'active' ?
                 <span style={{background:'linear-gradient(135deg,#22c55e,#16a34a)',color:'#fff',padding:'4px 12px',borderRadius:12,fontSize:'0.8rem',fontWeight:600}}>PRO</span> :
                 <button onClick={()=>setView('subscribe')} style={{background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',border:'none',padding:'6px 14px',borderRadius:8,cursor:'pointer',fontSize:'0.85rem'}}>⚡ Upgrade</button>}
               <button onClick={()=>{setView('my-listings');fetchMyListings();}} style={S.btnSec}>📋 My Listings</button>
@@ -542,7 +633,7 @@ export default function Home() {
 
       {/* Create Button */}
       {user && (
-        <button onClick={()=>{if(user.subscription_status!=='active'){setView('subscribe');}else{setView('create');setErr('');}}} style={{...S.btn,display:'block',marginBottom:24,maxWidth:400,marginLeft:'auto',marginRight:'auto'}}>
+        <button onClick={()=>{if(!user.is_founding_member && user.subscription_status!=='active'){setView('subscribe');}else{setView('create');setErr('');}}} style={{...S.btn,display:'block',marginBottom:24,maxWidth:400,marginLeft:'auto',marginRight:'auto'}}>
           ✨ Create a Listing
         </button>
       )}
