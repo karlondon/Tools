@@ -15,6 +15,12 @@ services:
     container_name: vibelist_api
     environment:
       DATABASE_URL: postgres://vibelist:${POSTGRES_PASSWORD}@postgres:5432/vibelist
+      JWT_SECRET: ${JWT_SECRET}
+      ADMIN_KEY: ${ADMIN_KEY}
+      PAYPAL_CLIENT_ID: ${PAYPAL_CLIENT_ID}
+      PAYPAL_CLIENT_SECRET: ${PAYPAL_CLIENT_SECRET}
+      PAYPAL_PLAN_ID: ${PAYPAL_PLAN_ID}
+      PAYPAL_API: ${PAYPAL_API}
     depends_on:
       - postgres
     restart: always
