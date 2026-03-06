@@ -1,4 +1,4 @@
-# VibeList — Creating & Managing Listings (User Guide)
+ji# VibeList — Creating & Managing Listings (User Guide)
 
 > **Important:** The backend API has been upgraded from "vibes" to a full classifieds "listings" model. The frontend UI still references the old `/api/vibes` endpoints and needs updating. This guide documents the current working API and how to use it.
 
