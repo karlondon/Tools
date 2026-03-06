@@ -1,144 +1,195 @@
-# VibeList.uk Deployment — Part 2: Build, Deploy & Go Live
+# VibeList Deployment - Part 2: Build & Deploy on Server
 
-## Step 12 — Build & Push Images (LOCAL Machine)
+## Overview
 
-> ⚠️ Complete this BEFORE `docker compose up` on the server.
+Since Docker Desktop on corporate/managed Macs may be restricted, this guide builds Docker images **directly on the Lightsail server** instead of using Docker Hub. This is simpler and avoids Docker Hub account requirements entirely.
 
-```bash
-docker login
-# Username: vibelistuk / Password: your-password
+---
 
-cd backend
-docker build -t vibelistuk/vibelist-api:latest .
-cd ../frontend
-docker build -t vibelistuk/vibelist-web:latest .
+## Prerequisites
 
-docker push vibelistuk/vibelist-api:latest
-docker push vibelistuk/vibelist-web:latest
-```
+- Lightsail instance created (see Part 1)
+- SSH access to your server working
+- The `vibelist-app/` folder with all source code
 
-Verify at: `https://hub.docker.com/u/vibelistuk`
+---
 
-## Step 13 — Deploy (Back on SERVER via SSH)
+## Option A: Automated Deployment (Recommended)
+
+Run the deploy script from your Mac:
 
 ```bash
-ssh ubuntu@<YOUR_STATIC_IP>
-cd ~/vibelist
-docker compose --env-file .env up -d
+cd vibelist-app
+
+# If using default SSH key:
+./deploy-to-server.sh YOUR_SERVER_IP
+
+# If using a specific SSH key (e.g., Lightsail .pem file):
+./deploy-to-server.sh YOUR_SERVER_IP ~/.ssh/your-lightsail-key.pem
 ```
 
-## Step 14 — Verify All Containers Running
+The script will:
+1. Upload all source code to the server
+2. Create the nginx config
+3. Generate a secure `.env` file
+4. Build Docker images on the server
+5. Start all containers
+6. Show service status
+
+---
+
+## Option B: Manual Deployment
+
+### Step 1: Upload Files to Server
 
 ```bash
-docker compose ps
+SERVER=ubuntu@YOUR_SERVER_IP
+SSH_KEY="-i ~/.ssh/your-key.pem"  # omit if using default key
+
+# Create directories
+ssh $SSH_KEY $SERVER "mkdir -p ~/vibelist/{nginx,certs,uploads,backend/src,frontend/app,frontend/public}"
+
+# Upload backend
+scp $SSH_KEY vibelist-app/backend/package.json $SERVER:~/vibelist/backend/
+scp $SSH_KEY vibelist-app/backend/tsconfig.json $SERVER:~/vibelist/backend/
+scp $SSH_KEY vibelist-app/backend/Dockerfile $SERVER:~/vibelist/backend/
+scp $SSH_KEY vibelist-app/backend/.dockerignore $SERVER:~/vibelist/backend/
+scp $SSH_KEY vibelist-app/backend/src/main.ts $SERVER:~/vibelist/backend/src/
+
+# Upload frontend
+scp $SSH_KEY vibelist-app/frontend/package.json $SERVER:~/vibelist/frontend/
+scp $SSH_KEY vibelist-app/frontend/next.config.js $SERVER:~/vibelist/frontend/
+scp $SSH_KEY vibelist-app/frontend/Dockerfile $SERVER:~/vibelist/frontend/
+scp $SSH_KEY vibelist-app/frontend/.dockerignore $SERVER:~/vibelist/frontend/
+scp $SSH_KEY vibelist-app/frontend/app/layout.tsx $SERVER:~/vibelist/frontend/app/
+scp $SSH_KEY vibelist-app/frontend/app/page.tsx $SERVER:~/vibelist/frontend/app/
+
+# Upload docker-compose.yml
+scp $SSH_KEY vibelist-app/docker-compose.yml $SERVER:~/vibelist/
 ```
 
-Expected output — all 4 services show `Up`:
-
-```
-NAME                IMAGE                              STATUS
-vibelist_postgres   postgres:16                        Up
-vibelist-api-1      vibelistuk/vibelist-api:latest     Up
-vibelist-web-1      vibelistuk/vibelist-web:latest     Up
-vibelist-nginx-1    nginx:alpine                       Up
-```
-
-If any fail: `docker compose logs <service-name>`
-
-## Step 15 — Test Locally on Server
+### Step 2: SSH into Server
 
 ```bash
-curl http://localhost        # Should return frontend HTML
-curl http://localhost/api/   # Should return API response
+ssh $SSH_KEY $SERVER
 ```
 
-## Step 16 — Configure Cloudflare DNS
-
-In Cloudflare DNS settings, add two A records:
-
-| Type | Name | Content | Proxy |
-|------|------|---------|-------|
-| A | @ | YOUR_STATIC_IP | DNS only (grey cloud initially) |
-| A | www | YOUR_STATIC_IP | DNS only (grey cloud initially) |
-
-Wait a few minutes, then test: `http://vibelist.uk`
-
-## Step 17 — Enable SSL via Cloudflare
-
-1. Cloudflare → SSL/TLS → set mode to **Full (Strict)**.
-2. Cloudflare → Origin Server → **Create Certificate**.
-3. Copy the certificate and private key.
-4. On the server:
+### Step 3: Create Nginx Config
 
 ```bash
-nano ~/vibelist/certs/origin.pem
-# Paste the certificate, save
-
-nano ~/vibelist/certs/origin-key.pem
-# Paste the private key, save
-```
-
-5. Update `~/vibelist/nginx/default.conf` to add SSL:
-
-```nginx
+cat > ~/vibelist/nginx/default.conf << 'EOF'
 server {
     listen 80;
-    server_name vibelist.uk www.vibelist.uk;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl;
-    server_name vibelist.uk www.vibelist.uk;
-    ssl_certificate /etc/nginx/certs/origin.pem;
-    ssl_certificate_key /etc/nginx/certs/origin-key.pem;
+    server_name vibelist.uk www.vibelist.uk _;
 
     location / {
         proxy_pass http://web:3000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
+
     location /api/ {
-        proxy_pass http://api:3001;
+        proxy_pass http://api:3001/;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
     }
+
     location /uploads/ {
         alias /var/www/uploads/;
     }
 }
+EOF
 ```
 
-6. Restart nginx:
+### Step 4: Create .env File
 
 ```bash
-docker compose restart nginx
+echo "POSTGRES_PASSWORD=$(openssl rand -hex 16)" > ~/vibelist/.env
 ```
 
-7. In Cloudflare, enable the orange proxy cloud on both A records.
+### Step 5: Build and Start
 
-## Step 18 — Useful Commands
+```bash
+cd ~/vibelist
 
-| Task | Command |
-|------|---------|
-| View all logs | `docker compose logs -f` |
-| View one service | `docker compose logs -f api` |
-| Restart a service | `docker compose restart api` |
-| Stop everything | `docker compose down` |
-| Update images | `docker compose pull && docker compose up -d` |
-| DB backup | `docker compose exec postgres pg_dump -U vibelist vibelist > backup.sql` |
+# Build images (first time takes 3-5 minutes)
+docker compose build
 
-## Troubleshooting
+# Start all services
+docker compose up -d
 
-| Issue | Fix |
-|-------|-----|
-| `pull access denied` | You didn't push images to Docker Hub (Step 12), or DOCKERHUB_USER in .env is wrong |
-| Container keeps restarting | `docker compose logs <service>` to see the error |
-| Port already in use | `sudo lsof -i :<port>` then stop the conflicting process |
-| DB connection refused | Check POSTGRES_PASSWORD matches in .env |
-| 502 Bad Gateway | Backend/frontend container crashed — check logs |
-| Out of memory | Add swap: `sudo fallocate -l 2G /swapfile && sudo mkswap /swapfile && sudo swapon /swapfile` |
+# Verify everything is running
+docker compose ps
+```
+
+You should see 4 containers running:
+- `vibelist_postgres` - Database
+- `vibelist_api` - Backend API
+- `vibelist_web` - Frontend
+- `vibelist_nginx` - Reverse proxy
 
 ---
 
-> **To convert these .md files to .docx:** Open in VS Code, use "Markdown PDF" extension, or run: `pandoc VibeList_Deployment_Part1_Setup.md VibeList_Deployment_Part2_Build_Deploy.md -o VibeList_Deployment_Guide.docx`
+## Verify Deployment
+
+```bash
+# Check all containers are "Up"
+docker compose ps
+
+# Test the API
+curl http://localhost/api/vibes
+
+# Check logs if something is wrong
+docker compose logs api
+docker compose logs web
+docker compose logs nginx
+```
+
+Visit `http://YOUR_SERVER_IP` in your browser - you should see the VibeList app!
+
+---
+
+## Troubleshooting
+
+### Container won't start
+```bash
+docker compose logs <service-name>
+```
+
+### Rebuild after code changes
+```bash
+# From your Mac, re-run the deploy script:
+./deploy-to-server.sh YOUR_SERVER_IP
+
+# Or manually on the server:
+cd ~/vibelist
+docker compose down
+docker compose build --no-cache
+docker compose up -d
+```
+
+### Database issues
+```bash
+# Reset the database
+docker compose down -v   # WARNING: deletes all data
+docker compose up -d
+```
+
+---
+
+## Why Build on Server Instead of Docker Hub?
+
+The original guide assumed you'd build images locally and push to Docker Hub. This fails on:
+- **Corporate Macs** with Docker Desktop sign-in requirements
+- **Machines without Docker** installed
+- **Environments** where Docker Hub access is restricted
+
+Building on the server is actually **simpler**:
+- No Docker Hub account needed
+- No `docker login` step
+- No image push/pull over the internet
+- Images are built right where they run
