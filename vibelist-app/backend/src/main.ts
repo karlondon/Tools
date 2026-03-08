@@ -20,9 +20,34 @@ const JWT_SECRET = process.env.JWT_SECRET || 'vibelist-change-me';
 const PAYPAL_CLIENT_ID = process.env.PAYPAL_CLIENT_ID || '';
 const PAYPAL_SECRET = process.env.PAYPAL_CLIENT_SECRET || '';
 const PAYPAL_API = process.env.PAYPAL_API || 'https://api-m.sandbox.paypal.com';
-const PAYPAL_PLAN_ID = process.env.PAYPAL_PLAN_ID || '';
+const PAYPAL_PLAN_ID_SILVER = process.env.PAYPAL_PLAN_ID_SILVER || '';
+const PAYPAL_PLAN_ID_PRO = process.env.PAYPAL_PLAN_ID_PRO || process.env.PAYPAL_PLAN_ID || '';
 const FOUNDING_MEMBER_LIMIT = 25;
 const DORMANT_DAYS = 90;
+
+// ========== TIER DEFINITIONS ==========
+type SubscriptionTier = 'free' | 'silver' | 'pro';
+interface TierLimits { max_listings: number; max_images_per_listing: number; max_private_images: number; allow_videos: boolean; price_monthly: number; label: string; }
+const TIER_LIMITS: Record<SubscriptionTier, TierLimits> = {
+  free:   { max_listings: 3,  max_images_per_listing: 2, max_private_images: 0,  allow_videos: false, price_monthly: 0,  label: 'Free' },
+  silver: { max_listings: 10, max_images_per_listing: 5, max_private_images: 2,  allow_videos: false, price_monthly: 5,  label: 'Silver' },
+  pro:    { max_listings: -1, max_images_per_listing: -1, max_private_images: 10, allow_videos: true,  price_monthly: 15, label: 'Pro' },
+};
+// -1 means unlimited
+
+function getUserTier(user: any): SubscriptionTier {
+  if (!user) return 'free';
+  if (user.is_founding_member) return 'pro'; // Founding members get Pro
+  if (user.subscription_tier === 'pro' && user.subscription_status === 'active') return 'pro';
+  if (user.subscription_tier === 'silver' && user.subscription_status === 'active') return 'silver';
+  return 'free';
+}
+
+function getPlanIdForTier(tier: SubscriptionTier): string {
+  if (tier === 'silver') return PAYPAL_PLAN_ID_SILVER;
+  if (tier === 'pro') return PAYPAL_PLAN_ID_PRO;
+  return '';
+}
 
 // Rate limiting store
 const rateLimits: Record<string, { count: number; reset: number }> = {};
@@ -64,14 +89,6 @@ function getAge(dob: string): number {
 // Middleware
 function authMw(req: any, _res: any, next: any) { const h = req.headers.authorization; if (h?.startsWith('Bearer ')) req.user = readToken(h.slice(7)); next(); }
 function requireAuth(req: any, res: any, next: any) { if (!req.user) return res.status(401).json({error:'Login required'}); next(); }
-async function requireSub(req: any, res: any, next: any) {
-  if (!req.user) return res.status(401).json({error:'Login required'});
-  const {rows} = await pool.query('SELECT subscription_status, is_founding_member FROM users WHERE id=$1',[req.user.id]);
-  if (!rows[0]) return res.status(401).json({error:'User not found'});
-  if (rows[0].is_founding_member) return next();
-  if (rows[0].subscription_status !== 'active') return res.status(403).json({error:'Active subscription required',code:'NO_SUBSCRIPTION'});
-  next();
-}
 async function requireAdmin(req: any, res: any, next: any) {
   if (!req.user) return res.status(401).json({error:'Login required'});
   const {rows} = await pool.query('SELECT is_admin FROM users WHERE id=$1',[req.user.id]);
@@ -98,8 +115,9 @@ async function initDB() {
         id SERIAL PRIMARY KEY, email VARCHAR(255) UNIQUE NOT NULL, password_hash VARCHAR(255) NOT NULL,
         salt VARCHAR(64) NOT NULL, display_name VARCHAR(100), date_of_birth DATE NOT NULL,
         age_verified BOOLEAN DEFAULT false, email_verified BOOLEAN DEFAULT false,
-        subscription_status VARCHAR(20) DEFAULT 'none', subscription_id VARCHAR(100),
-        subscription_provider VARCHAR(20) DEFAULT 'none', subscription_expires_at TIMESTAMP,
+        subscription_status VARCHAR(20) DEFAULT 'none', subscription_tier VARCHAR(20) DEFAULT 'free',
+        subscription_id VARCHAR(100), subscription_provider VARCHAR(20) DEFAULT 'none',
+        subscription_expires_at TIMESTAMP, pending_downgrade_tier VARCHAR(20),
         is_admin BOOLEAN DEFAULT false, is_founding_member BOOLEAN DEFAULT false, founding_member_number INTEGER,
         id_document_path VARCHAR(500), id_verified BOOLEAN DEFAULT false,
         cancelled_at TIMESTAMP, created_at TIMESTAMP DEFAULT NOW()
@@ -114,7 +132,8 @@ async function initDB() {
       CREATE TABLE IF NOT EXISTS listing_images (
         id SERIAL PRIMARY KEY, listing_id INTEGER REFERENCES listings(id) ON DELETE CASCADE,
         file_path VARCHAR(500) NOT NULL, thumbnail_path VARCHAR(500),
-        sort_order INTEGER DEFAULT 0, created_at TIMESTAMP DEFAULT NOW()
+        is_private BOOLEAN DEFAULT false, sort_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT NOW()
       );
       CREATE TABLE IF NOT EXISTS reports (
         id SERIAL PRIMARY KEY, listing_id INTEGER REFERENCES listings(id),
@@ -146,18 +165,23 @@ async function initDB() {
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='id_document_path') THEN ALTER TABLE users ADD COLUMN id_document_path VARCHAR(500); END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='id_verified') THEN ALTER TABLE users ADD COLUMN id_verified BOOLEAN DEFAULT false; END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='cancelled_at') THEN ALTER TABLE users ADD COLUMN cancelled_at TIMESTAMP; END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='subscription_tier') THEN ALTER TABLE users ADD COLUMN subscription_tier VARCHAR(20) DEFAULT 'free'; END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='pending_downgrade_tier') THEN ALTER TABLE users ADD COLUMN pending_downgrade_tier VARCHAR(20); END IF;
+        IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='listing_images' AND column_name='is_private') THEN ALTER TABLE listing_images ADD COLUMN is_private BOOLEAN DEFAULT false; END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='reports' AND column_name='reporter_email') THEN ALTER TABLE reports ADD COLUMN reporter_email VARCHAR(255); END IF;
         IF NOT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='deleted_users') THEN
           CREATE TABLE deleted_users (id SERIAL PRIMARY KEY, original_user_id INTEGER NOT NULL, email VARCHAR(255) NOT NULL, display_name VARCHAR(100), reason VARCHAR(50) DEFAULT 'dormant_cleanup', deleted_at TIMESTAMP DEFAULT NOW(), original_created_at TIMESTAMP);
         END IF;
+        -- Migrate existing active subscribers to 'pro' tier if they don't have a tier set
+        UPDATE users SET subscription_tier='pro' WHERE subscription_status='active' AND (subscription_tier IS NULL OR subscription_tier='free') AND is_founding_member=false AND subscription_provider != 'none';
       END $$;
     `);
-    console.log('Database initialized with full feature set');
+    console.log('Database initialized with 3-tier subscription system');
   } catch (err) { console.error('DB init error:', err); }
 }
 
 // Ensure upload dirs
-try { fs.mkdirSync(path.join(UPLOAD_DIR, 'images'), { recursive: true }); fs.mkdirSync(path.join(UPLOAD_DIR, 'thumbnails'), { recursive: true }); fs.mkdirSync(path.join(UPLOAD_DIR, 'id_documents'), { recursive: true }); } catch {}
+try { fs.mkdirSync(path.join(UPLOAD_DIR, 'images'), { recursive: true }); fs.mkdirSync(path.join(UPLOAD_DIR, 'thumbnails'), { recursive: true }); fs.mkdirSync(path.join(UPLOAD_DIR, 'id_documents'), { recursive: true }); fs.mkdirSync(path.join(UPLOAD_DIR, 'private'), { recursive: true }); } catch {}
 
 // ========== AUTH ==========
 app.post('/auth/register', async (req, res) => {
@@ -176,13 +200,12 @@ app.post('/auth/register', async (req, res) => {
     const isFoundingMember = currentUserCount < FOUNDING_MEMBER_LIMIT;
     const foundingMemberNumber = isFoundingMember ? currentUserCount + 1 : null;
     const {rows} = await pool.query(
-      `INSERT INTO users (email,password_hash,salt,display_name,date_of_birth,age_verified,is_founding_member,founding_member_number,subscription_status)
-       VALUES ($1,$2,$3,$4,$5,true,$6,$7,$8) RETURNING id,email,display_name,subscription_status,is_founding_member,founding_member_number`,
-      [email.toLowerCase(), hash, salt, display_name||email.split('@')[0], date_of_birth, isFoundingMember, foundingMemberNumber, isFoundingMember ? 'active' : 'none']
+      `INSERT INTO users (email,password_hash,salt,display_name,date_of_birth,age_verified,is_founding_member,founding_member_number,subscription_status,subscription_tier)
+       VALUES ($1,$2,$3,$4,$5,true,$6,$7,$8,$9) RETURNING id,email,display_name,subscription_status,subscription_tier,is_founding_member,founding_member_number`,
+      [email.toLowerCase(), hash, salt, display_name||email.split('@')[0], date_of_birth, isFoundingMember, foundingMemberNumber, isFoundingMember ? 'active' : 'none', isFoundingMember ? 'pro' : 'free']
     );
     const user = rows[0];
     if (isFoundingMember) console.log(`🌟 Founding Member #${foundingMemberNumber} registered: ${user.email}`);
-    // Non-founding members need ID verification — return requires_id flag
     res.status(201).json({ user, token: mkToken(user.id, user.email), requires_id_upload: !isFoundingMember });
   } catch { res.status(500).json({error:'Registration failed'}); }
 });
@@ -193,20 +216,24 @@ app.post('/auth/login', async (req, res) => {
     if (rateLimit(`login:${ip}`, 10, 900000)) return res.status(429).json({error:'Too many attempts, try again later'});
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({error:'Email and password required'});
-    const {rows} = await pool.query('SELECT id,email,display_name,password_hash,salt,subscription_status,subscription_provider,is_admin,is_founding_member,founding_member_number,id_verified,id_document_path FROM users WHERE email=$1',[email.toLowerCase()]);
+    const {rows} = await pool.query('SELECT id,email,display_name,password_hash,salt,subscription_status,subscription_tier,subscription_provider,subscription_expires_at,is_admin,is_founding_member,founding_member_number,id_verified,id_document_path,pending_downgrade_tier FROM users WHERE email=$1',[email.toLowerCase()]);
     if (rows.length === 0) return res.status(401).json({error:'Invalid credentials'});
     const u = rows[0];
     if (hashPw(password, u.salt) !== u.password_hash) return res.status(401).json({error:'Invalid credentials'});
-    res.json({ user:{id:u.id,email:u.email,display_name:u.display_name,subscription_status:u.subscription_status,is_admin:u.is_admin,is_founding_member:u.is_founding_member,founding_member_number:u.founding_member_number,id_verified:u.id_verified,has_id_document:!!u.id_document_path}, token:mkToken(u.id,u.email) });
+    const tier = getUserTier(u);
+    const limits = TIER_LIMITS[tier];
+    res.json({ user:{id:u.id,email:u.email,display_name:u.display_name,subscription_status:u.subscription_status,subscription_tier:tier,subscription_expires_at:u.subscription_expires_at,pending_downgrade_tier:u.pending_downgrade_tier,is_admin:u.is_admin,is_founding_member:u.is_founding_member,founding_member_number:u.founding_member_number,id_verified:u.id_verified,has_id_document:!!u.id_document_path,tier_limits:limits}, token:mkToken(u.id,u.email) });
   } catch { res.status(500).json({error:'Login failed'}); }
 });
 
 app.get('/auth/me', requireAuth, async (req: any, res) => {
   try {
-    const {rows} = await pool.query('SELECT id,email,display_name,subscription_status,subscription_provider,subscription_expires_at,is_admin,is_founding_member,founding_member_number,id_verified,id_document_path,cancelled_at,created_at FROM users WHERE id=$1',[req.user.id]);
+    const {rows} = await pool.query('SELECT id,email,display_name,subscription_status,subscription_tier,subscription_provider,subscription_expires_at,is_admin,is_founding_member,founding_member_number,id_verified,id_document_path,cancelled_at,pending_downgrade_tier,created_at FROM users WHERE id=$1',[req.user.id]);
     if (rows.length===0) return res.status(404).json({error:'User not found'});
     const u = rows[0];
-    res.json({...u, has_id_document: !!u.id_document_path});
+    const tier = getUserTier(u);
+    const limits = TIER_LIMITS[tier];
+    res.json({...u, has_id_document: !!u.id_document_path, subscription_tier: tier, tier_limits: limits});
   } catch { res.status(500).json({error:'Failed'}); }
 });
 
@@ -228,71 +255,239 @@ app.post('/auth/upload-id', requireAuth, async (req: any, res) => {
   } catch { res.status(500).json({error:'Failed to upload ID'}); }
 });
 
-// ========== SUBSCRIPTION ==========
+// ========== SUBSCRIPTION (3-tier) ==========
+
+// Create a PayPal subscription for a given tier
 app.post('/subscription/paypal/create', requireAuth, async (req: any, res) => {
   try {
-    if (!PAYPAL_CLIENT_ID || !PAYPAL_PLAN_ID) return res.status(503).json({error:'PayPal not configured'});
+    const { tier } = req.body as { tier?: SubscriptionTier };
+    if (!tier || !['silver','pro'].includes(tier)) return res.status(400).json({error:'tier must be "silver" or "pro"'});
+    if (!PAYPAL_CLIENT_ID) return res.status(503).json({error:'PayPal not configured'});
+    const planId = getPlanIdForTier(tier);
+    if (!planId) return res.status(503).json({error:`PayPal plan for ${tier} tier not configured`});
+
+    // Check if this is an upgrade/downgrade from an existing plan
+    const {rows:userRows} = await pool.query('SELECT subscription_status,subscription_tier,subscription_id,subscription_provider,subscription_expires_at,is_founding_member FROM users WHERE id=$1',[req.user.id]);
+    const currentUser = userRows[0];
+    if (!currentUser) return res.status(404).json({error:'User not found'});
+    if (currentUser.is_founding_member) return res.status(400).json({error:'Founding members already have Pro access'});
+
+    const currentTier = getUserTier(currentUser);
+
+    // DOWNGRADE LOGIC: If user wants a lower tier and has an active paid subscription
+    if (currentUser.subscription_status === 'active' && currentTier !== 'free') {
+      const tierOrder: Record<string,number> = {free:0, silver:1, pro:2};
+      if (tierOrder[tier] < tierOrder[currentTier]) {
+        // This is a downgrade — schedule it for end of billing period
+        const expiresAt = currentUser.subscription_expires_at;
+        if (expiresAt && new Date(expiresAt) > new Date()) {
+          // Paid period still active — schedule downgrade, don't create new subscription yet
+          await pool.query('UPDATE users SET pending_downgrade_tier=$1 WHERE id=$2',[tier, req.user.id]);
+          return res.json({
+            status: 'downgrade_scheduled',
+            message: `Your plan will change to ${TIER_LIMITS[tier].label} (£${TIER_LIMITS[tier].price_monthly}/mo) when your current ${TIER_LIMITS[currentTier].label} period ends on ${new Date(expiresAt).toLocaleDateString('en-GB')}.`,
+            current_tier: currentTier,
+            new_tier: tier,
+            effective_date: expiresAt
+          });
+        }
+        // If not paid / expired, downgrade takes effect immediately — fall through to create new sub
+      }
+    }
+
+    // Cancel existing PayPal subscription if switching
+    if (currentUser.subscription_provider === 'paypal' && currentUser.subscription_id && currentUser.subscription_status === 'active') {
+      try { await paypalFetch(`/v1/billing/subscriptions/${currentUser.subscription_id}/cancel`,'POST',{reason:`Switching to ${tier} tier`}); } catch {}
+    }
+
     const sub = await paypalFetch('/v1/billing/subscriptions','POST',{
-      plan_id:PAYPAL_PLAN_ID, subscriber:{email_address:req.user.email},
-      application_context:{brand_name:'VibeList',return_url:`${req.headers.origin||'https://vibelist.uk'}/subscription/success`,cancel_url:`${req.headers.origin||'https://vibelist.uk'}/subscription/cancel`}
+      plan_id: planId, subscriber:{email_address:req.user.email},
+      application_context:{brand_name:'VibeList',return_url:`${req.headers.origin||'https://vibelist.uk'}/subscription/success?tier=${tier}`,cancel_url:`${req.headers.origin||'https://vibelist.uk'}/subscription/cancel`}
     });
     if (sub.id) await pool.query('UPDATE users SET subscription_id=$1,subscription_provider=$2 WHERE id=$3',[sub.id,'paypal',req.user.id]);
-    res.json({subscription_id:sub.id, approve_url:sub.links?.find((l:any)=>l.rel==='approve')?.href});
+    res.json({subscription_id:sub.id, approve_url:sub.links?.find((l:any)=>l.rel==='approve')?.href, tier});
   } catch { res.status(500).json({error:'Failed'}); }
 });
+
 app.post('/subscription/paypal/activate', requireAuth, async (req: any, res) => {
   try {
-    const {subscription_id} = req.body; if (!subscription_id) return res.status(400).json({error:'subscription_id required'});
+    const {subscription_id, tier} = req.body;
+    if (!subscription_id) return res.status(400).json({error:'subscription_id required'});
+    const activeTier: SubscriptionTier = (tier === 'silver' || tier === 'pro') ? tier : 'pro';
     const sub = await paypalFetch(`/v1/billing/subscriptions/${subscription_id}`,'GET');
     if (sub.status==='ACTIVE') {
       const exp = new Date(); exp.setMonth(exp.getMonth()+1);
-      await pool.query('UPDATE users SET subscription_status=$1,subscription_id=$2,subscription_provider=$3,subscription_expires_at=$4,cancelled_at=null WHERE id=$5',['active',subscription_id,'paypal',exp.toISOString(),req.user.id]);
-      res.json({status:'active',message:'Subscription activated!'});
+      await pool.query('UPDATE users SET subscription_status=$1,subscription_tier=$2,subscription_id=$3,subscription_provider=$4,subscription_expires_at=$5,cancelled_at=null,pending_downgrade_tier=null WHERE id=$6',
+        ['active',activeTier,subscription_id,'paypal',exp.toISOString(),req.user.id]);
+      const limits = TIER_LIMITS[activeTier];
+      res.json({status:'active',tier:activeTier,message:`${limits.label} subscription activated!`,tier_limits:limits});
     } else res.json({status:sub.status,message:'Not yet active'});
   } catch { res.status(500).json({error:'Failed'}); }
 });
+
 app.post('/subscription/paypal/webhook', async (req, res) => {
   try {
     const ev = req.body; const sid = ev.resource?.id; if (!sid) return res.status(200).json({received:true});
     if (ev.event_type==='BILLING.SUBSCRIPTION.ACTIVATED'||ev.event_type==='PAYMENT.SALE.COMPLETED') {
       const exp = new Date(); exp.setMonth(exp.getMonth()+1);
-      await pool.query('UPDATE users SET subscription_status=$1,subscription_expires_at=$2 WHERE subscription_id=$3',['active',exp.toISOString(),sid]);
+      // Check if there's a pending downgrade
+      const {rows} = await pool.query('SELECT id,pending_downgrade_tier,subscription_expires_at FROM users WHERE subscription_id=$1',[sid]);
+      if (rows[0]?.pending_downgrade_tier) {
+        // The renewal came through but user wanted to downgrade — apply the downgrade now
+        const newTier = rows[0].pending_downgrade_tier;
+        // Cancel the old PayPal subscription since we need a new one for the lower tier
+        try { await paypalFetch(`/v1/billing/subscriptions/${sid}/cancel`,'POST',{reason:'Downgrade applied'}); } catch {}
+        await pool.query('UPDATE users SET subscription_tier=$1,subscription_status=$2,pending_downgrade_tier=null,subscription_expires_at=$3 WHERE subscription_id=$4',
+          [newTier, newTier === 'free' ? 'none' : 'active', newTier === 'free' ? null : exp.toISOString(), sid]);
+      } else {
+        await pool.query('UPDATE users SET subscription_status=$1,subscription_expires_at=$2 WHERE subscription_id=$3',['active',exp.toISOString(),sid]);
+      }
     } else if (ev.event_type==='BILLING.SUBSCRIPTION.CANCELLED'||ev.event_type==='BILLING.SUBSCRIPTION.SUSPENDED') {
-      await pool.query("UPDATE users SET subscription_status='cancelled',cancelled_at=NOW() WHERE subscription_id=$1",[sid]);
+      // Check for pending downgrade
+      const {rows} = await pool.query('SELECT id,pending_downgrade_tier FROM users WHERE subscription_id=$1',[sid]);
+      if (rows[0]?.pending_downgrade_tier) {
+        const newTier = rows[0].pending_downgrade_tier as SubscriptionTier;
+        if (newTier === 'free') {
+          await pool.query("UPDATE users SET subscription_status='none',subscription_tier='free',pending_downgrade_tier=null,cancelled_at=NOW() WHERE subscription_id=$1",[sid]);
+        } else {
+          // They want to downgrade to silver — they'll need to create a new subscription
+          await pool.query("UPDATE users SET subscription_status='none',subscription_tier=$1,pending_downgrade_tier=null,cancelled_at=NOW() WHERE subscription_id=$2",[newTier, sid]);
+        }
+      } else {
+        await pool.query("UPDATE users SET subscription_status='cancelled',cancelled_at=NOW() WHERE subscription_id=$1",[sid]);
+      }
     }
     res.status(200).json({received:true});
   } catch { res.status(200).json({received:true}); }
 });
+
 app.post('/subscription/manual/activate', async (req, res) => {
   try {
-    const {admin_key,user_id,months,provider} = req.body;
+    const {admin_key,user_id,months,provider,tier} = req.body;
     if (admin_key !== process.env.ADMIN_KEY) return res.status(403).json({error:'Unauthorized'});
+    const activeTier: SubscriptionTier = (tier === 'silver' || tier === 'pro') ? tier : 'pro';
     const exp = new Date(); exp.setMonth(exp.getMonth()+(months||1));
-    await pool.query('UPDATE users SET subscription_status=$1,subscription_provider=$2,subscription_expires_at=$3,cancelled_at=null WHERE id=$4',['active',provider||'manual',exp.toISOString(),user_id]);
-    res.json({status:'active',expires_at:exp.toISOString()});
+    await pool.query('UPDATE users SET subscription_status=$1,subscription_tier=$2,subscription_provider=$3,subscription_expires_at=$4,cancelled_at=null,pending_downgrade_tier=null WHERE id=$5',
+      ['active',activeTier,provider||'manual',exp.toISOString(),user_id]);
+    res.json({status:'active',tier:activeTier,expires_at:exp.toISOString()});
   } catch { res.status(500).json({error:'Failed'}); }
 });
-app.get('/subscription/config', (_req, res) => { res.json({paypal_client_id:PAYPAL_CLIENT_ID,plan_id:PAYPAL_PLAN_ID,price:'£25/month',paypal_available:!!PAYPAL_CLIENT_ID}); });
+
+// Subscription config — returns tier info for the frontend
+app.get('/subscription/config', (_req, res) => {
+  res.json({
+    paypal_client_id: PAYPAL_CLIENT_ID,
+    paypal_available: !!PAYPAL_CLIENT_ID,
+    tiers: TIER_LIMITS,
+    plans: {
+      silver: { plan_id: PAYPAL_PLAN_ID_SILVER, available: !!PAYPAL_PLAN_ID_SILVER },
+      pro: { plan_id: PAYPAL_PLAN_ID_PRO, available: !!PAYPAL_PLAN_ID_PRO },
+    }
+  });
+});
+
+// Get user's current tier limits
+app.get('/subscription/tier', requireAuth, async (req: any, res) => {
+  try {
+    const {rows} = await pool.query('SELECT subscription_status,subscription_tier,is_founding_member,subscription_expires_at,pending_downgrade_tier FROM users WHERE id=$1',[req.user.id]);
+    if (!rows[0]) return res.status(404).json({error:'User not found'});
+    const tier = getUserTier(rows[0]);
+    const limits = TIER_LIMITS[tier];
+    const listingCount = await pool.query('SELECT COUNT(*) FROM listings WHERE user_id=$1',[req.user.id]);
+    res.json({
+      tier, limits,
+      current_listings: parseInt(listingCount.rows[0].count),
+      can_create_listing: limits.max_listings === -1 || parseInt(listingCount.rows[0].count) < limits.max_listings,
+      pending_downgrade_tier: rows[0].pending_downgrade_tier,
+      subscription_expires_at: rows[0].subscription_expires_at,
+    });
+  } catch { res.status(500).json({error:'Failed'}); }
+});
+
+// ========== DOWNGRADE SUBSCRIPTION ==========
+app.post('/subscription/downgrade', requireAuth, async (req: any, res) => {
+  try {
+    const { new_tier } = req.body as { new_tier?: SubscriptionTier };
+    if (!new_tier || !['free','silver'].includes(new_tier)) return res.status(400).json({error:'new_tier must be "free" or "silver"'});
+
+    const {rows} = await pool.query('SELECT subscription_status,subscription_tier,subscription_id,subscription_provider,subscription_expires_at,is_founding_member FROM users WHERE id=$1',[req.user.id]);
+    if (!rows[0]) return res.status(404).json({error:'User not found'});
+    if (rows[0].is_founding_member) return res.status(400).json({error:'Founding members have permanent Pro access'});
+
+    const currentTier = getUserTier(rows[0]);
+    const tierOrder: Record<string,number> = {free:0, silver:1, pro:2};
+    if (tierOrder[new_tier] >= tierOrder[currentTier]) return res.status(400).json({error:'This is not a downgrade. Use the upgrade flow.'});
+
+    const expiresAt = rows[0].subscription_expires_at;
+
+    // If they have a paid active subscription with time remaining, schedule the downgrade
+    if (rows[0].subscription_status === 'active' && expiresAt && new Date(expiresAt) > new Date()) {
+      await pool.query('UPDATE users SET pending_downgrade_tier=$1 WHERE id=$2',[new_tier, req.user.id]);
+      return res.json({
+        status: 'downgrade_scheduled',
+        message: `Your plan will change to ${TIER_LIMITS[new_tier].label} when your current billing period ends on ${new Date(expiresAt).toLocaleDateString('en-GB')}. You keep full ${TIER_LIMITS[currentTier].label} access until then.`,
+        effective_date: expiresAt,
+        current_tier: currentTier,
+        new_tier: new_tier,
+      });
+    }
+
+    // No paid time remaining — downgrade immediately
+    // Cancel PayPal subscription if active
+    if (rows[0].subscription_provider === 'paypal' && rows[0].subscription_id) {
+      try { await paypalFetch(`/v1/billing/subscriptions/${rows[0].subscription_id}/cancel`,'POST',{reason:'Downgrade to ' + new_tier}); } catch {}
+    }
+
+    if (new_tier === 'free') {
+      await pool.query("UPDATE users SET subscription_status='none',subscription_tier='free',pending_downgrade_tier=null,cancelled_at=NOW() WHERE id=$1",[req.user.id]);
+    } else {
+      // Downgrade to silver — they'll need to create a new PayPal subscription for silver
+      await pool.query("UPDATE users SET subscription_tier=$1,pending_downgrade_tier=null WHERE id=$2",[new_tier, req.user.id]);
+    }
+
+    res.json({
+      status: 'downgraded',
+      message: `Your plan has been changed to ${TIER_LIMITS[new_tier].label} effective immediately.`,
+      current_tier: new_tier,
+      tier_limits: TIER_LIMITS[new_tier],
+    });
+  } catch { res.status(500).json({error:'Failed to downgrade subscription'}); }
+});
+
+// Cancel pending downgrade
+app.post('/subscription/cancel-downgrade', requireAuth, async (req: any, res) => {
+  try {
+    await pool.query('UPDATE users SET pending_downgrade_tier=null WHERE id=$1',[req.user.id]);
+    res.json({message:'Pending downgrade cancelled. You will keep your current plan.'});
+  } catch { res.status(500).json({error:'Failed'}); }
+});
 
 // ========== CANCEL SUBSCRIPTION ==========
 app.post('/subscription/cancel', requireAuth, async (req: any, res) => {
   try {
-    const {rows} = await pool.query('SELECT subscription_id,subscription_provider,is_founding_member FROM users WHERE id=$1',[req.user.id]);
+    const {rows} = await pool.query('SELECT subscription_id,subscription_provider,is_founding_member,subscription_expires_at FROM users WHERE id=$1',[req.user.id]);
     if (!rows[0]) return res.status(404).json({error:'User not found'});
     if (rows[0].is_founding_member) return res.status(400).json({error:'Founding members have permanent access and cannot cancel'});
     // Try to cancel PayPal subscription
     if (rows[0].subscription_provider === 'paypal' && rows[0].subscription_id) {
       try { await paypalFetch(`/v1/billing/subscriptions/${rows[0].subscription_id}/cancel`,'POST',{reason:'User requested cancellation'}); } catch {}
     }
-    await pool.query("UPDATE users SET subscription_status='cancelled',cancelled_at=NOW() WHERE id=$1",[req.user.id]);
-    res.json({message:'Subscription cancelled. Your access continues until the current billing period ends. After 90 days of inactivity, you will receive an email about account retention.'});
+    // If they have paid time remaining, keep access until expiry then revert to free
+    const expiresAt = rows[0].subscription_expires_at;
+    if (expiresAt && new Date(expiresAt) > new Date()) {
+      await pool.query("UPDATE users SET pending_downgrade_tier='free',cancelled_at=NOW() WHERE id=$1",[req.user.id]);
+      res.json({message:`Subscription cancelled. Your current access continues until ${new Date(expiresAt).toLocaleDateString('en-GB')}. After that you will be on the Free tier. After 90 days of inactivity, you will receive an email about account retention.`});
+    } else {
+      await pool.query("UPDATE users SET subscription_status='none',subscription_tier='free',cancelled_at=NOW(),pending_downgrade_tier=null WHERE id=$1",[req.user.id]);
+      res.json({message:'Subscription cancelled. You are now on the Free tier. After 90 days of inactivity, you will receive an email about account retention.'});
+    }
   } catch { res.status(500).json({error:'Failed to cancel subscription'}); }
 });
 
 // ========== DORMANT ACCOUNT CLEANUP ==========
 app.get('/admin/dormant-accounts', requireAdmin, async (_req, res) => {
   try {
-    const {rows} = await pool.query(`SELECT id,email,display_name,subscription_status,cancelled_at,subscription_expires_at,created_at FROM users WHERE subscription_status='cancelled' AND cancelled_at IS NOT NULL AND cancelled_at < NOW() - INTERVAL '${DORMANT_DAYS} days' AND is_founding_member=false ORDER BY cancelled_at ASC`);
+    const {rows} = await pool.query(`SELECT id,email,display_name,subscription_status,subscription_tier,cancelled_at,subscription_expires_at,created_at FROM users WHERE subscription_status='cancelled' AND cancelled_at IS NOT NULL AND cancelled_at < NOW() - INTERVAL '${DORMANT_DAYS} days' AND is_founding_member=false ORDER BY cancelled_at ASC`);
     res.json(rows);
   } catch { res.status(500).json({error:'Failed'}); }
 });
@@ -303,18 +498,14 @@ app.post('/admin/users/:id/delete-account', requireAdmin, async (req: any, res) 
     const {rows} = await pool.query('SELECT id,email,display_name,created_at FROM users WHERE id=$1',[userId]);
     if (rows.length === 0) return res.status(404).json({error:'User not found'});
     const u = rows[0];
-    // Archive to deleted_users
     await pool.query('INSERT INTO deleted_users (original_user_id,email,display_name,reason,original_created_at) VALUES ($1,$2,$3,$4,$5)',[u.id,u.email,u.display_name,req.body.reason||'dormant_cleanup',u.created_at]);
-    // Delete listing images from disk
     const imgs = await pool.query('SELECT li.file_path,li.thumbnail_path FROM listing_images li JOIN listings l ON li.listing_id=l.id WHERE l.user_id=$1',[userId]);
     for (const img of imgs.rows) {
       try { if (img.file_path) fs.unlinkSync(path.join(UPLOAD_DIR, img.file_path)); } catch {}
       try { if (img.thumbnail_path) fs.unlinkSync(path.join(UPLOAD_DIR, img.thumbnail_path)); } catch {}
     }
-    // Delete ID document
     const {rows:uDoc} = await pool.query('SELECT id_document_path FROM users WHERE id=$1',[userId]);
     if (uDoc[0]?.id_document_path) { try { fs.unlinkSync(path.join(UPLOAD_DIR, uDoc[0].id_document_path)); } catch {} }
-    // Delete messages, reports, listing_images, listings, then user
     await pool.query('DELETE FROM messages WHERE sender_id=$1 OR receiver_id=$1',[userId]);
     await pool.query('DELETE FROM reports WHERE reporter_id=$1',[userId]);
     await pool.query('DELETE FROM listing_images WHERE listing_id IN (SELECT id FROM listings WHERE user_id=$1)',[userId]);
@@ -344,7 +535,7 @@ app.post('/account/delete', requireAuth, async (req: any, res) => {
 });
 
 // ========== LISTINGS ==========
-app.get('/listings', async (req, res) => {
+app.get('/listings', async (req: any, res) => {
   try {
     const { category, city, status, page, limit: lim } = req.query as any;
     const pg = Math.max(1, parseInt(page)||1); const lt = Math.min(50, Math.max(1, parseInt(lim)||20));
@@ -353,33 +544,62 @@ app.get('/listings', async (req, res) => {
     if (city && CITIES.includes(city)) { params.push(city); where.push(`l.city=$${params.length}`); }
     if (status === 'pending' || status === 'rejected' || status === 'hidden') { where = [`l.status='${status}'`]; }
     const offset = (pg-1)*lt; params.push(lt); params.push(offset);
-    const q = `SELECT l.*, u.display_name as author, (SELECT file_path FROM listing_images WHERE listing_id=l.id ORDER BY sort_order LIMIT 1) as image
+    const q = `SELECT l.*, u.display_name as author, (SELECT file_path FROM listing_images WHERE listing_id=l.id AND is_private=false ORDER BY sort_order LIMIT 1) as image
       FROM listings l LEFT JOIN users u ON l.user_id=u.id WHERE ${where.join(' AND ')} ORDER BY l.featured DESC, l.created_at DESC LIMIT $${params.length-1} OFFSET $${params.length}`;
     const {rows} = await pool.query(q, params);
     res.json({listings:rows, page:pg, limit:lt});
   } catch (err) { console.error(err); res.status(500).json({error:'Failed to fetch listings'}); }
 });
 
-app.get('/listings/:id', async (req, res) => {
+app.get('/listings/:id', async (req: any, res) => {
   try {
     const {rows} = await pool.query(`SELECT l.*, u.display_name as author, u.id as author_id FROM listings l LEFT JOIN users u ON l.user_id=u.id WHERE l.id=$1`,[req.params.id]);
     if (rows.length===0) return res.status(404).json({error:'Listing not found'});
     await pool.query('UPDATE listings SET views=views+1 WHERE id=$1',[req.params.id]);
-    const imgs = await pool.query('SELECT id,file_path,thumbnail_path,sort_order FROM listing_images WHERE listing_id=$1 ORDER BY sort_order',[req.params.id]);
+    // Logged-in users can see private images, non-logged-in users cannot
+    const isLoggedIn = !!req.user;
+    let imgs;
+    if (isLoggedIn) {
+      imgs = await pool.query('SELECT id,file_path,thumbnail_path,is_private,sort_order FROM listing_images WHERE listing_id=$1 ORDER BY sort_order',[req.params.id]);
+    } else {
+      imgs = await pool.query('SELECT id,file_path,thumbnail_path,is_private,sort_order FROM listing_images WHERE listing_id=$1 AND is_private=false ORDER BY sort_order',[req.params.id]);
+    }
     res.json({...rows[0], images: imgs.rows});
   } catch { res.status(500).json({error:'Failed'}); }
 });
 
 app.get('/listings/user/mine', requireAuth, async (req: any, res) => {
   try {
-    const {rows} = await pool.query(`SELECT l.*, (SELECT file_path FROM listing_images WHERE listing_id=l.id ORDER BY sort_order LIMIT 1) as image FROM listings l WHERE l.user_id=$1 ORDER BY l.created_at DESC`,[req.user.id]);
+    const {rows} = await pool.query(`SELECT l.*, (SELECT file_path FROM listing_images WHERE listing_id=l.id AND is_private=false ORDER BY sort_order LIMIT 1) as image FROM listings l WHERE l.user_id=$1 ORDER BY l.created_at DESC`,[req.user.id]);
     res.json(rows);
   } catch { res.status(500).json({error:'Failed'}); }
 });
 
-app.post('/listings', requireSub, async (req: any, res) => {
+app.post('/listings', requireAuth, async (req: any, res) => {
   try {
     if (rateLimit(`post:${req.user.id}`, 10, 3600000)) return res.status(429).json({error:'Posting too frequently'});
+
+    // Get user tier and check listing limit
+    const {rows:userRows} = await pool.query('SELECT subscription_status,subscription_tier,is_founding_member FROM users WHERE id=$1',[req.user.id]);
+    if (!userRows[0]) return res.status(401).json({error:'User not found'});
+    const tier = getUserTier(userRows[0]);
+    const limits = TIER_LIMITS[tier];
+
+    // Check listing count
+    if (limits.max_listings !== -1) {
+      const {rows:countRows} = await pool.query('SELECT COUNT(*) FROM listings WHERE user_id=$1',[req.user.id]);
+      const currentCount = parseInt(countRows[0].count);
+      if (currentCount >= limits.max_listings) {
+        return res.status(403).json({
+          error: `Your ${limits.label} plan allows up to ${limits.max_listings} listings. Upgrade to post more.`,
+          code: 'LISTING_LIMIT_REACHED',
+          current_tier: tier,
+          limit: limits.max_listings,
+          current_count: currentCount,
+        });
+      }
+    }
+
     const { title, description, category, city, price, contact_info } = req.body;
     if (!title || title.length < 5) return res.status(400).json({error:'Title must be at least 5 characters'});
     if (!description || description.length < 10) return res.status(400).json({error:'Description must be at least 10 characters'});
@@ -425,15 +645,33 @@ app.delete('/listings/:id', requireAuth, async (req: any, res) => {
   } catch { res.status(500).json({error:'Failed'}); }
 });
 
-// ========== IMAGE UPLOAD ==========
+// ========== IMAGE UPLOAD (tier-aware) ==========
 app.post('/listings/:id/images', requireAuth, async (req: any, res) => {
   try {
     const {rows:listing} = await pool.query('SELECT user_id FROM listings WHERE id=$1',[req.params.id]);
     if (listing.length===0) return res.status(404).json({error:'Listing not found'});
     if (listing[0].user_id !== req.user.id) return res.status(403).json({error:'Not your listing'});
-    const {rows:imgCount} = await pool.query('SELECT COUNT(*) FROM listing_images WHERE listing_id=$1',[req.params.id]);
-    if (parseInt(imgCount[0].count) >= 5) return res.status(400).json({error:'Maximum 5 images per listing'});
-    const { image_data } = req.body;
+
+    // Get user tier
+    const {rows:userRows} = await pool.query('SELECT subscription_status,subscription_tier,is_founding_member FROM users WHERE id=$1',[req.user.id]);
+    const tier = getUserTier(userRows[0]);
+    const limits = TIER_LIMITS[tier];
+
+    const { image_data, is_private } = req.body;
+    const isPrivate = !!is_private;
+
+    // Check image limits
+    if (isPrivate) {
+      if (limits.max_private_images === 0) return res.status(403).json({error:'Private gallery is not available on the Free plan. Upgrade to Silver or Pro.',code:'UPGRADE_REQUIRED'});
+      const {rows:privateCount} = await pool.query('SELECT COUNT(*) FROM listing_images WHERE listing_id=$1 AND is_private=true',[req.params.id]);
+      if (parseInt(privateCount[0].count) >= limits.max_private_images) return res.status(400).json({error:`Maximum ${limits.max_private_images} private images per listing on your ${limits.label} plan`});
+    } else {
+      const {rows:publicCount} = await pool.query('SELECT COUNT(*) FROM listing_images WHERE listing_id=$1 AND is_private=false',[req.params.id]);
+      if (limits.max_images_per_listing !== -1 && parseInt(publicCount[0].count) >= limits.max_images_per_listing) {
+        return res.status(400).json({error:`Maximum ${limits.max_images_per_listing} images per listing on your ${limits.label} plan. Upgrade for more.`,code:'IMAGE_LIMIT_REACHED'});
+      }
+    }
+
     if (!image_data) return res.status(400).json({error:'image_data required (base64)'});
     const matches = image_data.match(/^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/);
     if (!matches) return res.status(400).json({error:'Invalid image format. Use JPEG, PNG or WebP'});
@@ -441,11 +679,12 @@ app.post('/listings/:id/images', requireAuth, async (req: any, res) => {
     const buffer = Buffer.from(matches[2], 'base64');
     if (buffer.length > 5 * 1024 * 1024) return res.status(400).json({error:'Image must be under 5MB'});
     const filename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${ext}`;
-    const filepath = path.join('images', filename);
+    const subdir = isPrivate ? 'private' : 'images';
+    const filepath = path.join(subdir, filename);
     fs.writeFileSync(path.join(UPLOAD_DIR, filepath), buffer);
     const {rows} = await pool.query(
-      'INSERT INTO listing_images (listing_id,file_path,sort_order) VALUES ($1,$2,(SELECT COALESCE(MAX(sort_order),0)+1 FROM listing_images WHERE listing_id=$1)) RETURNING *',
-      [req.params.id, filepath]
+      'INSERT INTO listing_images (listing_id,file_path,is_private,sort_order) VALUES ($1,$2,$3,(SELECT COALESCE(MAX(sort_order),0)+1 FROM listing_images WHERE listing_id=$1)) RETURNING *',
+      [req.params.id, filepath, isPrivate]
     );
     res.status(201).json(rows[0]);
   } catch (err) { console.error(err); res.status(500).json({error:'Failed to upload image'}); }
@@ -462,7 +701,7 @@ app.delete('/listings/:listingId/images/:imageId', requireAuth, async (req: any,
   } catch { res.status(500).json({error:'Failed'}); }
 });
 
-// ========== REPORTS (enhanced — email + justification required) ==========
+// ========== REPORTS ==========
 app.post('/listings/:id/report', async (req: any, res) => {
   try {
     const { reason, details, reporter_email } = req.body;
@@ -542,7 +781,7 @@ app.get('/admin/reports', requireAdmin, async (_req, res) => {
 
 app.post('/admin/reports/:id/resolve', requireAdmin, async (req: any, res) => {
   try {
-    const { action } = req.body; // 'dismiss' or 'hide_listing'
+    const { action } = req.body;
     await pool.query("UPDATE reports SET status='resolved' WHERE id=$1",[req.params.id]);
     if (action === 'hide_listing') {
       const {rows} = await pool.query('SELECT listing_id FROM reports WHERE id=$1',[req.params.id]);
@@ -564,6 +803,9 @@ app.get('/admin/stats', requireAdmin, async (_req, res) => {
     const dormant = await pool.query(`SELECT COUNT(*) FROM users WHERE subscription_status='cancelled' AND cancelled_at IS NOT NULL AND cancelled_at < NOW() - INTERVAL '${DORMANT_DAYS} days' AND is_founding_member=false`);
     const deleted = await pool.query('SELECT COUNT(*) FROM deleted_users');
     const pendingId = await pool.query("SELECT COUNT(*) FROM users WHERE id_document_path IS NOT NULL AND id_verified=false");
+    const silverSubs = await pool.query("SELECT COUNT(*) FROM users WHERE subscription_tier='silver' AND subscription_status='active'");
+    const proSubs = await pool.query("SELECT COUNT(*) FROM users WHERE subscription_tier='pro' AND subscription_status='active' AND is_founding_member=false");
+    const freeTier = await pool.query("SELECT COUNT(*) FROM users WHERE (subscription_tier='free' OR subscription_tier IS NULL) AND is_founding_member=false");
     res.json({
       total_users:parseInt(users.rows[0].count), total_listings:parseInt(listings.rows[0].count),
       pending_listings:parseInt(pending.rows[0].count), hidden_listings:parseInt(hidden.rows[0].count),
@@ -571,14 +813,17 @@ app.get('/admin/stats', requireAdmin, async (_req, res) => {
       founding_members:parseInt(founders.rows[0].count), founding_member_limit:FOUNDING_MEMBER_LIMIT,
       dormant_accounts:parseInt(dormant.rows[0].count), deleted_accounts:parseInt(deleted.rows[0].count),
       pending_id_verifications:parseInt(pendingId.rows[0].count),
+      silver_subscribers:parseInt(silverSubs.rows[0].count),
+      pro_subscribers:parseInt(proSubs.rows[0].count),
+      free_tier_users:parseInt(freeTier.rows[0].count),
     });
   } catch { res.status(500).json({error:'Failed'}); }
 });
 
 app.get('/admin/users', requireAdmin, async (_req, res) => {
   try {
-    const {rows} = await pool.query(`SELECT id, email, display_name, subscription_status, subscription_provider, is_admin, is_founding_member, founding_member_number, id_verified, id_document_path, cancelled_at, created_at FROM users ORDER BY id ASC`);
-    res.json(rows.map((u: any) => ({...u, has_id_document: !!u.id_document_path})));
+    const {rows} = await pool.query(`SELECT id, email, display_name, subscription_status, subscription_tier, subscription_provider, is_admin, is_founding_member, founding_member_number, id_verified, id_document_path, cancelled_at, pending_downgrade_tier, created_at FROM users ORDER BY id ASC`);
+    res.json(rows.map((u: any) => ({...u, has_id_document: !!u.id_document_path, effective_tier: getUserTier(u)})));
   } catch { res.status(500).json({error:'Failed'}); }
 });
 
@@ -587,12 +832,12 @@ app.post('/admin/users/:id/grant-founding', requireAdmin, async (req: any, res) 
     const userId = parseInt(req.params.id);
     const {rows:maxNum} = await pool.query('SELECT COALESCE(MAX(founding_member_number),0) as max_num FROM users WHERE is_founding_member=true');
     const nextNum = maxNum[0].max_num + 1;
-    await pool.query('UPDATE users SET is_founding_member=true, founding_member_number=$1, subscription_status=$2 WHERE id=$3',[nextNum, 'active', userId]);
+    await pool.query('UPDATE users SET is_founding_member=true, founding_member_number=$1, subscription_status=$2, subscription_tier=$3 WHERE id=$4',[nextNum, 'active', 'pro', userId]);
     res.json({message:`User granted Founding Member #${nextNum} status`});
   } catch { res.status(500).json({error:'Failed'}); }
 });
 app.post('/admin/users/:id/revoke-founding', requireAdmin, async (req: any, res) => {
-  try { await pool.query('UPDATE users SET is_founding_member=false, founding_member_number=null, subscription_status=$1 WHERE id=$2',['none', parseInt(req.params.id)]); res.json({message:'Founding member status revoked'}); } catch { res.status(500).json({error:'Failed'}); }
+  try { await pool.query("UPDATE users SET is_founding_member=false, founding_member_number=null, subscription_status='none', subscription_tier='free' WHERE id=$1",[parseInt(req.params.id)]); res.json({message:'Founding member status revoked'}); } catch { res.status(500).json({error:'Failed'}); }
 });
 app.post('/admin/users/:id/make-admin', async (req, res) => {
   try { if (req.body.admin_key !== process.env.ADMIN_KEY) return res.status(403).json({error:'Unauthorized'}); await pool.query('UPDATE users SET is_admin=true WHERE id=$1',[req.params.id]); res.json({message:'User is now admin'}); } catch { res.status(500).json({error:'Failed'}); }
@@ -611,7 +856,13 @@ app.post('/admin/users/:id/suspend', requireAdmin, async (req: any, res) => {
   try { if (parseInt(req.params.id) === req.user.id) return res.status(400).json({error:'Cannot suspend yourself'}); await pool.query("UPDATE users SET subscription_status='suspended' WHERE id=$1",[req.params.id]); res.json({message:'User suspended'}); } catch { res.status(500).json({error:'Failed'}); }
 });
 app.post('/admin/users/:id/activate', requireAdmin, async (req: any, res) => {
-  try { const exp = new Date(); exp.setMonth(exp.getMonth()+1); await pool.query('UPDATE users SET subscription_status=$1,subscription_provider=$2,subscription_expires_at=$3,cancelled_at=null WHERE id=$4',['active','admin',exp.toISOString(),req.params.id]); res.json({message:'User subscription activated for 1 month'}); } catch { res.status(500).json({error:'Failed'}); }
+  try {
+    const { tier } = req.body;
+    const activeTier: SubscriptionTier = (tier === 'silver' || tier === 'pro') ? tier : 'pro';
+    const exp = new Date(); exp.setMonth(exp.getMonth()+1);
+    await pool.query('UPDATE users SET subscription_status=$1,subscription_tier=$2,subscription_provider=$3,subscription_expires_at=$4,cancelled_at=null,pending_downgrade_tier=null WHERE id=$5',['active',activeTier,'admin',exp.toISOString(),req.params.id]);
+    res.json({message:`User subscription activated as ${activeTier} for 1 month`});
+  } catch { res.status(500).json({error:'Failed'}); }
 });
 app.post('/admin/users/:id/verify-id', requireAdmin, async (req: any, res) => {
   try { await pool.query('UPDATE users SET id_verified=true WHERE id=$1',[req.params.id]); res.json({message:'User ID verified'}); } catch { res.status(500).json({error:'Failed'}); }
@@ -631,6 +882,7 @@ app.get('/meta/founding-status', async (_req, res) => {
     res.json({ current_members: count, founding_limit: FOUNDING_MEMBER_LIMIT, slots_remaining: Math.max(0, FOUNDING_MEMBER_LIMIT - count), founding_open: count < FOUNDING_MEMBER_LIMIT });
   } catch { res.status(500).json({error:'Failed'}); }
 });
+app.get('/meta/tiers', (_req, res) => { res.json(TIER_LIMITS); });
 
 // Start
-initDB().then(() => { app.listen(PORT, () => { console.log(`VibeList API running on port ${PORT}`); }); });
+initDB().then(() => { app.listen(PORT, () => { console.log(`VibeList API running on port ${PORT} with 3-tier subscriptions`); }); });
