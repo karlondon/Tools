@@ -16,7 +16,7 @@ const CITY_ICONS: Record<string,string> = {all:'🌍',london:'🇬🇧',manchest
 const EMOJIS = ['✨','🔥','💎','⭐','🎯','💡','🚀','❤️','🎨','🎵','🌟','💰','📸','🏆','🌈','🍕','🎁','🔑','💼','🏠','🚗','💻','👗','💄','💪','🤝','📦','🎉','🔧','📍'];
 const API = '/api';
 
-type ViewType = 'home'|'login'|'register'|'subscribe'|'create'|'detail'|'my-listings'|'messages'|'admin'|'privacy'|'terms'|'cookies'|'account'|'upload-id';
+type ViewType = 'home'|'login'|'register'|'subscribe'|'create'|'detail'|'my-listings'|'messages'|'admin'|'privacy'|'terms'|'cookies'|'account'|'upload-id'|'pricing'|'help';
 
 const S: Record<string,React.CSSProperties> = {
   inp: {width:'100%',padding:'12px 14px',marginBottom:10,background:'#181818',color:'#fff',border:'1px solid #2a2a2a',borderRadius:10,boxSizing:'border-box' as const,fontSize:'0.95rem',outline:'none',transition:'border 0.2s'},
@@ -895,6 +895,125 @@ export default function Home() {
     );
   }
 
+  // ========== PUBLIC PRICING PAGE ==========
+  if (view === 'pricing') return (
+    <div style={{maxWidth:900,margin:'0 auto',padding:20}}>
+      <button onClick={()=>setView('home')} style={{...S.btnSec,marginBottom:20}}>← Back</button>
+      <h1 style={{textAlign:'center',fontSize:'2.5rem',margin:'20px 0 10px',background:'linear-gradient(135deg,#6366f1,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>💰 Pricing Plans</h1>
+      <p style={{textAlign:'center',color:'#888',margin:'0 0 30px'}}>Simple, transparent pricing. Start free, upgrade when you need more.</p>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:20,marginBottom:30}}>
+        <div style={{...S.card,border:'1px solid #333'}}>
+          <div style={{textAlign:'center',marginBottom:16}}><p style={{fontSize:'1.5rem',margin:'0 0 4px'}}>📋</p><h3 style={{margin:'0 0 4px',fontSize:'1.3rem'}}>Free</h3><p style={{fontSize:'2rem',fontWeight:700,margin:'0 0 4px'}}>£0<span style={{fontSize:'0.9rem',color:'#666'}}>/month</span></p></div>
+          <ul style={{listStyle:'none',padding:0,margin:'0 0 20px'}}><li style={{padding:'6px 0',color:'#ccc',fontSize:'0.9rem'}}>📝 Up to 3 listings</li><li style={{padding:'6px 0',color:'#ccc',fontSize:'0.9rem'}}>📸 2 images per listing</li><li style={{padding:'6px 0',color:'#ccc',fontSize:'0.9rem'}}>💬 Direct messaging</li><li style={{padding:'6px 0',color:'#555',fontSize:'0.9rem'}}>🔒 No private gallery</li><li style={{padding:'6px 0',color:'#555',fontSize:'0.9rem'}}>🎥 No video support</li></ul>
+          <button onClick={()=>setView('register')} style={{...S.btnSec,width:'100%'}}>Get Started Free</button>
+        </div>
+        <div style={{...S.card,border:'1px solid #6b7280',background:'linear-gradient(180deg,#141414,#1a1a24)'}}>
+          <div style={{textAlign:'center',marginBottom:16}}><p style={{fontSize:'1.5rem',margin:'0 0 4px'}}>🥈</p><h3 style={{margin:'0 0 4px',fontSize:'1.3rem',color:'#c0c0c0'}}>Silver</h3><p style={{fontSize:'2rem',fontWeight:700,margin:'0 0 4px'}}>£5<span style={{fontSize:'0.9rem',color:'#666'}}>/month</span></p></div>
+          <ul style={{listStyle:'none',padding:0,margin:'0 0 20px'}}><li style={{padding:'6px 0',color:'#ccc',fontSize:'0.9rem'}}>📝 Up to 10 listings</li><li style={{padding:'6px 0',color:'#ccc',fontSize:'0.9rem'}}>📸 5 images per listing</li><li style={{padding:'6px 0',color:'#ccc',fontSize:'0.9rem'}}>💬 Direct messaging</li><li style={{padding:'6px 0',color:'#c0c0c0',fontSize:'0.9rem'}}>🔓 2 private gallery images</li><li style={{padding:'6px 0',color:'#555',fontSize:'0.9rem'}}>🎥 No video support</li></ul>
+          <button onClick={()=>user?setView('subscribe'):setView('register')} style={{width:'100%',padding:14,background:'linear-gradient(135deg,#6b7280,#9ca3af)',color:'#fff',border:'none',borderRadius:12,fontSize:'1rem',cursor:'pointer',fontWeight:600}}>🥈 Choose Silver</button>
+        </div>
+        <div style={{...S.card,border:'1px solid #6366f1',background:'linear-gradient(180deg,#141414,#1e1b3a)',position:'relative'}}>
+          <div style={{position:'absolute',top:-10,left:16,background:'linear-gradient(135deg,#ec4899,#f43f5e)',color:'#fff',padding:'2px 12px',borderRadius:10,fontSize:'0.75rem',fontWeight:600}}>Best Value</div>
+          <div style={{textAlign:'center',marginBottom:16}}><p style={{fontSize:'1.5rem',margin:'0 0 4px'}}>⚡</p><h3 style={{margin:'0 0 4px',fontSize:'1.3rem',color:'#818cf8'}}>Pro</h3><p style={{fontSize:'2rem',fontWeight:700,margin:'0 0 4px'}}>£15<span style={{fontSize:'0.9rem',color:'#666'}}>/month</span></p></div>
+          <ul style={{listStyle:'none',padding:0,margin:'0 0 20px'}}><li style={{padding:'6px 0',color:'#ccc',fontSize:'0.9rem'}}>📝 Unlimited listings</li><li style={{padding:'6px 0',color:'#ccc',fontSize:'0.9rem'}}>📸 Unlimited images</li><li style={{padding:'6px 0',color:'#ccc',fontSize:'0.9rem'}}>💬 Direct messaging</li><li style={{padding:'6px 0',color:'#818cf8',fontSize:'0.9rem'}}>🔓 10 private gallery images</li><li style={{padding:'6px 0',color:'#818cf8',fontSize:'0.9rem'}}>🎥 Video support</li><li style={{padding:'6px 0',color:'#818cf8',fontSize:'0.9rem'}}>🛡️ Priority support</li></ul>
+          <button onClick={()=>user?setView('subscribe'):setView('register')} style={{width:'100%',padding:14,background:'linear-gradient(135deg,#6366f1,#8b5cf6)',color:'#fff',border:'none',borderRadius:12,fontSize:'1rem',cursor:'pointer',fontWeight:600}}>⚡ Choose Pro</button>
+        </div>
+      </div>
+      <div style={S.card}><h3 style={{margin:'0 0 12px'}}>📋 Plan Comparison</h3>
+        <table style={{width:'100%',borderCollapse:'collapse',color:'#ccc',fontSize:'0.9rem'}}>
+          <thead><tr style={{borderBottom:'1px solid #333'}}><th style={{textAlign:'left',padding:8,color:'#888'}}>Feature</th><th style={{padding:8,color:'#888'}}>Free</th><th style={{padding:8,color:'#c0c0c0'}}>Silver</th><th style={{padding:8,color:'#818cf8'}}>Pro</th></tr></thead>
+          <tbody>
+            <tr style={{borderBottom:'1px solid #1e1e1e'}}><td style={{padding:8}}>Listings</td><td style={{padding:8,textAlign:'center'}}>3</td><td style={{padding:8,textAlign:'center'}}>10</td><td style={{padding:8,textAlign:'center'}}>Unlimited</td></tr>
+            <tr style={{borderBottom:'1px solid #1e1e1e'}}><td style={{padding:8}}>Images per listing</td><td style={{padding:8,textAlign:'center'}}>2</td><td style={{padding:8,textAlign:'center'}}>5</td><td style={{padding:8,textAlign:'center'}}>Unlimited</td></tr>
+            <tr style={{borderBottom:'1px solid #1e1e1e'}}><td style={{padding:8}}>Private gallery</td><td style={{padding:8,textAlign:'center'}}>—</td><td style={{padding:8,textAlign:'center'}}>2 images</td><td style={{padding:8,textAlign:'center'}}>10 images</td></tr>
+            <tr style={{borderBottom:'1px solid #1e1e1e'}}><td style={{padding:8}}>Video uploads</td><td style={{padding:8,textAlign:'center'}}>—</td><td style={{padding:8,textAlign:'center'}}>—</td><td style={{padding:8,textAlign:'center'}}>✅</td></tr>
+            <tr style={{borderBottom:'1px solid #1e1e1e'}}><td style={{padding:8}}>Direct messaging</td><td style={{padding:8,textAlign:'center'}}>✅</td><td style={{padding:8,textAlign:'center'}}>✅</td><td style={{padding:8,textAlign:'center'}}>✅</td></tr>
+            <tr><td style={{padding:8}}>Priority support</td><td style={{padding:8,textAlign:'center'}}>—</td><td style={{padding:8,textAlign:'center'}}>—</td><td style={{padding:8,textAlign:'center'}}>✅</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style={{...S.card,textAlign:'center',marginTop:16}}>
+        <p style={{color:'#888',margin:'0 0 8px'}}>🌟 <strong style={{color:'#f59e0b'}}>Founding Members</strong> — The first 25 users get <strong>permanent free Pro access!</strong></p>
+        <p style={{color:'#555',fontSize:'0.85rem',margin:0}}>Other payment options? Email <strong style={{color:'#6366f1'}}>support@vibelist.uk</strong></p>
+      </div>
+    </div>
+  );
+
+  // ========== HELP PAGE ==========
+  if (view === 'help') {
+    const [helpContact, setHelpContact] = useState({email:'',subject:'',message:''});
+    const [helpSending, setHelpSending] = useState(false);
+    const [openFaq, setOpenFaq] = useState<number|null>(null);
+    const faqs = [
+      {q:'How do I create a listing?',a:'Register for a free account, then click "Create a Listing" on the homepage. Fill in the title, description, category, city, and optionally add images. Your listing will be reviewed by our team before going live.'},
+      {q:'What are the subscription tiers?',a:'We offer 3 plans: Free (£0/mo — 3 listings, 2 images), Silver (£5/mo — 10 listings, 5 images, 2 private gallery), and Pro (£15/mo — unlimited listings & images, 10 private gallery, video support). Visit our Pricing page for full details.'},
+      {q:'How does the private gallery work?',a:'Silver and Pro members can upload private gallery images that are only visible to registered, logged-in users. This gives you more control over who sees certain content.'},
+      {q:'Can I downgrade or cancel my subscription?',a:'Yes! Go to Account Settings → Subscription. If you downgrade or cancel, your current plan stays active until the end of your billing period. No partial refunds are given.'},
+      {q:'What is a Founding Member?',a:'The first 25 registered users receive permanent free Pro access as Founding Members. This is a special thank-you for early supporters and cannot be transferred.'},
+      {q:'Why do I need to upload an ID?',a:'For safety and trust, non-founding members must upload a government-issued photo ID. This helps prevent scams and keeps our community secure. Your ID is stored securely and encrypted.'},
+      {q:'How long before my listing is approved?',a:'Our admin team reviews new listings as quickly as possible, usually within a few hours. You\'ll see your listing status change from "Pending" to "Approved" in My Listings.'},
+      {q:'How do I report a suspicious listing?',a:'Click on any listing and scroll down to the "Report this listing" button. Provide your email, select a reason, and write a detailed justification. Our team will review it promptly.'},
+      {q:'What payment methods do you accept?',a:'We accept PayPal for subscription payments. For alternative payment methods (crypto, bank transfer), contact support@vibelist.uk.'},
+      {q:'How do I delete my account?',a:'Go to Account Settings → Danger Zone → Delete My Account. This permanently removes all your data including listings, images, and messages.'},
+    ];
+    const sendHelpMessage = async () => {
+      if (!helpContact.email || !helpContact.message) { alert('Please fill in your email and message.'); return; }
+      setHelpSending(true);
+      try {
+        if (user && token) {
+          // Use messaging system to send to admin (user ID 1)
+          await fetch(`${API}/messages`,{method:'POST',headers:{'Content-Type':'application/json',Authorization:`Bearer ${token}`},body:JSON.stringify({receiver_id:1,message_text:`[HELP REQUEST] Subject: ${helpContact.subject || 'General'}\n\n${helpContact.message}\n\nFrom: ${helpContact.email}`})});
+          alert('✅ Your message has been sent to our support team. We\'ll get back to you soon!');
+        } else {
+          alert('✅ Please email support@vibelist.uk with your question. We respond within 24 hours.');
+        }
+        setHelpContact({email:'',subject:'',message:''});
+      } catch { alert('Failed to send. Please email support@vibelist.uk directly.'); } finally { setHelpSending(false); }
+    };
+    return (
+      <div style={{maxWidth:800,margin:'0 auto',padding:20}}>
+        <button onClick={()=>setView('home')} style={{...S.btnSec,marginBottom:20}}>← Back</button>
+        <h1 style={{textAlign:'center',fontSize:'2.5rem',margin:'20px 0 10px',background:'linear-gradient(135deg,#6366f1,#ec4899)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>❓ Help Centre</h1>
+        <p style={{textAlign:'center',color:'#888',margin:'0 0 30px'}}>Find answers to common questions or contact our team</p>
+
+        {/* FAQ Section */}
+        <div style={S.card}>
+          <h2 style={{margin:'0 0 16px',fontSize:'1.3rem'}}>📚 Frequently Asked Questions</h2>
+          {faqs.map((faq, idx) => (
+            <div key={idx} style={{borderBottom:idx<faqs.length-1?'1px solid #1e1e1e':'none',padding:'12px 0'}}>
+              <div onClick={()=>setOpenFaq(openFaq===idx?null:idx)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer'}}>
+                <p style={{margin:0,color:'#ccc',fontWeight:500,fontSize:'0.95rem'}}>{faq.q}</p>
+                <span style={{color:'#6366f1',fontSize:'1.2rem',transition:'transform 0.2s',transform:openFaq===idx?'rotate(45deg)':'none'}}>+</span>
+              </div>
+              {openFaq === idx && <p style={{margin:'10px 0 0',color:'#888',lineHeight:1.7,fontSize:'0.9rem'}}>{faq.a}</p>}
+            </div>
+          ))}
+        </div>
+
+        {/* Quick Links */}
+        <div style={S.card}>
+          <h2 style={{margin:'0 0 16px',fontSize:'1.3rem'}}>🔗 Quick Links</h2>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(200px,1fr))',gap:10}}>
+            <div onClick={()=>setView('pricing')} style={{background:'#1a1a1a',padding:16,borderRadius:12,cursor:'pointer',textAlign:'center',border:'1px solid #2a2a2a'}}><p style={{margin:0,fontSize:'1.5rem'}}>💰</p><p style={{margin:'8px 0 0',color:'#ccc',fontSize:'0.9rem'}}>View Pricing Plans</p></div>
+            <div onClick={()=>setView('terms')} style={{background:'#1a1a1a',padding:16,borderRadius:12,cursor:'pointer',textAlign:'center',border:'1px solid #2a2a2a'}}><p style={{margin:0,fontSize:'1.5rem'}}>📜</p><p style={{margin:'8px 0 0',color:'#ccc',fontSize:'0.9rem'}}>Terms of Service</p></div>
+            <div onClick={()=>setView('privacy')} style={{background:'#1a1a1a',padding:16,borderRadius:12,cursor:'pointer',textAlign:'center',border:'1px solid #2a2a2a'}}><p style={{margin:0,fontSize:'1.5rem'}}>🔒</p><p style={{margin:'8px 0 0',color:'#ccc',fontSize:'0.9rem'}}>Privacy Policy</p></div>
+          </div>
+        </div>
+
+        {/* Contact Form */}
+        <div style={S.card}>
+          <h2 style={{margin:'0 0 16px',fontSize:'1.3rem'}}>✉️ Contact Support</h2>
+          <p style={{color:'#888',margin:'0 0 16px',fontSize:'0.9rem'}}>Can&apos;t find what you need? Send us a message and we&apos;ll get back to you within 24 hours.</p>
+          <input placeholder="Your email address" type="email" value={helpContact.email} onChange={e=>setHelpContact({...helpContact,email:e.target.value})} style={S.inp} />
+          <input placeholder="Subject (e.g. billing, technical, general)" value={helpContact.subject} onChange={e=>setHelpContact({...helpContact,subject:e.target.value})} style={S.inp} />
+          <textarea placeholder="How can we help you?" value={helpContact.message} onChange={e=>setHelpContact({...helpContact,message:e.target.value})} rows={5} style={{...S.inp,resize:'vertical'}} />
+          <button onClick={sendHelpMessage} disabled={helpSending} style={{...S.btn,opacity:helpSending?0.6:1}}>{helpSending ? '⏳ Sending...' : '📨 Send Message'}</button>
+          <p style={{color:'#555',fontSize:'0.8rem',textAlign:'center',marginTop:12}}>Or email us directly at <strong style={{color:'#6366f1'}}>support@vibelist.uk</strong></p>
+        </div>
+      </div>
+    );
+  }
+
   // ========== HOME VIEW ==========
   return (
     <div style={{maxWidth:900,margin:'0 auto',padding:20}}>
@@ -989,9 +1108,11 @@ export default function Home() {
 
       <footer style={{textAlign:'center',padding:'40px 0 20px',color:'#444',borderTop:'1px solid #1a1a1a',marginTop:20}}>
         <div style={{display:'flex',gap:16,justifyContent:'center',marginBottom:12,flexWrap:'wrap'}}>
-          <span style={{cursor:'pointer',color:'#666'}} onClick={()=>setView('privacy')}>🔒 Privacy Policy</span>
-          <span style={{cursor:'pointer',color:'#666'}} onClick={()=>setView('terms')}>📜 Terms of Service</span>
-          <span style={{cursor:'pointer',color:'#666'}} onClick={()=>setView('cookies')}>🍪 Cookie Policy</span>
+          <span style={{cursor:'pointer',color:'#6366f1',fontWeight:600}} onClick={()=>setView('pricing')}>💰 Pricing</span>
+          <span style={{cursor:'pointer',color:'#6366f1',fontWeight:600}} onClick={()=>setView('help')}>❓ Help</span>
+          <span style={{cursor:'pointer',color:'#666'}} onClick={()=>setView('privacy')}>🔒 Privacy</span>
+          <span style={{cursor:'pointer',color:'#666'}} onClick={()=>setView('terms')}>📜 Terms</span>
+          <span style={{cursor:'pointer',color:'#666'}} onClick={()=>setView('cookies')}>🍪 Cookies</span>
         </div>
         <p style={{margin:0,fontSize:'0.85rem'}}>VibeList.uk © 2025–2026 | UK Classifieds Marketplace | Users must be 18+</p>
         <p style={{margin:'4px 0 0',fontSize:'0.8rem',color:'#333'}}>Data Protection: privacy@vibelist.uk | ICO Registered</p>
