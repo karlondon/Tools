@@ -1,0 +1,19 @@
+# Personal tax documents - SENSITIVE
+tax/
+
+# Bank statements - SENSITIVE
+Bank-Statements/
+
+# Environment files
+.env
+.venv/
+*.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
