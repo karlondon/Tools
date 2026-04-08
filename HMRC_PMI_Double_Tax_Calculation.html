@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMRC PMI Double Taxation Calculation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            padding: 40px;
+        }
+        h1 {
+            font-size: 1.8em;
+            color: #1a3a5c;
+            border-bottom: 3px solid #1a3a5c;
+            padding-bottom: 12px;
+            margin-bottom: 30px;
+        }
+        h2 {
+            font-size: 1.35em;
+            color: #1a3a5c;
+            margin-top: 35px;
+            margin-bottom: 15px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        h3 {
+            font-size: 1.1em;
+            color: #2c5282;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        p {
+            margin-bottom: 12px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0 20px 0;
+            font-size: 0.95em;
+        }
+        thead th {
+            background: #1a3a5c;
+            color: #fff;
+            font-weight: 600;
+            text-align: left;
+            padding: 10px 14px;
+        }
+        thead th:first-child {
+            border-radius: 6px 0 0 0;
+        }
+        thead th:last-child {
+            border-radius: 0 6px 0 0;
+        }
+        tbody td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e8e8e8;
+        }
+        tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+        tbody tr:hover {
+            background: #edf2f7;
+        }
+        tbody tr:last-child td:first-child {
+            border-radius: 0 0 0 6px;
+        }
+        tbody tr:last-child td:last-child {
+            border-radius: 0 0 6px 0;
+        }
+        .highlight {
+            font-weight: 700;
+            color: #c53030;
+        }
+        .highlight-green {
+            font-weight: 700;
+            color: #276749;
+        }
+        .status-completed {
+            display: inline-block;
+            background: #c6f6d5;
+            color: #276749;
+            font-weight: 700;
+            padding: 2px 10px;
+            border-radius: 4px;
+        }
+        .status-warning {
+            display: inline-block;
+            background: #fefcbf;
+            color: #975a16;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 4px;
+        }
+        ol, ul {
+            margin: 10px 0 15px 24px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+        .icon-correct::before {
+            content: "✅ ";
+        }
+        .icon-wrong::before {
+            content: "❌ ";
+        }
+        blockquote {
+            background: #edf2f7;
+            border-left: 4px solid #1a3a5c;
+            padding: 16px 20px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            font-style: italic;
+            color: #2d3748;
+            line-height: 1.7;
+        }
+        .summary-box {
+            background: #fff5f5;
+            border: 2px solid #fc8181;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .summary-box h3 {
+            color: #c53030;
+            margin-top: 0;
+        }
+        .action-box {
+            background: #ebf8ff;
+            border: 2px solid #63b3ed;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .action-box h2 {
+            color: #2b6cb0;
+            border-bottom: none;
+            margin-top: 0;
+            padding-bottom: 0;
+        }
+        .script-box {
+            background: #f0fff4;
+            border: 2px solid #68d391;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+        .script-box h2 {
+            color: #276749;
+            border-bottom: none;
+            margin-top: 0;
+            padding-bottom: 0;
+        }
+        a {
+            color: #2b6cb0;
+            text-decoration: none;
+            border-bottom: 1px solid #bee3f8;
+        }
+        a:hover {
+            color: #1a3a5c;
+            border-bottom-color: #1a3a5c;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            margin: 25px 0;
+        }
+        .footer {
+            margin-top: 30px;
+            font-size: 0.85em;
+            color: #718096;
+            font-style: italic;
+        }
+        .total-row td {
+            font-weight: 700;
+            background: #edf2f7 !important;
+            border-top: 2px solid #cbd5e0;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            table {
+                font-size: 0.85em;
+            }
+            thead th, tbody td {
+                padding: 8px 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>HMRC PMI Double Taxation Calculation</h1>
+
+    <!-- ==================== BACKGROUND ==================== -->
+    <h2>Background</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Detail</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>2025 PMI policy</strong> (1 Jan – 31 Dec 2025)</td>
+                <td>£1,972 per year</td>
+            </tr>
+            <tr>
+                <td><strong>2026 PMI policy</strong> (1 Jan – 31 Dec 2026)</td>
+                <td>£2,412 per year</td>
+            </tr>
+            <tr>
+                <td><strong>Payrolling started</strong></td>
+                <td>April 2025 (employer deducts tax on PMI via salary)</td>
+            </tr>
+            <tr>
+                <td><strong>HMRC notified PMI stopped</strong></td>
+                <td>From 1 April 2025</td>
+            </tr>
+            <tr>
+                <td><strong>HMRC processing status</strong></td>
+                <td>Forms Tracker shows <span class="status-completed">COMPLETED</span> (as of 3 April 2026) — <span class="status-warning">awaiting notification / tax code update</span></td>
+            </tr>
+            <tr>
+                <td><strong>2026/27 tax code</strong></td>
+                <td>1015L (personal allowance £10,150 vs standard £12,570 = <span class="highlight">£2,420 reduction</span>)</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <!-- ==================== DOUBLE TAXATION PROBLEM ==================== -->
+    <h2>The Double Taxation Problem</h2>
+
+    <p>Since April 2025, you are being taxed on PMI <strong>twice</strong>:</p>
+
+    <ol>
+        <li>
+            <strong class="icon-correct">Via payroll</strong> — Your employer adds the PMI benefit value to your taxable pay each month and deducts income tax on it through PAYE.
+            <em style="color: #276749;">(This is correct.)</em>
+        </li>
+        <li>
+            <strong class="icon-wrong">Via tax code</strong> — HMRC has reduced your personal allowance to collect tax on PMI through a lower tax code.
+            <em style="color: #c53030;">(This should have been removed when payrolling started.)</em>
+        </li>
+    </ol>
+
+    <hr>
+
+    <!-- ==================== TAX YEAR 2025/26 ==================== -->
+    <h2>Tax Year 2025/26 (6 April 2025 – 5 April 2026)</h2>
+
+    <h3>PMI Benefit Value in 2025/26</h3>
+
+    <p>The PMI runs on a calendar year, so we need to apportion across the tax year:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Period</th>
+                <th>Policy</th>
+                <th>Annual Cost</th>
+                <th>Months</th>
+                <th>Apportioned Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>6 Apr 2025 – 31 Dec 2025</td>
+                <td>2025 policy</td>
+                <td>£1,972</td>
+                <td>9/12</td>
+                <td><strong>£1,479.00</strong></td>
+            </tr>
+            <tr>
+                <td>1 Jan 2026 – 5 Apr 2026</td>
+                <td>2026 policy</td>
+                <td>£2,412</td>
+                <td>3/12</td>
+                <td><strong>£603.00</strong></td>
+            </tr>
+            <tr class="total-row">
+                <td><strong>Total PMI in 2025/26</strong></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td><strong>£2,082.00</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>Tax Overpaid in 2025/26</h3>
+
+    <p>The employer correctly payrolled ~£2,082 of PMI benefit through your salary.<br>
+    HMRC <strong>also</strong> collected tax on PMI via your reduced tax code.</p>
+
+    <p>The overpayment = <strong>your marginal tax rate × the PMI benefit value coded into the tax code</strong>.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Tax Rate</th>
+                <th>PMI Coded Amount</th>
+                <th>Tax Overpaid</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Basic rate (20%)</strong></td>
+                <td>£2,082</td>
+                <td><span class="highlight">£416.40</span></td>
+            </tr>
+            <tr>
+                <td><strong>Higher rate (40%)</strong></td>
+                <td>£2,082</td>
+                <td><span class="highlight">£832.80</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <hr>
+
+    <!-- ==================== TAX YEAR 2026/27 ==================== -->
+    <h2>Tax Year 2026/27 (from 6 April 2026) — Ongoing Risk</h2>
+
+    <p>Your 2026/27 tax code is <strong>1015L</strong>, which has a <span class="highlight">£2,420 reduction</span> from the standard 1257L allowance. This almost exactly matches your 2026 PMI of £2,412 — confirming HMRC <strong>still</strong> has PMI coded in.</p>
+
+    <p>If HMRC doesn't process the removal, you will continue to be double-taxed:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Period</th>
+                <th>Monthly Double-Tax (20%)</th>
+                <th>Monthly Double-Tax (40%)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Each month of 2026/27</td>
+                <td>~£40.33</td>
+                <td>~£80.67</td>
+            </tr>
+            <tr class="total-row">
+                <td>Full year if uncorrected</td>
+                <td><span class="highlight">£484.00</span></td>
+                <td><span class="highlight">£968.00</span></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p><em>(Based on 2026 PMI of £2,412 ÷ 12 months × tax rate)</em></p>
+
+    <hr>
+
+    <!-- ==================== SUMMARY ==================== -->
+    <div class="summary-box">
+        <h2 style="color: #c53030; border-bottom: none; margin-top: 0;">Summary: What HMRC Owes You</h2>
+
+        <h3>For 2025/26 (double taxation already occurred — full year)</h3>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Scenario</th>
+                    <th>Amount Owed</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>If you're a <strong>basic rate (20%)</strong> taxpayer</td>
+                    <td><span class="highlight">£416.40</span></td>
+                </tr>
+                <tr>
+                    <td>If you're a <strong>higher rate (40%)</strong> taxpayer</td>
+                    <td><span class="highlight">£832.80</span></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>For 2026/27 (ongoing, if HMRC doesn't fix the tax code)</h3>
+
+        <p>Additional overpayment accumulating at <span class="highlight">£40.33/month</span> (20%) or <span class="highlight">£80.67/month</span> (40%).</p>
+    </div>
+
+    <hr>
+
+    <!-- ==================== HOW TO RECOVER ==================== -->
+    <div class="action-box">
+        <h2>How to Recover the Overpayment</h2>
+
+        <ol>
+            <li><strong>Chase HMRC</strong> — Call <strong>0300 200 3300</strong> and reference your request to remove PMI from the tax code from 1 April 2025</li>
+            <li><strong>Request corrected tax code</strong> — Should be <strong>1257L</strong> (standard) if PMI is the only adjustment, effective from April 2025</li>
+            <li><strong>P800 / tax calculation</strong> — Once corrected, HMRC should issue a P800 for 2025/26 showing the refund, or adjust it through your 2026/27 tax code</li>
+            <li><strong>Check Personal Tax Account</strong> — <a href="https://www.gov.uk/personal-tax-account" target="_blank">gov.uk/personal-tax-account</a> for real-time updates</li>
+            <li><strong>Evidence to provide</strong> — Your employer's confirmation that PMI has been payrolled since April 2025</li>
+        </ol>
+    </div>
+
+    <hr>
+
+    <!-- ==================== KEY POINT ==================== -->
+    <div class="script-box">
+        <h2>Key Point for HMRC</h2>
+
+        <blockquote>
+            "My employer has payrolled my PMI benefit through salary since April 2025.
+            This means tax on PMI is already being collected each month via PAYE.
+            The PMI adjustment in my tax code (reducing allowance by ~£2,420) must be
+            removed from 6 April 2025 onwards, as it results in double taxation.
+            Please correct my tax code to 1257L and refund the overpaid tax for 2025/26."
+        </blockquote>
+    </div>
+
+    <hr>
+
+    <div class="footer">
+        <p>Calculation prepared: 28 March 2026 | Status updated: 3 April 2026</p>
+        <p>Note: These calculations assume PMI is the only adjustment affecting your tax code. If there are other benefits or adjustments coded in, the figures may differ.</p>
+    </div>
+
+</div>
+
+</body>
+</html>
