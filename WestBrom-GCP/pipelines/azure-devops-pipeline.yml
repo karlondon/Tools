@@ -1,0 +1,224 @@
+###############################################################################
+# Azure DevOps Pipeline - WestBrom External Backup GCP
+#
+# Deploys GCP infrastructure for the cross-cloud backup solution using
+# Terraform. Supports nonprod and prod environments.
+#
+# Prerequisites:
+#   - Service connection to GCP (Workload Identity Federation or service account key)
+#   - Variable groups: westbrom-gcp-nonprod, westbrom-gcp-prod
+#   - Terraform extension installed in Azure DevOps
+###############################################################################
+
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - WestBrom-GCP/terraform/**
+      - WestBrom-GCP/pipelines/**
+
+pr:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - WestBrom-GCP/terraform/**
+
+parameters:
+  - name: environment
+    displayName: "Target Environment"
+    type: string
+    default: nonprod
+    values:
+      - nonprod
+      - prod
+
+  - name: action
+    displayName: "Terraform Action"
+    type: string
+    default: plan
+    values:
+      - plan
+      - apply
+      - destroy
+
+variables:
+  - name: terraformVersion
+    value: "1.8.0"
+  - name: workingDirectory
+    value: "$(System.DefaultWorkingDirectory)/WestBrom-GCP/terraform"
+  - name: environment
+    value: ${{ parameters.environment }}
+
+stages:
+  # =========================================================================
+  # Stage 1: Validate
+  # =========================================================================
+  - stage: Validate
+    displayName: "Validate Terraform"
+    jobs:
+      - job: ValidateTerraform
+        displayName: "Format Check & Validate"
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: TerraformInstaller@1
+            displayName: "Install Terraform"
+            inputs:
+              terraformVersion: $(terraformVersion)
+
+          - script: |
+              cd $(workingDirectory)
+              terraform fmt -check -recursive -diff
+            displayName: "Terraform Format Check"
+
+          - script: |
+              cd $(workingDirectory)
+              terraform init -backend=false
+            displayName: "Terraform Init (validation)"
+
+          - script: |
+              cd $(workingDirectory)
+              terraform validate
+            displayName: "Terraform Validate"
+
+  # =========================================================================
+  # Stage 2: Plan
+  # =========================================================================
+  - stage: Plan
+    displayName: "Plan (${{ parameters.environment }})"
+    dependsOn: Validate
+    condition: succeeded()
+    variables:
+      - group: "westbrom-gcp-${{ parameters.environment }}"
+    jobs:
+      - job: TerraformPlan
+        displayName: "Terraform Plan"
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: TerraformInstaller@1
+            displayName: "Install Terraform"
+            inputs:
+              terraformVersion: $(terraformVersion)
+
+          # Authenticate to GCP using service connection
+          - task: GoogleCloudSdkTool@1
+            displayName: "Setup Google Cloud SDK"
+            inputs:
+              version: "latest"
+
+          # Set GCP credentials from variable group
+          - script: |
+              echo '$(GCP_CREDENTIALS)' > /tmp/gcp-key.json
+              export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json
+              echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]/tmp/gcp-key.json"
+            displayName: "Configure GCP Authentication"
+
+          - script: |
+              cd $(workingDirectory)
+              terraform init \
+                -backend-config="environments/${{ parameters.environment }}/backend.conf" \
+                -reconfigure
+            displayName: "Terraform Init"
+            env:
+              GOOGLE_APPLICATION_CREDENTIALS: $(GOOGLE_APPLICATION_CREDENTIALS)
+
+          - script: |
+              cd $(workingDirectory)
+              terraform plan \
+                -var-file="environments/${{ parameters.environment }}/terraform.tfvars" \
+                -out=$(Build.ArtifactStagingDirectory)/${{ parameters.environment }}.tfplan \
+                -input=false \
+                -detailed-exitcode
+            displayName: "Terraform Plan"
+            env:
+              GOOGLE_APPLICATION_CREDENTIALS: $(GOOGLE_APPLICATION_CREDENTIALS)
+
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish Plan Artifact"
+            inputs:
+              PathtoPublish: "$(Build.ArtifactStagingDirectory)"
+              ArtifactName: "terraform-plan-${{ parameters.environment }}"
+              publishLocation: "Container"
+
+  # =========================================================================
+  # Stage 3: Apply (requires approval for prod)
+  # =========================================================================
+  - stage: Apply
+    displayName: "Apply (${{ parameters.environment }})"
+    dependsOn: Plan
+    condition: |
+      and(
+        succeeded(),
+        eq('${{ parameters.action }}', 'apply'),
+        or(
+          eq(variables['Build.SourceBranch'], 'refs/heads/main'),
+          eq(variables['Build.Reason'], 'Manual')
+        )
+      )
+    variables:
+      - group: "westbrom-gcp-${{ parameters.environment }}"
+    jobs:
+      - deployment: TerraformApply
+        displayName: "Terraform Apply"
+        pool:
+          vmImage: "ubuntu-latest"
+        environment: "westbrom-gcp-${{ parameters.environment }}"
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+
+                - task: TerraformInstaller@1
+                  displayName: "Install Terraform"
+                  inputs:
+                    terraformVersion: $(terraformVersion)
+
+                - task: DownloadBuildArtifacts@1
+                  displayName: "Download Plan Artifact"
+                  inputs:
+                    buildType: "current"
+                    downloadType: "single"
+                    artifactName: "terraform-plan-${{ parameters.environment }}"
+                    downloadPath: "$(System.ArtifactsDirectory)"
+
+                - script: |
+                    echo '$(GCP_CREDENTIALS)' > /tmp/gcp-key.json
+                    export GOOGLE_APPLICATION_CREDENTIALS=/tmp/gcp-key.json
+                    echo "##vso[task.setvariable variable=GOOGLE_APPLICATION_CREDENTIALS]/tmp/gcp-key.json"
+                  displayName: "Configure GCP Authentication"
+
+                - script: |
+                    cd $(workingDirectory)
+                    terraform init \
+                      -backend-config="environments/${{ parameters.environment }}/backend.conf" \
+                      -reconfigure
+                  displayName: "Terraform Init"
+                  env:
+                    GOOGLE_APPLICATION_CREDENTIALS: $(GOOGLE_APPLICATION_CREDENTIALS)
+
+                - script: |
+                    cd $(workingDirectory)
+                    terraform apply \
+                      -input=false \
+                      $(System.ArtifactsDirectory)/terraform-plan-${{ parameters.environment }}/${{ parameters.environment }}.tfplan
+                  displayName: "Terraform Apply"
+                  env:
+                    GOOGLE_APPLICATION_CREDENTIALS: $(GOOGLE_APPLICATION_CREDENTIALS)
+
+                - script: |
+                    cd $(workingDirectory)
+                    terraform output -json
+                  displayName: "Display Outputs"
+                  env:
+                    GOOGLE_APPLICATION_CREDENTIALS: $(GOOGLE_APPLICATION_CREDENTIALS)
+
+                - script: |
+                    rm -f /tmp/gcp-key.json
+                  displayName: "Cleanup Credentials"
+                  condition: always()

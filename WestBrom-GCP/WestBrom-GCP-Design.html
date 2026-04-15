@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>WestBrom External Backup GCP – Architecture Design</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f2f5;color:#1a2332;line-height:1.6}
+/* Cover */
+.cover{background:linear-gradient(150deg,#003d6b 0%,#0057a8 50%,#0073d4 100%);color:#fff;padding:80px 60px;min-height:320px;page-break-after:always}
+.cover h1{font-size:2.4rem;font-weight:700;letter-spacing:-0.5px;margin-bottom:8px}
+.cover h2{font-size:1.25rem;font-weight:400;opacity:0.85;margin-bottom:40px}
+.cover-meta{display:flex;gap:48px;flex-wrap:wrap;margin-top:32px}
+.cover-meta div{background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:8px;padding:14px 22px}
+.cover-meta .label{font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;opacity:0.7;margin-bottom:4px}
+.cover-meta .value{font-size:0.95rem;font-weight:600}
+.badge{display:inline-block;background:#ff6b2b;color:#fff;font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:12px;letter-spacing:0.5px;margin-bottom:16px}
+/* Content wrapper */
+.page{max-width:1100px;margin:0 auto;padding:32px 24px}
+/* Section */
+.section{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.07);padding:36px 40px;margin-bottom:32px;page-break-inside:avoid}
+.section-title{font-size:1.35rem;font-weight:700;color:#003d6b;border-bottom:3px solid #0073d4;padding-bottom:10px;margin-bottom:24px}
+.section-subtitle{font-size:1rem;font-weight:600;color:#005a9e;margin:20px 0 10px}
+p{margin-bottom:12px;color:#334155}
+/* Tables */
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:0.88rem}
+th{background:#003d6b;color:#fff;padding:10px 14px;text-align:left;font-weight:600}
+td{padding:9px 14px;border-bottom:1px solid #e2e8f0;color:#334155}
+tr:nth-child(even) td{background:#f8fafc}
+tr:hover td{background:#eff6ff}
+/* Badges/chips */
+.chip{display:inline-block;padding:2px 10px;border-radius:20px;font-size:0.75rem;font-weight:600;margin:2px}
+.chip-green{background:#dcfce7;color:#166534}
+.chip-blue{background:#dbeafe;color:#1e40af}
+.chip-orange{background:#ffedd5;color:#9a3412}
+.chip-purple{background:#f3e8ff;color:#6b21a8}
+.chip-red{background:#fee2e2;color:#991b1b}
+/* Checklist */
+.checklist{list-style:none;padding:0}
+.checklist li{padding:6px 0 6px 28px;position:relative;border-bottom:1px solid #f1f5f9;color:#334155;font-size:0.9rem}
+.checklist li::before{content:"☐";position:absolute;left:0;color:#0073d4;font-size:1rem}
+/* Diagram containers */
+.diagram-wrap{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:24px;margin:16px 0;overflow-x:auto;text-align:center}
+.diagram-title{font-size:0.8rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#64748b;margin-bottom:16px;text-align:center}
+/* Info boxes */
+.info-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin:16px 0}
+.info-card{background:linear-gradient(135deg,#f0f9ff,#e0f2fe);border:1px solid #bae6fd;border-radius:8px;padding:16px 20px}
+.info-card .icon{font-size:1.6rem;margin-bottom:8px}
+.info-card .title{font-size:0.78rem;text-transform:uppercase;letter-spacing:0.8px;color:#0369a1;font-weight:700;margin-bottom:4px}
+.info-card .val{font-size:1.2rem;font-weight:700;color:#0c4a6e}
+.info-card .sub{font-size:0.78rem;color:#0369a1;margin-top:2px}
+/* TOC */
+.toc{list-style:none;padding:0}
+.toc li{padding:5px 0;border-bottom:1px dotted #e2e8f0}
+.toc a{color:#0057a8;text-decoration:none;font-size:0.92rem}
+.toc a:hover{text-decoration:underline}
+.toc .num{color:#94a3b8;font-size:0.8rem;margin-right:8px}
+/* Print */
+@media print{
+  body{background:#fff}
+  .section{box-shadow:none;border:1px solid #e2e8f0;page-break-inside:avoid}
+  .cover{page-break-after:always;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .page{padding:0}
+  h1,h2,.section-title{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════
+     COVER PAGE
+═══════════════════════════════════════════════════════ -->
+<div class="cover">
+  <div class="badge">CONFIDENTIAL – INTERNAL USE</div>
+  <h1>WestBrom External Backup GCP</h1>
+  <h2>Infrastructure Architecture Design &amp; Technical Diagrams</h2>
+  <div style="font-size:0.85rem;opacity:0.7;margin-bottom:8px">Converge Banking (CB) · Cross-Cloud Off-Site Backup Solution</div>
+  <div class="cover-meta">
+    <div><div class="label">JIRA Reference</div><div class="value">CS-14029</div></div>
+    <div><div class="label">Document Date</div><div class="value">April 2026</div></div>
+    <div><div class="label">GCP Region</div><div class="value">europe-west2 (London)</div></div>
+    <div><div class="label">Non-Prod Target</div><div class="value">30 April 2026</div></div>
+    <div><div class="label">Managed By</div><div class="value">Terraform IaC</div></div>
+  </div>
+</div>
+
+<div class="page">
+
+<!-- ═══════════════════════════════════════════════════════
+     TABLE OF CONTENTS
+═══════════════════════════════════════════════════════ -->
+<div class="section">
+  <div class="section-title">Table of Contents</div>
+  <ol class="toc">
+    <li><a href="#overview"><span class="num">1.</span>Solution Overview</a></li>
+    <li><a href="#arch"><span class="num">2.</span>High-Level Architecture Diagram</a></li>
+    <li><a href="#gcp-infra"><span class="num">3.</span>GCP Infrastructure Detail Diagram</a></li>
+    <li><a href="#dataflow"><span class="num">4.</span>Data Flow Diagram</a></li>
+    <li><a href="#security"><span class="num">5.</span>Security Architecture</a></li>
+    <li><a href="#terraform"><span class="num">6.</span>Terraform Module Structure</a></li>
+    <li><a href="#cicd"><span class="num">7.</span>CI/CD Pipeline Diagram</a></li>
+    <li><a href="#config"><span class="num">8.</span>Configuration Reference</a></li>
+    <li><a href="#checklist"><span class="num">9.</span>Post-Deployment Checklist</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     1. SOLUTION OVERVIEW
+═══════════════════════════════════════════════════════ -->
+<div class="section" id="overview">
+  <div class="section-title">1. Solution Overview</div>
+  <p>This solution deploys the <strong>GCP-side infrastructure</strong> for the WestBrom (Converge Banking) cross-cloud off-site backup strategy. Aurora PostgreSQL backups and Cognito backups are transferred nightly from <strong>AWS S3</strong> to <strong>GCP Cloud Storage</strong> via the Storage Transfer Service, providing cloud-level isolation in the event of a widespread AWS regional outage.</p>
+
+  <div class="info-grid">
+    <div class="info-card"><div class="icon">☁️</div><div class="title">Source Cloud</div><div class="val">Amazon AWS</div><div class="sub">Aurora PostgreSQL + Cognito</div></div>
+    <div class="info-card"><div class="icon">🎯</div><div class="title">Destination</div><div class="val">Google Cloud</div><div class="sub">europe-west2 (London)</div></div>
+    <div class="info-card"><div class="icon">⏱️</div><div class="title">Schedule</div><div class="val">04:00 UTC</div><div class="sub">Daily (every 86400s)</div></div>
+    <div class="info-card"><div class="icon">🔒</div><div class="title">Retention</div><div class="val">30 Days</div><div class="sub">Delete at 90 days</div></div>
+    <div class="info-card"><div class="icon">🔄</div><div class="title">RTO / RPO</div><div class="val">7d / 24h</div><div class="sub">Widespread AWS outage</div></div>
+    <div class="info-card"><div class="icon">🏗️</div><div class="title">Deployment</div><div class="val">Terraform IaC</div><div class="sub">Azure DevOps Pipeline</div></div>
+  </div>
+
+  <div class="section-subtitle">GCP Services Used</div>
+  <table>
+    <tr><th>GCP Service</th><th>Purpose</th><th>Key Config</th></tr>
+    <tr><td><strong>Cloud KMS</strong></td><td>Dedicated encryption key for backup bucket</td><td>90-day auto-rotation, SYMMETRIC_ENCRYPTION</td></tr>
+    <tr><td><strong>Cloud Storage</strong></td><td>Immutable backup bucket with retention + WORM</td><td>STANDARD → NEARLINE at 30d, delete at 90d</td></tr>
+    <tr><td><strong>Storage Transfer Service</strong></td><td>Scheduled pull from AWS S3 via private network</td><td>Daily 04:00 UTC, no source deletion</td></tr>
+    <tr><td><strong>Pub/Sub</strong></td><td>Transfer status notifications (Success/Failed/Aborted)</td><td>24h retention, 7-day subscription</td></tr>
+    <tr><td><strong>Cloud Logging</strong></td><td>Transfer job audit logs &amp; log-based metrics</td><td>FIND + COPY actions logged</td></tr>
+    <tr><td><strong>Cloud Monitoring</strong></td><td>Alerting on transfer failures</td><td>Email notification channel (optional)</td></tr>
+    <tr><td><strong>IAM</strong></td><td>Dedicated service account with least-privilege</td><td>storagetransfer.admin + logging.logWriter</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     2. HIGH-LEVEL ARCHITECTURE DIAGRAM
+═══════════════════════════════════════════════════════ -->
+<div class="section" id="arch">
+  <div class="section-title">2. High-Level Architecture Diagram</div>
+  <p>The diagram below shows the cross-cloud data flow from AWS to GCP, including the trust boundary between the two cloud providers via AWS IAM Role assumption.</p>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">Figure 1 – Cross-Cloud Architecture Overview</div>
+    <svg viewBox="0 0 900 440" width="100%" style="max-width:900px" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+      <defs>
+        <marker id="arr" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0,10 3.5,0 7" fill="#0057a8"/>
+        </marker>
+        <marker id="arr-g" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+          <polygon points="0 0,10 3.5,0 7" fill="#059669"/>
+        </marker>
+        <filter id="shadow" x="-5%" y="-5%" width="110%" height="120%">
+          <feDropShadow dx="2" dy="3" stdDeviation="4" flood-opacity="0.12"/>
+        </filter>
+      </defs>
+
+      <!-- AWS Cloud boundary -->
+      <rect x="20" y="20" width="340" height="390" rx="14" fill="#fff8f0" stroke="#f97316" stroke-width="2.5" stroke-dasharray="10,4" filter="url(#shadow)"/>
+      <rect x="20" y="20" width="180" height="34" rx="8" fill="#f97316"/>
+      <text x="110" y="42" fill="white" font-size="13" font-weight="700" text-anchor="middle">☁  AWS Cloud</text>
+
+      <!-- Aurora PostgreSQL -->
+      <rect x="50" y="80" width="140" height="80" rx="10" fill="#fff" stroke="#f97316" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="120" y="108" fill="#9a3412" font-size="11" font-weight="700" text-anchor="middle">Aurora</text>
+      <text x="120" y="123" fill="#9a3412" font-size="10" text-anchor="middle">PostgreSQL DB</text>
+      <text x="120" y="138" fill="#64748b" font-size="9" text-anchor="middle">Nightly backup</text>
+      <text x="120" y="152" font-size="20" text-anchor="middle" y="120">🐘</text>
+      <text x="120" y="152" fill="#9a3412" font-size="18" text-anchor="middle">🗄️</text>
+
+      <!-- Cognito -->
+      <rect x="200" y="80" width="140" height="80" rx="10" fill="#fff" stroke="#f97316" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="270" y="108" fill="#9a3412" font-size="11" font-weight="700" text-anchor="middle">Cognito</text>
+      <text x="270" y="123" fill="#9a3412" font-size="10" text-anchor="middle">User Pool Backup</text>
+      <text x="270" y="153" fill="#9a3412" font-size="18" text-anchor="middle">👤</text>
+
+      <!-- Arrow Aurora → S3 -->
+      <line x1="120" y1="160" x2="120" y2="188" stroke="#f97316" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="270" y1="160" x2="270" y2="188" stroke="#f97316" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- AWS S3 Bucket -->
+      <rect x="70" y="190" width="220" height="90" rx="10" fill="#fff" stroke="#f97316" stroke-width="2" filter="url(#shadow)"/>
+      <text x="180" y="218" fill="#9a3412" font-size="13" font-weight="700" text-anchor="middle">☁  AWS S3 Bucket</text>
+      <text x="180" y="235" fill="#64748b" font-size="10" text-anchor="middle">Source: Aurora &amp; Cognito backups</text>
+      <text x="180" y="250" fill="#64748b" font-size="9" text-anchor="middle">Account: 937245949235</text>
+      <text x="180" y="265" fill="#64748b" font-size="9" text-anchor="middle">Role: dev-gcp-transfer-poc</text>
+
+      <!-- AWS IAM Role -->
+      <rect x="70" y="300" width="220" height="70" rx="10" fill="#fff" stroke="#dc2626" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="180" y="323" fill="#dc2626" font-size="11" font-weight="700" text-anchor="middle">🔐 AWS IAM Role</text>
+      <text x="180" y="338" fill="#64748b" font-size="9" text-anchor="middle">Cross-cloud trust policy</text>
+      <text x="180" y="352" fill="#64748b" font-size="9" text-anchor="middle">Assumed by GCP STS agent</text>
+      <text x="180" y="366" fill="#64748b" font-size="9" text-anchor="middle">arn:aws:iam::937245949235:role/…</text>
+
+      <!-- Transfer arrow (main) -->
+      <line x1="360" y1="250" x2="520" y2="250" stroke="#0057a8" stroke-width="3" marker-end="url(#arr)" stroke-dasharray="8,3"/>
+      <rect x="388" y="226" width="165" height="26" rx="6" fill="#eff6ff" stroke="#0057a8" stroke-width="1"/>
+      <text x="470" y="241" fill="#1e40af" font-size="9" font-weight="700" text-anchor="middle">Google-managed private network</text>
+      <text x="470" y="270" fill="#64748b" font-size="9" text-anchor="middle">Daily @ 04:00 UTC</text>
+
+      <!-- GCP Cloud boundary -->
+      <rect x="530" y="20" width="350" height="390" rx="14" fill="#f0f9ff" stroke="#0057a8" stroke-width="2.5" stroke-dasharray="10,4" filter="url(#shadow)"/>
+      <rect x="530" y="20" width="200" height="34" rx="8" fill="#0057a8"/>
+      <text x="630" y="42" fill="white" font-size="13" font-weight="700" text-anchor="middle">☁  GCP Project</text>
+
+      <!-- Storage Transfer Service -->
+      <rect x="555" y="70" width="295" height="80" rx="10" fill="#fff" stroke="#0057a8" stroke-width="2" filter="url(#shadow)"/>
+      <text x="703" y="98" fill="#1e40af" font-size="12" font-weight="700" text-anchor="middle">⇄  Storage Transfer Service</text>
+      <text x="703" y="114" fill="#64748b" font-size="10" text-anchor="middle">Scheduled pull from AWS S3</text>
+      <text x="703" y="128" fill="#64748b" font-size="9" text-anchor="middle">FIND + COPY actions · No source deletion</text>
+
+      <!-- Arrows STS → components -->
+      <line x1="660" y1="150" x2="620" y2="198" stroke="#0057a8" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="703" y1="150" x2="703" y2="198" stroke="#0057a8" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="746" y1="150" x2="790" y2="198" stroke="#059669" stroke-width="1.5" marker-end="url(#arr-g)"/>
+
+      <!-- Cloud KMS -->
+      <rect x="555" y="200" width="120" height="80" rx="10" fill="#fff" stroke="#7c3aed" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="615" y="225" fill="#6b21a8" font-size="11" font-weight="700" text-anchor="middle">🔑 Cloud KMS</text>
+      <text x="615" y="240" fill="#64748b" font-size="9" text-anchor="middle">AES-256 encryption</text>
+      <text x="615" y="254" fill="#64748b" font-size="9" text-anchor="middle">90-day key rotation</text>
+      <text x="615" y="268" fill="#64748b" font-size="9" text-anchor="middle">Key ring: backup-keyring</text>
+
+      <!-- Cloud Storage -->
+      <rect x="643" y="200" width="120" height="80" rx="10" fill="#fff" stroke="#0057a8" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="703" y="225" fill="#1e40af" font-size="11" font-weight="700" text-anchor="middle">🪣 Cloud Storage</text>
+      <text x="703" y="240" fill="#64748b" font-size="9" text-anchor="middle">Backup bucket (GCS)</text>
+      <text x="703" y="254" fill="#64748b" font-size="9" text-anchor="middle">Versioning + WORM</text>
+      <text x="703" y="268" fill="#64748b" font-size="9" text-anchor="middle">Retention: 30 days</text>
+
+      <!-- Pub/Sub -->
+      <rect x="731" y="200" width="120" height="80" rx="10" fill="#fff" stroke="#059669" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="791" y="225" fill="#065f46" font-size="11" font-weight="700" text-anchor="middle">📨 Pub/Sub</text>
+      <text x="791" y="240" fill="#64748b" font-size="9" text-anchor="middle">Transfer notifications</text>
+      <text x="791" y="254" fill="#64748b" font-size="9" text-anchor="middle">Success/Failed/Aborted</text>
+      <text x="791" y="268" fill="#64748b" font-size="9" text-anchor="middle">24h topic retention</text>
+
+      <!-- KMS → Storage encryption arrow -->
+      <line x1="675" y1="240" x2="643" y2="240" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+
+      <!-- Cloud Monitoring + Logging -->
+      <rect x="555" y="305" width="295" height="80" rx="10" fill="#fff" stroke="#0ea5e9" stroke-width="1.5" filter="url(#shadow)"/>
+      <text x="703" y="333" fill="#0369a1" font-size="11" font-weight="700" text-anchor="middle">📊 Cloud Monitoring &amp; Logging</text>
+      <text x="703" y="348" fill="#64748b" font-size="9" text-anchor="middle">Log-based metrics · Alert policies · Log sinks</text>
+      <text x="703" y="362" fill="#64748b" font-size="9" text-anchor="middle">Transfer failure alerted via email + Pub/Sub</text>
+      <text x="703" y="376" fill="#64748b" font-size="9" text-anchor="middle">Logs retained in _Default bucket (europe-west2)</text>
+
+      <!-- Storage → Monitoring -->
+      <line x1="703" y1="280" x2="703" y2="305" stroke="#0ea5e9" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+      <!-- Pub/Sub → Monitoring -->
+      <line x1="791" y1="280" x2="760" y2="305" stroke="#0ea5e9" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#arr)"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     3. GCP INFRASTRUCTURE DETAIL
+═══════════════════════════════════════════════════════ -->
+<div class="section" id="gcp-infra">
+  <div class="section-title">3. GCP Infrastructure Detail Diagram</div>
+  <p>This diagram shows all GCP resources deployed by Terraform, the IAM service account, and the relationships between modules.</p>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">Figure 2 – GCP Resource Topology</div>
+    <svg viewBox="0 0 920 520" width="100%" style="max-width:920px" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+      <defs>
+        <marker id="a1" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#475569"/></marker>
+        <marker id="a2" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#7c3aed"/></marker>
+        <marker id="a3" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#059669"/></marker>
+        <filter id="sh2"><feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.10"/></filter>
+      </defs>
+
+      <!-- GCP Project border -->
+      <rect x="10" y="10" width="900" height="500" rx="16" fill="#f0f9ff" stroke="#0057a8" stroke-width="2" stroke-dasharray="12,5"/>
+      <text x="460" y="36" fill="#0057a8" font-size="13" font-weight="700" text-anchor="middle">GCP Project: cb-{environment}-parity-backup</text>
+
+      <!-- APIs Block -->
+      <rect x="30" y="50" width="860" height="50" rx="8" fill="#e0f2fe" stroke="#38bdf8" stroke-width="1"/>
+      <text x="460" y="71" fill="#0369a1" font-size="11" font-weight="700" text-anchor="middle">Enabled APIs</text>
+      <text x="460" y="87" fill="#0369a1" font-size="9.5" text-anchor="middle">storage.googleapis.com · storagetransfer.googleapis.com · cloudkms.googleapis.com · pubsub.googleapis.com · logging.googleapis.com · monitoring.googleapis.com · iam.googleapis.com</text>
+
+      <!-- IAM Service Account -->
+      <rect x="340" y="118" width="240" height="72" rx="10" fill="#fff" stroke="#dc2626" stroke-width="1.8" filter="url(#sh2)"/>
+      <text x="460" y="142" fill="#dc2626" font-size="12" font-weight="700" text-anchor="middle">🔐 IAM Service Account</text>
+      <text x="460" y="158" fill="#64748b" font-size="9.5" text-anchor="middle">cb-{env}-backup-transfer-sa</text>
+      <text x="460" y="171" fill="#64748b" font-size="9" text-anchor="middle">storagetransfer.admin · logging.logWriter</text>
+      <text x="460" y="183" fill="#64748b" font-size="9" text-anchor="middle">(cloudkms.cryptoKeyEncrypterDecrypter)</text>
+
+      <!-- Arrows SA → modules -->
+      <line x1="340" y1="154" x2="200" y2="200" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#a1)"/>
+      <line x1="410" y1="190" x2="370" y2="220" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#a1)"/>
+      <line x1="510" y1="190" x2="550" y2="220" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#a1)"/>
+      <line x1="580" y1="154" x2="720" y2="200" stroke="#dc2626" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#a1)"/>
+
+      <!-- MODULE: KMS -->
+      <rect x="30" y="210" width="200" height="130" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2" filter="url(#sh2)"/>
+      <rect x="30" y="210" width="200" height="28" rx="10" fill="#7c3aed"/>
+      <rect x="30" y="228" width="200" height="10" rx="0" fill="#7c3aed"/>
+      <text x="130" y="229" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">🔑 Cloud KMS Module</text>
+      <text x="130" y="258" fill="#4c1d95" font-size="9.5" text-anchor="middle" font-weight="600">Key Ring</text>
+      <text x="130" y="271" fill="#64748b" font-size="9" text-anchor="middle">cb-{env}-backup-keyring</text>
+      <text x="130" y="289" fill="#4c1d95" font-size="9.5" text-anchor="middle" font-weight="600">Crypto Key</text>
+      <text x="130" y="302" fill="#64748b" font-size="9" text-anchor="middle">cb-{env}-backup-key</text>
+      <text x="130" y="315" fill="#64748b" font-size="9" text-anchor="middle">Rotation: 90 days · prevent_destroy</text>
+      <text x="130" y="328" fill="#64748b" font-size="9" text-anchor="middle">Algorithm: GOOGLE_SYMMETRIC</text>
+
+      <!-- MODULE: Storage -->
+      <rect x="260" y="210" width="200" height="160" rx="10" fill="#f0f9ff" stroke="#0057a8" stroke-width="2" filter="url(#sh2)"/>
+      <rect x="260" y="210" width="200" height="28" rx="10" fill="#0057a8"/>
+      <rect x="260" y="228" width="200" height="10" rx="0" fill="#0057a8"/>
+      <text x="360" y="229" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">🪣 Cloud Storage Module</text>
+      <text x="360" y="258" fill="#1e40af" font-size="9.5" text-anchor="middle" font-weight="600">Backup Bucket</text>
+      <text x="360" y="271" fill="#64748b" font-size="9" text-anchor="middle">cb-{env}-parity-backup-{project}</text>
+      <text x="360" y="284" fill="#64748b" font-size="9" text-anchor="middle">KMS encrypted · Versioning · UBA</text>
+      <text x="360" y="297" fill="#64748b" font-size="9" text-anchor="middle">Retention: 30d · Lifecycle: 90d delete</text>
+      <text x="360" y="310" fill="#64748b" font-size="9" text-anchor="middle">→ NEARLINE at 30d · WORM (prod)</text>
+      <text x="360" y="328" fill="#1e40af" font-size="9.5" text-anchor="middle" font-weight="600">Access Logs Bucket</text>
+      <text x="360" y="341" fill="#64748b" font-size="9" text-anchor="middle">cb-{env}-backup-logs-{project}</text>
+      <text x="360" y="354" fill="#64748b" font-size="9" text-anchor="middle">Log retention: 90 days</text>
+      <text x="360" y="367" fill="#64748b" font-size="9" text-anchor="middle">prevent_destroy on main bucket</text>
+
+      <!-- MODULE: Transfer -->
+      <rect x="490" y="210" width="200" height="160" rx="10" fill="#f0fdf4" stroke="#059669" stroke-width="2" filter="url(#sh2)"/>
+      <rect x="490" y="210" width="200" height="28" rx="10" fill="#059669"/>
+      <rect x="490" y="228" width="200" height="10" rx="0" fill="#059669"/>
+      <text x="590" y="229" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">⇄ Transfer Module</text>
+      <text x="590" y="258" fill="#065f46" font-size="9.5" text-anchor="middle" font-weight="600">Storage Transfer Job</text>
+      <text x="590" y="271" fill="#64748b" font-size="9" text-anchor="middle">Source: AWS S3 (IAM Role auth)</text>
+      <text x="590" y="284" fill="#64748b" font-size="9" text-anchor="middle">Dest: GCS /{env}/aurora-backups/</text>
+      <text x="590" y="297" fill="#64748b" font-size="9" text-anchor="middle">Schedule: daily, repeat_interval 86400s</text>
+      <text x="590" y="310" fill="#64748b" font-size="9" text-anchor="middle">overwrite: DIFFERENT only</text>
+      <text x="590" y="328" fill="#065f46" font-size="9.5" text-anchor="middle" font-weight="600">Log Sink + Log Metric</text>
+      <text x="590" y="341" fill="#64748b" font-size="9" text-anchor="middle">cb-{env}-transfer-job-logs</text>
+      <text x="590" y="354" fill="#64748b" font-size="9" text-anchor="middle">Metric: transfer-failures (DELTA)</text>
+      <text x="590" y="367" fill="#64748b" font-size="9" text-anchor="middle">Filter: severity&gt;=ERROR</text>
+
+      <!-- MODULE: Pub/Sub -->
+      <rect x="720" y="210" width="170" height="160" rx="10" fill="#f0fdf4" stroke="#059669" stroke-width="2" filter="url(#sh2)"/>
+      <rect x="720" y="210" width="170" height="28" rx="10" fill="#0d9488"/>
+      <rect x="720" y="228" width="170" height="10" rx="0" fill="#0d9488"/>
+      <text x="805" y="229" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">📨 Pub/Sub Module</text>
+      <text x="805" y="258" fill="#134e4a" font-size="9.5" text-anchor="middle" font-weight="600">Topic</text>
+      <text x="805" y="271" fill="#64748b" font-size="9" text-anchor="middle">cb-{env}-backup-transfer-</text>
+      <text x="805" y="282" fill="#64748b" font-size="9" text-anchor="middle">notifications</text>
+      <text x="805" y="295" fill="#64748b" font-size="9" text-anchor="middle">Retention: 24h</text>
+      <text x="805" y="313" fill="#134e4a" font-size="9.5" text-anchor="middle" font-weight="600">Subscription</text>
+      <text x="805" y="326" fill="#64748b" font-size="9" text-anchor="middle">Ack deadline: 60s</text>
+      <text x="805" y="339" fill="#64748b" font-size="9" text-anchor="middle">Retain 7 days</text>
+      <text x="805" y="357" fill="#134e4a" font-size="9.5" text-anchor="middle" font-weight="600">Alert Policy (optional)</text>
+      <text x="805" y="370" fill="#64748b" font-size="9" text-anchor="middle">Email notification channel</text>
+
+      <!-- KMS → Storage (encryption) -->
+      <line x1="230" y1="270" x2="260" y2="270" stroke="#7c3aed" stroke-width="2" stroke-dasharray="5,2" marker-end="url(#a2)"/>
+      <text x="245" y="262" fill="#7c3aed" font-size="8" text-anchor="middle">encrypts</text>
+
+      <!-- Storage → Transfer dependency -->
+      <line x1="460" y1="285" x2="490" y2="285" stroke="#475569" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#a1)"/>
+
+      <!-- Transfer → Pub/Sub notification -->
+      <line x1="690" y1="285" x2="720" y2="285" stroke="#059669" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#a3)"/>
+      <text x="705" y="275" fill="#059669" font-size="8" text-anchor="middle">notify</text>
+
+      <!-- Terraform State -->
+      <rect x="30" y="420" width="355" height="70" rx="10" fill="#fff" stroke="#64748b" stroke-width="1.5" filter="url(#sh2)"/>
+      <text x="212" y="444" fill="#334155" font-size="11" font-weight="700" text-anchor="middle">🗃️ Terraform Remote State (GCS)</text>
+      <text x="212" y="459" fill="#64748b" font-size="9.5" text-anchor="middle">Backend bucket per environment</text>
+      <text x="212" y="472" fill="#64748b" font-size="9" text-anchor="middle">nonprod/backend.conf · prod/backend.conf</text>
+      <text x="212" y="485" fill="#64748b" font-size="9" text-anchor="middle">partial configuration via -backend-config flag</text>
+
+      <!-- Environments -->
+      <rect x="415" y="420" width="475" height="70" rx="10" fill="#fff" stroke="#0ea5e9" stroke-width="1.5" filter="url(#sh2)"/>
+      <text x="652" y="444" fill="#0369a1" font-size="11" font-weight="700" text-anchor="middle">🌍 Environments</text>
+      <text x="530" y="462" fill="#1e40af" font-size="10" text-anchor="middle" font-weight="600">NonProd</text>
+      <text x="530" y="476" fill="#64748b" font-size="9" text-anchor="middle">terraform/environments/nonprod/</text>
+      <text x="530" y="489" fill="#64748b" font-size="9" text-anchor="middle">Target: 30-Apr-2026</text>
+      <text x="760" y="462" fill="#dc2626" font-size="10" text-anchor="middle" font-weight="600">Production</text>
+      <text x="760" y="476" fill="#64748b" font-size="9" text-anchor="middle">terraform/environments/prod/</text>
+      <text x="760" y="489" fill="#64748b" font-size="9" text-anchor="middle">bucket_lock_enabled = true (WORM)</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     4. DATA FLOW DIAGRAM
+═══════════════════════════════════════════════════════ -->
+<div class="section" id="dataflow">
+  <div class="section-title">4. Data Flow Diagram</div>
+  <p>The numbered steps below trace the end-to-end nightly backup transfer from Aurora PostgreSQL through to the encrypted GCS bucket, with monitoring events.</p>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">Figure 3 – Nightly Backup Transfer Data Flow</div>
+    <svg viewBox="0 0 920 340" width="100%" style="max-width:920px" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+      <defs>
+        <marker id="da" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#0057a8"/></marker>
+        <marker id="dg" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#059669"/></marker>
+        <marker id="dr" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#dc2626"/></marker>
+      </defs>
+
+      <!-- Timeline bar -->
+      <line x1="60" y1="170" x2="870" y2="170" stroke="#cbd5e1" stroke-width="2"/>
+
+      <!-- Step nodes -->
+      <!-- 1 Aurora → S3 -->
+      <circle cx="100" cy="170" r="22" fill="#f97316" stroke="white" stroke-width="3"/>
+      <text x="100" cy="174" fill="white" font-size="13" font-weight="700" text-anchor="middle" y="175">1</text>
+
+      <!-- 2 AWS IAM Role assumed -->
+      <circle cx="230" cy="170" r="22" fill="#dc2626" stroke="white" stroke-width="3"/>
+      <text x="230" y="175" fill="white" font-size="13" font-weight="700" text-anchor="middle">2</text>
+
+      <!-- 3 STS Scheduler -->
+      <circle cx="370" cy="170" r="22" fill="#0057a8" stroke="white" stroke-width="3"/>
+      <text x="370" y="175" fill="white" font-size="13" font-weight="700" text-anchor="middle">3</text>
+
+      <!-- 4 Transfer -->
+      <circle cx="510" cy="170" r="22" fill="#0057a8" stroke="white" stroke-width="3"/>
+      <text x="510" y="175" fill="white" font-size="13" font-weight="700" text-anchor="middle">4</text>
+
+      <!-- 5 KMS Encrypt -->
+      <circle cx="640" cy="170" r="22" fill="#7c3aed" stroke="white" stroke-width="3"/>
+      <text x="640" y="175" fill="white" font-size="13" font-weight="700" text-anchor="middle">5</text>
+
+      <!-- 6 Store to GCS -->
+      <circle cx="760" cy="170" r="22" fill="#0057a8" stroke="white" stroke-width="3"/>
+      <text x="760" y="175" fill="white" font-size="13" font-weight="700" text-anchor="middle">6</text>
+
+      <!-- 7 Notify -->
+      <circle cx="870" cy="170" r="22" fill="#059669" stroke="white" stroke-width="3"/>
+      <text x="870" y="175" fill="white" font-size="13" font-weight="700" text-anchor="middle">7</text>
+
+      <!-- Arrows between steps -->
+      <line x1="122" y1="170" x2="208" y2="170" stroke="#0057a8" stroke-width="2" marker-end="url(#da)"/>
+      <line x1="252" y1="170" x2="348" y2="170" stroke="#0057a8" stroke-width="2" marker-end="url(#da)"/>
+      <line x1="392" y1="170" x2="488" y2="170" stroke="#0057a8" stroke-width="2" marker-end="url(#da)"/>
+      <line x1="532" y1="170" x2="618" y2="170" stroke="#0057a8" stroke-width="2" marker-end="url(#da)"/>
+      <line x1="662" y1="170" x2="738" y2="170" stroke="#0057a8" stroke-width="2" marker-end="url(#da)"/>
+      <line x1="782" y1="170" x2="848" y2="170" stroke="#059669" stroke-width="2" marker-end="url(#dg)"/>
+
+      <!-- Labels above -->
+      <text x="100" y="130" fill="#9a3412" font-size="9.5" text-anchor="middle" font-weight="700">Aurora/Cognito</text>
+      <text x="100" y="142" fill="#64748b" font-size="8.5" text-anchor="middle">Backup to S3</text>
+      <text x="100" y="153" fill="#64748b" font-size="8" text-anchor="middle">(AWS automated)</text>
+
+      <text x="230" y="130" fill="#dc2626" font-size="9.5" text-anchor="middle" font-weight="700">IAM Role</text>
+      <text x="230" y="142" fill="#64748b" font-size="8.5" text-anchor="middle">STS assumes role</text>
+      <text x="230" y="153" fill="#64748b" font-size="8" text-anchor="middle">cross-cloud auth</text>
+
+      <text x="370" y="130" fill="#1e40af" font-size="9.5" text-anchor="middle" font-weight="700">Scheduler</text>
+      <text x="370" y="142" fill="#64748b" font-size="8.5" text-anchor="middle">04:00 UTC daily</text>
+      <text x="370" y="153" fill="#64748b" font-size="8" text-anchor="middle">STS job triggered</text>
+
+      <text x="510" y="130" fill="#1e40af" font-size="9.5" text-anchor="middle" font-weight="700">S3 → GCS</text>
+      <text x="510" y="142" fill="#64748b" font-size="8.5" text-anchor="middle">Private network</text>
+      <text x="510" y="153" fill="#64748b" font-size="8" text-anchor="middle">FIND + COPY ops</text>
+
+      <text x="640" y="130" fill="#6b21a8" font-size="9.5" text-anchor="middle" font-weight="700">Encrypt</text>
+      <text x="640" y="142" fill="#64748b" font-size="8.5" text-anchor="middle">KMS AES-256</text>
+      <text x="640" y="153" fill="#64748b" font-size="8" text-anchor="middle">at rest</text>
+
+      <text x="760" y="130" fill="#1e40af" font-size="9.5" text-anchor="middle" font-weight="700">Store Objects</text>
+      <text x="760" y="142" fill="#64748b" font-size="8.5" text-anchor="middle">GCS Bucket</text>
+      <text x="760" y="153" fill="#64748b" font-size="8" text-anchor="middle">Versioned + WORM</text>
+
+      <text x="870" y="130" fill="#065f46" font-size="9.5" text-anchor="middle" font-weight="700">Notify</text>
+      <text x="870" y="142" fill="#64748b" font-size="8.5" text-anchor="middle">Pub/Sub event</text>
+      <text x="870" y="153" fill="#64748b" font-size="8" text-anchor="middle">+ Cloud Logging</text>
+
+      <!-- Labels below -->
+      <text x="100" y="208" fill="#9a3412" font-size="8" text-anchor="middle">AWS Side</text>
+      <text x="230" y="208" fill="#dc2626" font-size="8" text-anchor="middle">Trust Boundary</text>
+      <text x="370" y="208" fill="#1e40af" font-size="8" text-anchor="middle">GCP Scheduler</text>
+      <text x="510" y="208" fill="#1e40af" font-size="8" text-anchor="middle">Transit (private)</text>
+      <text x="640" y="208" fill="#6b21a8" font-size="8" text-anchor="middle">Cloud KMS</text>
+      <text x="760" y="208" fill="#1e40af" font-size="8" text-anchor="middle">Cloud Storage</text>
+      <text x="870" y="208" fill="#065f46" font-size="8" text-anchor="middle">Pub/Sub</text>
+
+      <!-- AWS / GCP regions marker -->
+      <rect x="60" y="240" width="280" height="50" rx="8" fill="#fff8f0" stroke="#f97316" stroke-width="1"/>
+      <text x="200" y="262" fill="#9a3412" font-size="10" text-anchor="middle" font-weight="700">AWS Region (us-east-1 or equivalent)</text>
+      <text x="200" y="278" fill="#64748b" font-size="9" text-anchor="middle">Account: 937245949235 · Aurora + S3</text>
+
+      <rect x="370" y="240" width="510" height="50" rx="8" fill="#f0f9ff" stroke="#0057a8" stroke-width="1"/>
+      <text x="625" y="262" fill="#1e40af" font-size="10" text-anchor="middle" font-weight="700">GCP Region: europe-west2 (London)</text>
+      <text x="625" y="278" fill="#64748b" font-size="9" text-anchor="middle">Project: cb-{env}-parity-backup · Storage Transfer · KMS · GCS · Pub/Sub</text>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     5. SECURITY ARCHITECTURE
+═══════════════════════════════════════════════════════ -->
+<div class="section" id="security">
+  <div class="section-title">5. Security Architecture</div>
+  <p>The solution implements defence-in-depth across network, identity, data, and operational layers.</p>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">Figure 4 – Security Controls Overview</div>
+    <svg viewBox="0 0 900 380" width="100%" style="max-width:900px" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+      <defs><filter id="sh3"><feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.10"/></filter></defs>
+
+      <!-- 4 security pillars -->
+      <!-- Network -->
+      <rect x="20" y="20" width="200" height="340" rx="12" fill="#fff" stroke="#0369a1" stroke-width="2" filter="url(#sh3)"/>
+      <rect x="20" y="20" width="200" height="36" rx="12" fill="#0369a1"/>
+      <rect x="20" y="42" width="200" height="14" rx="0" fill="#0369a1"/>
+      <text x="120" y="44" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">🌐 Network</text>
+      <text x="120" y="80" fill="#1e3a5f" font-size="10" font-weight="700" text-anchor="middle">Private Transit</text>
+      <text x="120" y="95" fill="#64748b" font-size="9" text-anchor="middle">Google-managed private</text>
+      <text x="120" y="107" fill="#64748b" font-size="9" text-anchor="middle">network (no public internet)</text>
+      <line x1="40" y1="120" x2="200" y2="120" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="120" y="140" fill="#1e3a5f" font-size="10" font-weight="700" text-anchor="middle">No Inbound Ports</text>
+      <text x="120" y="155" fill="#64748b" font-size="9" text-anchor="middle">STS pulls data; no</text>
+      <text x="120" y="167" fill="#64748b" font-size="9" text-anchor="middle">inbound connections needed</text>
+      <line x1="40" y1="180" x2="200" y2="180" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="120" y="200" fill="#1e3a5f" font-size="10" font-weight="700" text-anchor="middle">Cross-Cloud Auth</text>
+      <text x="120" y="215" fill="#64748b" font-size="9" text-anchor="middle">AWS IAM Role with</text>
+      <text x="120" y="227" fill="#64748b" font-size="9" text-anchor="middle">trust policy for GCP STS</text>
+      <text x="120" y="239" fill="#64748b" font-size="9" text-anchor="middle">agent (no static keys)</text>
+
+      <!-- Identity -->
+      <rect x="240" y="20" width="200" height="340" rx="12" fill="#fff" stroke="#dc2626" stroke-width="2" filter="url(#sh3)"/>
+      <rect x="240" y="20" width="200" height="36" rx="12" fill="#dc2626"/>
+      <rect x="240" y="42" width="200" height="14" rx="0" fill="#dc2626"/>
+      <text x="340" y="44" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">🔐 Identity (IAM)</text>
+      <text x="340" y="80" fill="#7f1d1d" font-size="10" font-weight="700" text-anchor="middle">Dedicated Service Account</text>
+      <text x="340" y="95" fill="#64748b" font-size="9" text-anchor="middle">cb-{env}-backup-transfer-sa</text>
+      <text x="340" y="107" fill="#64748b" font-size="9" text-anchor="middle">Least-privilege only</text>
+      <line x1="260" y1="120" x2="420" y2="120" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="340" y="140" fill="#7f1d1d" font-size="10" font-weight="700" text-anchor="middle">Roles Granted</text>
+      <text x="340" y="155" fill="#64748b" font-size="9" text-anchor="middle">storagetransfer.admin</text>
+      <text x="340" y="167" fill="#64748b" font-size="9" text-anchor="middle">logging.logWriter</text>
+      <text x="340" y="179" fill="#64748b" font-size="9" text-anchor="middle">cloudkms.cryptoKey</text>
+      <text x="340" y="191" fill="#64748b" font-size="9" text-anchor="middle">EncrypterDecrypter</text>
+      <text x="340" y="203" fill="#64748b" font-size="9" text-anchor="middle">storage.objectAdmin (bucket)</text>
+      <line x1="260" y1="215" x2="420" y2="215" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="340" y="235" fill="#7f1d1d" font-size="10" font-weight="700" text-anchor="middle">Uniform Bucket Access</text>
+      <text x="340" y="250" fill="#64748b" font-size="9" text-anchor="middle">uniform_bucket_level_access</text>
+      <text x="340" y="262" fill="#64748b" font-size="9" text-anchor="middle">= true on all buckets</text>
+
+      <!-- Data -->
+      <rect x="460" y="20" width="200" height="340" rx="12" fill="#fff" stroke="#7c3aed" stroke-width="2" filter="url(#sh3)"/>
+      <rect x="460" y="20" width="200" height="36" rx="12" fill="#7c3aed"/>
+      <rect x="460" y="42" width="200" height="14" rx="0" fill="#7c3aed"/>
+      <text x="560" y="44" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">🔑 Data Protection</text>
+      <text x="560" y="80" fill="#4c1d95" font-size="10" font-weight="700" text-anchor="middle">Encryption at Rest</text>
+      <text x="560" y="95" fill="#64748b" font-size="9" text-anchor="middle">CMEK via Cloud KMS</text>
+      <text x="560" y="107" fill="#64748b" font-size="9" text-anchor="middle">AES-256 symmetric key</text>
+      <line x1="480" y1="120" x2="640" y2="120" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="560" y="140" fill="#4c1d95" font-size="10" font-weight="700" text-anchor="middle">Key Rotation</text>
+      <text x="560" y="155" fill="#64748b" font-size="9" text-anchor="middle">Automatic every 90 days</text>
+      <text x="560" y="167" fill="#64748b" font-size="9" text-anchor="middle">prev versions retained</text>
+      <line x1="480" y1="180" x2="640" y2="180" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="560" y="200" fill="#4c1d95" font-size="10" font-weight="700" text-anchor="middle">Retention + WORM</text>
+      <text x="560" y="215" fill="#64748b" font-size="9" text-anchor="middle">30-day retention policy</text>
+      <text x="560" y="227" fill="#64748b" font-size="9" text-anchor="middle">LOCKED in prod (WORM)</text>
+      <text x="560" y="239" fill="#64748b" font-size="9" text-anchor="middle">prevent_destroy on bucket</text>
+      <line x1="480" y1="252" x2="640" y2="252" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="560" y="272" fill="#4c1d95" font-size="10" font-weight="700" text-anchor="middle">Versioning</text>
+      <text x="560" y="287" fill="#64748b" font-size="9" text-anchor="middle">Object versioning enabled</text>
+      <text x="560" y="299" fill="#64748b" font-size="9" text-anchor="middle">Accidental overwrite protection</text>
+
+      <!-- Operational -->
+      <rect x="680" y="20" width="200" height="340" rx="12" fill="#fff" stroke="#059669" stroke-width="2" filter="url(#sh3)"/>
+      <rect x="680" y="20" width="200" height="36" rx="12" fill="#059669"/>
+      <rect x="680" y="42" width="200" height="14" rx="0" fill="#059669"/>
+      <text x="780" y="44" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">📊 Observability</text>
+      <text x="780" y="80" fill="#064e3b" font-size="10" font-weight="700" text-anchor="middle">Cloud Logging</text>
+      <text x="780" y="95" fill="#64748b" font-size="9" text-anchor="middle">FIND + COPY ops logged</text>
+      <text x="780" y="107" fill="#64748b" font-size="9" text-anchor="middle">SUCCEEDED + FAILED states</text>
+      <line x1="700" y1="120" x2="860" y2="120" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="780" y="140" fill="#064e3b" font-size="10" font-weight="700" text-anchor="middle">Log Metric</text>
+      <text x="780" y="155" fill="#64748b" font-size="9" text-anchor="middle">cb-{env}-transfer-failures</text>
+      <text x="780" y="167" fill="#64748b" font-size="9" text-anchor="middle">DELTA / INT64 counter</text>
+      <line x1="700" y1="180" x2="860" y2="180" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="780" y="200" fill="#064e3b" font-size="10" font-weight="700" text-anchor="middle">Pub/Sub Alerts</text>
+      <text x="780" y="215" fill="#64748b" font-size="9" text-anchor="middle">SUCCESS event published</text>
+      <text x="780" y="227" fill="#64748b" font-size="9" text-anchor="middle">FAILED event triggers alert</text>
+      <text x="780" y="239" fill="#64748b" font-size="9" text-anchor="middle">Rate limit: 1 per 5 minutes</text>
+      <line x1="700" y1="252" x2="860" y2="252" stroke="#e2e8f0" stroke-width="1"/>
+      <text x="780" y="272" fill="#064e3b" font-size="10" font-weight="700" text-anchor="middle">Access Logging</text>
+      <text x="780" y="287" fill="#64748b" font-size="9" text-anchor="middle">Separate logs bucket</text>
+      <text x="780" y="299" fill="#64748b" font-size="9" text-anchor="middle">90-day log retention</text>
+      <text x="780" y="311" fill="#64748b" font-size="9" text-anchor="middle">SIEM: Google SecOps</text>
+    </svg>
+  </div>
+
+  <div class="section-subtitle">Security Controls Summary</div>
+  <table>
+    <tr><th>Control</th><th>Implementation</th><th>Status</th></tr>
+    <tr><td>Private network transfer</td><td>Google-managed private network (no public internet)</td><td><span class="chip chip-green">✅ Implemented</span></td></tr>
+    <tr><td>Encryption at rest</td><td>Cloud KMS CMEK (AES-256), 90-day rotation</td><td><span class="chip chip-green">✅ Implemented</span></td></tr>
+    <tr><td>Retention policy</td><td>30-day minimum retention on all backup objects</td><td><span class="chip chip-green">✅ Implemented</span></td></tr>
+    <tr><td>WORM / LOCKED mode</td><td>bucket_lock_enabled = true for production</td><td><span class="chip chip-orange">⚠️ Prod only</span></td></tr>
+    <tr><td>Dedicated GCP project</td><td>Isolated project for parity backup storage</td><td><span class="chip chip-green">✅ Implemented</span></td></tr>
+    <tr><td>Uniform bucket-level access</td><td>uniform_bucket_level_access = true</td><td><span class="chip chip-green">✅ Implemented</span></td></tr>
+    <tr><td>Object versioning</td><td>versioning.enabled = true on backup bucket</td><td><span class="chip chip-green">✅ Implemented</span></td></tr>
+    <tr><td>Access logging</td><td>Separate bucket with 90-day log retention</td><td><span class="chip chip-green">✅ Implemented</span></td></tr>
+    <tr><td>SIEM monitoring</td><td>Google SecOps integration</td><td><span class="chip chip-blue">🔵 Post-deploy</span></td></tr>
+    <tr><td>No static AWS keys</td><td>IAM Role assumption (STS federated auth)</td><td><span class="chip chip-green">✅ Implemented</span></td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     6. TERRAFORM MODULE STRUCTURE
+═══════════════════════════════════════════════════════ -->
+<div class="section" id="terraform">
+  <div class="section-title">6. Terraform Module Structure</div>
+  <p>The IaC is organised as a root module calling four child modules. Dependencies are explicitly declared via <code>depends_on</code> to ensure correct provisioning order.</p>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">Figure 5 – Terraform Module Dependency Graph</div>
+    <svg viewBox="0 0 860 360" width="100%" style="max-width:860px" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+      <defs>
+        <marker id="tm" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#475569"/></marker>
+        <filter id="sh4"><feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.10"/></filter>
+      </defs>
+
+      <!-- Root Module -->
+      <rect x="300" y="20" width="240" height="70" rx="10" fill="#003d6b" filter="url(#sh4)"/>
+      <text x="420" y="48" fill="#fff" font-size="12" font-weight="700" text-anchor="middle">Root Module</text>
+      <text x="420" y="63" fill="#93c5fd" font-size="9.5" text-anchor="middle">terraform/main.tf</text>
+      <text x="420" y="77" fill="#93c5fd" font-size="9" text-anchor="middle">variables.tf · providers.tf · backend.tf · outputs.tf</text>
+
+      <!-- APIs & SA block -->
+      <rect x="300" y="120" width="240" height="60" rx="8" fill="#1e3a5f" filter="url(#sh4)"/>
+      <text x="420" y="144" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">google_project_service</text>
+      <text x="420" y="158" fill="#93c5fd" font-size="9" text-anchor="middle">7 required APIs enabled</text>
+      <text x="420" y="170" fill="#93c5fd" font-size="9" text-anchor="middle">google_service_account · IAM roles</text>
+
+      <!-- Root → APIs -->
+      <line x1="420" y1="90" x2="420" y2="120" stroke="#475569" stroke-width="2" marker-end="url(#tm)"/>
+
+      <!-- KMS Module -->
+      <rect x="30" y="230" width="180" height="100" rx="10" fill="#faf5ff" stroke="#7c3aed" stroke-width="2" filter="url(#sh4)"/>
+      <rect x="30" y="230" width="180" height="26" rx="10" fill="#7c3aed"/>
+      <rect x="30" y="246" width="180" height="10" rx="0" fill="#7c3aed"/>
+      <text x="120" y="247" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">module.kms</text>
+      <text x="120" y="270" fill="#4c1d95" font-size="9" text-anchor="middle">modules/kms/</text>
+      <text x="120" y="284" fill="#64748b" font-size="8.5" text-anchor="middle">KMS Keyring + Crypto Key</text>
+      <text x="120" y="297" fill="#64748b" font-size="8.5" text-anchor="middle">IAM bindings for STS + GCS</text>
+      <text x="120" y="310" fill="#7c3aed" font-size="8" text-anchor="middle">depends_on: required_apis</text>
+
+      <!-- Storage Module -->
+      <rect x="240" y="230" width="180" height="100" rx="10" fill="#f0f9ff" stroke="#0057a8" stroke-width="2" filter="url(#sh4)"/>
+      <rect x="240" y="230" width="180" height="26" rx="10" fill="#0057a8"/>
+      <rect x="240" y="246" width="180" height="10" rx="0" fill="#0057a8"/>
+      <text x="330" y="247" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">module.storage</text>
+      <text x="330" y="270" fill="#1e40af" font-size="9" text-anchor="middle">modules/storage/</text>
+      <text x="330" y="284" fill="#64748b" font-size="8.5" text-anchor="middle">Backup + Logs buckets</text>
+      <text x="330" y="297" fill="#64748b" font-size="8.5" text-anchor="middle">IAM bindings, lifecycle rules</text>
+      <text x="330" y="310" fill="#0057a8" font-size="8" text-anchor="middle">depends_on: module.kms</text>
+
+      <!-- Pubsub Module -->
+      <rect x="450" y="230" width="180" height="100" rx="10" fill="#f0fdf4" stroke="#0d9488" stroke-width="2" filter="url(#sh4)"/>
+      <rect x="450" y="230" width="180" height="26" rx="10" fill="#0d9488"/>
+      <rect x="450" y="246" width="180" height="10" rx="0" fill="#0d9488"/>
+      <text x="540" y="247" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">module.pubsub</text>
+      <text x="540" y="270" fill="#134e4a" font-size="9" text-anchor="middle">modules/pubsub/</text>
+      <text x="540" y="284" fill="#64748b" font-size="8.5" text-anchor="middle">Topic + Subscription</text>
+      <text x="540" y="297" fill="#64748b" font-size="8.5" text-anchor="middle">Alert policy + Email channel</text>
+      <text x="540" y="310" fill="#0d9488" font-size="8" text-anchor="middle">depends_on: required_apis</text>
+
+      <!-- Transfer Module -->
+      <rect x="660" y="230" width="180" height="100" rx="10" fill="#f0fdf4" stroke="#059669" stroke-width="2" filter="url(#sh4)"/>
+      <rect x="660" y="230" width="180" height="26" rx="10" fill="#059669"/>
+      <rect x="660" y="246" width="180" height="10" rx="0" fill="#059669"/>
+      <text x="750" y="247" fill="#fff" font-size="10" font-weight="700" text-anchor="middle">module.transfer</text>
+      <text x="750" y="270" fill="#064e3b" font-size="9" text-anchor="middle">modules/transfer/</text>
+      <text x="750" y="284" fill="#64748b" font-size="8.5" text-anchor="middle">STS Job + Log sink</text>
+      <text x="750" y="297" fill="#64748b" font-size="8.5" text-anchor="middle">Log metric for failures</text>
+      <text x="750" y="310" fill="#059669" font-size="8" text-anchor="middle">depends_on: storage+pubsub+kms</text>
+
+      <!-- APIs → modules -->
+      <line x1="380" y1="180" x2="160" y2="230" stroke="#7c3aed" stroke-width="1.5" marker-end="url(#tm)"/>
+      <line x1="400" y1="180" x2="330" y2="230" stroke="#0057a8" stroke-width="1.5" marker-end="url(#tm)"/>
+      <line x1="440" y1="180" x2="540" y2="230" stroke="#0d9488" stroke-width="1.5" marker-end="url(#tm)"/>
+      <line x1="460" y1="180" x2="720" y2="230" stroke="#059669" stroke-width="1.5" marker-end="url(#tm)"/>
+
+      <!-- KMS → Storage (kms_crypto_key_id) -->
+      <line x1="210" y1="280" x2="240" y2="280" stroke="#7c3aed" stroke-width="1.5" stroke-dasharray="4,2" marker-end="url(#tm)"/>
+
+      <!-- Storage, Pubsub → Transfer -->
+      <line x1="420" y1="300" x2="660" y2="300" stroke="#059669" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#tm)"/>
+      <line x1="630" y1="280" x2="660" y2="280" stroke="#059669" stroke-width="1.2" stroke-dasharray="4,2" marker-end="url(#tm)"/>
+    </svg>
+  </div>
+
+  <div class="section-subtitle">Repository Structure</div>
+  <table>
+    <tr><th>Path</th><th>Purpose</th></tr>
+    <tr><td><code>terraform/main.tf</code></td><td>Root module – wires all child modules, service account, APIs</td></tr>
+    <tr><td><code>terraform/variables.tf</code></td><td>All input variable declarations with defaults</td></tr>
+    <tr><td><code>terraform/providers.tf</code></td><td>Google provider configuration (v5+)</td></tr>
+    <tr><td><code>terraform/backend.tf</code></td><td>GCS remote state backend (partial config)</td></tr>
+    <tr><td><code>terraform/outputs.tf</code></td><td>Root outputs (bucket names, transfer job, etc.)</td></tr>
+    <tr><td><code>terraform/modules/kms/</code></td><td>Key ring, crypto key, IAM bindings</td></tr>
+    <tr><td><code>terraform/modules/storage/</code></td><td>Backup bucket + logs bucket, lifecycle rules, retention</td></tr>
+    <tr><td><code>terraform/modules/pubsub/</code></td><td>Notification topic, subscription, alert policy</td></tr>
+    <tr><td><code>terraform/modules/transfer/</code></td><td>STS job, log sink, log-based metric</td></tr>
+    <tr><td><code>terraform/environments/nonprod/</code></td><td>Non-prod tfvars + backend.conf</td></tr>
+    <tr><td><code>terraform/environments/prod/</code></td><td>Production tfvars + backend.conf (WORM enabled)</td></tr>
+    <tr><td><code>scripts/</code></td><td>init / plan / apply / validate shell helpers</td></tr>
+    <tr><td><code>pipelines/azure-devops-pipeline.yml</code></td><td>Azure DevOps YAML pipeline</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     7. CI/CD PIPELINE
+═══════════════════════════════════════════════════════ -->
+<div class="section" id="cicd">
+  <div class="section-title">7. CI/CD Pipeline Diagram</div>
+  <p>Deployments are managed via <strong>Azure DevOps</strong> with a three-stage pipeline. Production deployments require a manual approval gate.</p>
+
+  <div class="diagram-wrap">
+    <div class="diagram-title">Figure 6 – Azure DevOps Pipeline Stages</div>
+    <svg viewBox="0 0 900 310" width="100%" style="max-width:900px" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI',Arial,sans-serif">
+      <defs>
+        <marker id="pa" markerWidth="9" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,9 3,0 6" fill="#0057a8"/></marker>
+        <filter id="sh5"><feDropShadow dx="1" dy="2" stdDeviation="3" flood-opacity="0.10"/></filter>
+      </defs>
+
+      <!-- Trigger box -->
+      <rect x="20" y="110" width="130" height="90" rx="10" fill="#f1f5f9" stroke="#94a3b8" stroke-width="1.5" filter="url(#sh5)"/>
+      <text x="85" y="134" fill="#334155" font-size="10" font-weight="700" text-anchor="middle">⚡ Trigger</text>
+      <text x="85" y="150" fill="#64748b" font-size="9" text-anchor="middle">Push to main</text>
+      <text x="85" y="163" fill="#64748b" font-size="9" text-anchor="middle">PR to main</text>
+      <text x="85" y="176" fill="#64748b" font-size="9" text-anchor="middle">Manual dispatch</text>
+      <text x="85" y="189" fill="#64748b" font-size="9" text-anchor="middle">(env + action params)</text>
+
+      <!-- Arrow to Stage 1 -->
+      <line x1="150" y1="155" x2="185" y2="155" stroke="#0057a8" stroke-width="2" marker-end="url(#pa)"/>
+
+      <!-- Stage 1: Validate -->
+      <rect x="185" y="60" width="175" height="190" rx="12" fill="#fff" stroke="#475569" stroke-width="2" filter="url(#sh5)"/>
+      <rect x="185" y="60" width="175" height="32" rx="12" fill="#475569"/>
+      <rect x="185" y="78" width="175" height="14" rx="0" fill="#475569"/>
+      <text x="272" y="82" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">Stage 1: Validate</text>
+      <text x="272" y="112" fill="#334155" font-size="9.5" text-anchor="middle" font-weight="600">ubuntu-latest agent</text>
+      <text x="272" y="128" fill="#64748b" font-size="9" text-anchor="middle">Install Terraform 1.8.0</text>
+      <text x="272" y="143" fill="#64748b" font-size="9" text-anchor="middle">terraform fmt -check</text>
+      <text x="272" y="158" fill="#64748b" font-size="9" text-anchor="middle">terraform init -backend=false</text>
+      <text x="272" y="173" fill="#64748b" font-size="9" text-anchor="middle">terraform validate</text>
+      <rect x="205" y="218" width="135" height="20" rx="6" fill="#dcfce7"/>
+      <text x="272" y="232" fill="#166534" font-size="9" font-weight="700" text-anchor="middle">✅ Format + Syntax Check</text>
+
+      <!-- Arrow to Stage 2 -->
+      <line x1="360" y1="155" x2="395" y2="155" stroke="#0057a8" stroke-width="2" marker-end="url(#pa)"/>
+
+      <!-- Stage 2: Plan -->
+      <rect x="395" y="40" width="185" height="230" rx="12" fill="#fff" stroke="#0057a8" stroke-width="2" filter="url(#sh5)"/>
+      <rect x="395" y="40" width="185" height="32" rx="12" fill="#0057a8"/>
+      <rect x="395" y="58" width="185" height="14" rx="0" fill="#0057a8"/>
+      <text x="487" y="62" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">Stage 2: Plan</text>
+      <text x="487" y="90" fill="#1e40af" font-size="9.5" text-anchor="middle" font-weight="600">dependsOn: Validate</text>
+      <text x="487" y="106" fill="#64748b" font-size="9" text-anchor="middle">Load var group:</text>
+      <text x="487" y="119" fill="#64748b" font-size="9" text-anchor="middle">westbrom-gcp-{env}</text>
+      <text x="487" y="134" fill="#64748b" font-size="9" text-anchor="middle">GCP auth via GCP_CREDENTIALS</text>
+      <text x="487" y="149" fill="#64748b" font-size="9" text-anchor="middle">terraform init -backend-config</text>
+      <text x="487" y="164" fill="#64748b" font-size="9" text-anchor="middle">terraform plan -var-file</text>
+      <text x="487" y="179" fill="#64748b" font-size="9" text-anchor="middle">-out {env}.tfplan</text>
+      <text x="487" y="194" fill="#64748b" font-size="9" text-anchor="middle">-detailed-exitcode</text>
+      <rect x="415" y="210" width="145" height="20" rx="6" fill="#dbeafe"/>
+      <text x="487" y="224" fill="#1e40af" font-size="9" font-weight="700" text-anchor="middle">📦 Publish plan artifact</text>
+      <text x="487" y="248" fill="#0ea5e9" font-size="8" text-anchor="middle">terraform-plan-{env}</text>
+      <text x="487" y="260" fill="#0ea5e9" font-size="8" text-anchor="middle">stored as pipeline artifact</text>
+
+      <!-- Arrow to Stage 3 -->
+      <line x1="580" y1="155" x2="615" y2="155" stroke="#0057a8" stroke-width="2" marker-end="url(#pa)"/>
+
+      <!-- Approval gate (prod only) -->
+      <rect x="600" y="90" width="80" height="40" rx="20" fill="#fef3c7" stroke="#f59e0b" stroke-width="2"/>
+      <text x="640" y="107" fill="#92400e" font-size="8" font-weight="700" text-anchor="middle">⏸ Approval</text>
+      <text x="640" y="120" fill="#92400e" font-size="7.5" text-anchor="middle">Prod only</text>
+
+      <!-- Stage 3: Apply -->
+      <rect x="615" y="40" width="185" height="230" rx="12" fill="#fff" stroke="#059669" stroke-width="2" filter="url(#sh5)"/>
+      <rect x="615" y="40" width="185" height="32" rx="12" fill="#059669"/>
+      <rect x="615" y="58" width="185" height="14" rx="0" fill="#059669"/>
+      <text x="707" y="62" fill="#fff" font-size="11" font-weight="700" text-anchor="middle">Stage 3: Apply</text>
+      <text x="707" y="90" fill="#065f46" font-size="9.5" text-anchor="middle" font-weight="600">dependsOn: Plan</text>
+      <text x="707" y="106" fill="#64748b" font-size="9" text-anchor="middle">condition: action=apply</text>
+      <text x="707" y="121" fill="#64748b" font-size="9" text-anchor="middle">+ main branch only</text>
+      <text x="707" y="136" fill="#64748b" font-size="9" text-anchor="middle">Download plan artifact</text>
+      <text x="707" y="151" fill="#64748b" font-size="9" text-anchor="middle">GCP auth via GCP_CREDENTIALS</text>
+      <text x="707" y="166" fill="#64748b" font-size="9" text-anchor="middle">terraform init -backend-config</text>
+      <text x="707" y="181" fill="#64748b" font-size="9" text-anchor="middle">terraform apply {env}.tfplan</text>
+      <text x="707" y="196" fill="#64748b" font-size="9" text-anchor="middle">terraform output -json</text>
+      <rect x="635" y="210" width="145" height="20" rx="6" fill="#dcfce7"/>
+      <text x="707" y="224" fill="#166534" font-size="9" font-weight="700" text-anchor="middle">Cleanup credentials</text>
+      <text x="707" y="248" fill="#064e3b" font-size="8" text-anchor="middle">rm /tmp/gcp-key.json</text>
+      <text x="707" y="260" fill="#064e3b" font-size="8" text-anchor="middle">Always runs (condition: always)</text>
+
+      <!-- Notes -->
+      <rect x="20" y="240" width="130" height="55" rx="8" fill="#fffbeb" stroke="#f59e0b" stroke-width="1"/>
+      <text x="85" y="258" fill="#92400e" font-size="9" font-weight="700" text-anchor="middle">Environments</text>
+      <text x="85" y="272" fill="#64748b" font-size="8.5" text-anchor="middle">nonprod (auto-apply)</text>
+      <text x="85" y="285" fill="#64748b" font-size="8.5" text-anchor="middle">prod (manual approval)</text>
+    </svg>
+  </div>
+
+  <div class="section-subtitle">Required Azure DevOps Variable Groups</div>
+  <table>
+    <tr><th>Variable Group</th><th>Variable</th><th>Description</th></tr>
+    <tr><td><code>westbrom-gcp-nonprod</code></td><td>GCP_CREDENTIALS</td><td>Service account JSON for non-prod GCP project</td></tr>
+    <tr><td><code>westbrom-gcp-prod</code></td><td>GCP_CREDENTIALS</td><td>Service account JSON for production GCP project</td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     8. CONFIGURATION REFERENCE
+═══════════════════════════════════════════════════════ -->
+<div class="section" id="config">
+  <div class="section-title">8. Configuration Reference</div>
+
+  <div class="section-subtitle">Transfer Job Parameters</div>
+  <table>
+    <tr><th>Parameter</th><th>Value</th><th>Notes</th></tr>
+    <tr><td>Source type</td><td>Amazon S3</td><td>Aurora PostgreSQL + Cognito backups</td></tr>
+    <tr><td>AWS IAM Role ARN (nonprod)</td><td><code>arn:aws:iam::937245949235:role/dev-gcp-transfer-poc</code></td><td>Cross-cloud role assumption</td></tr>
+    <tr><td>Destination</td><td>GCS – <code>{env}/aurora-backups/</code></td><td>Encrypted with KMS CMEK</td></tr>
+    <tr><td>Schedule start</td><td>04:00 UTC</td><td>Configurable via variables</td></tr>
+    <tr><td>Repeat interval</td><td>86400s (24 hours)</td><td>Daily cadence</td></tr>
+    <tr><td>Network</td><td>Google-managed private</td><td>No public internet exposure</td></tr>
+    <tr><td>Overwrite policy</td><td>DIFFERENT only</td><td>Skip identical objects</td></tr>
+    <tr><td>Source deletion</td><td>false</td><td>Source objects preserved on AWS</td></tr>
+    <tr><td>Notification events</td><td>SUCCESS / FAILED / ABORTED</td><td>Published to Pub/Sub as JSON</td></tr>
+    <tr><td>Logging</td><td>FIND + COPY · SUCCEEDED + FAILED</td><td>Stored in Cloud Logging _Default</td></tr>
+  </table>
+
+  <div class="section-subtitle">Storage Lifecycle Policy</div>
+  <table>
+    <tr><th>Age</th><th>Action</th><th>Storage Class</th></tr>
+    <tr><td>0 – 30 days</td><td>Active storage</td><td>STANDARD</td></tr>
+    <tr><td>30 days</td><td>Transition (automatic)</td><td>NEARLINE</td></tr>
+    <tr><td>90 days</td><td>Delete (lifecycle rule)</td><td>—</td></tr>
+    <tr><td>Minimum retention</td><td>30 days (retention policy)</td><td>Cannot be deleted earlier</td></tr>
+  </table>
+
+  <div class="section-subtitle">Key Assumptions &amp; Decisions</div>
+  <table>
+    <tr><th>Type</th><th>Description</th></tr>
+    <tr><td><span class="chip chip-blue">ASSUMPTION</span></td><td>Backup retention: 30 days for nightly offsite backup</td></tr>
+    <tr><td><span class="chip chip-blue">ASSUMPTION</span></td><td>Off-site backup only used in event of widespread AWS regional outage (RTO: 7 days, RPO: 24 hrs)</td></tr>
+    <tr><td><span class="chip chip-orange">DECISION</span></td><td>Use GCP Storage Transfer Service with Google-managed private network</td></tr>
+    <tr><td><span class="chip chip-orange">DECISION</span></td><td>Backup scope: Aurora DB Backup and Cognito Backup</td></tr>
+    <tr><td><span class="chip chip-red">DEPENDENCY</span></td><td>Deloitte GCP team will create the necessary GCP-side configurations</td></tr>
+    <tr><td><span class="chip chip-red">DEPENDENCY</span></td><td>Enable SIEM monitoring in Google SecOps post-deployment</td></tr>
+  </table>
+
+  <div class="section-subtitle">Target Milestones</div>
+  <table>
+    <tr><th>Milestone</th><th>Target Date</th><th>Status</th></tr>
+    <tr><td>Non-prod deployment</td><td>30 April 2026</td><td><span class="chip chip-orange">⏳ In Progress</span></td></tr>
+    <tr><td>Production deployment</td><td>TBD</td><td><span class="chip chip-blue">📋 Planned</span></td></tr>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     9. POST-DEPLOYMENT CHECKLIST
+═══════════════════════════════════════════════════════ -->
+<div class="section" id="checklist">
+  <div class="section-title">9. Post-Deployment Checklist</div>
+  <p>Complete each item after a successful Terraform apply to validate the end-to-end solution.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:16px">
+    <div>
+      <div class="section-subtitle">Infrastructure Validation</div>
+      <ul class="checklist">
+        <li>Verify GCP APIs are all enabled (7 services)</li>
+        <li>Confirm KMS key ring and crypto key are created</li>
+        <li>Verify backup bucket exists with correct naming</li>
+        <li>Confirm backup bucket has retention policy (30 days)</li>
+        <li>Verify versioning is enabled on backup bucket</li>
+        <li>Confirm uniform bucket-level access is enabled</li>
+        <li>Verify access logs bucket is created</li>
+        <li>Confirm Pub/Sub topic and subscription are created</li>
+        <li>Verify transfer job is created with correct schedule</li>
+        <li>Confirm log sink and log metric are deployed</li>
+      </ul>
+    </div>
+    <div>
+      <div class="section-subtitle">Functional Validation</div>
+      <ul class="checklist">
+        <li>Test AWS IAM Role cross-cloud authentication</li>
+        <li>Run first manual transfer to validate end-to-end flow</li>
+        <li>Verify objects appear in GCS bucket with KMS encryption</li>
+        <li>Check Cloud Logging for transfer operation logs</li>
+        <li>Verify Pub/Sub notification on successful transfer</li>
+        <li>Confirm objects are in correct path ({env}/aurora-backups/)</li>
+        <li>Test monitoring alert by triggering a failed transfer</li>
+        <li>Verify NEARLINE transition rule is configured</li>
+        <li>Enable SIEM monitoring in Google SecOps</li>
+        <li>Set <code>bucket_lock_enabled = true</code> for production WORM mode</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════════════ -->
+<div style="text-align:center;padding:24px 0 40px;color:#94a3b8;font-size:0.8rem">
+  <div style="margin-bottom:4px">WestBrom External Backup GCP · JIRA: CS-14029 · Converge Banking</div>
+  <div>Infrastructure as Code – Terraform · GCP Region: europe-west2 · Generated April 2026</div>
+</div>
+
+</div><!-- end .page -->
+</body>
+</html>

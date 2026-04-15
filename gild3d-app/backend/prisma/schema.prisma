@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MemberType {
+  MEMBER    // client who books
+  COMPANION // profile/listing owner
+  ADMIN
+}
+
+enum MembershipTier {
+  FREE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum BookingType {
+  INCALL
+  OUTCALL
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+  FAILED
+}
+
+enum MediaType {
+  PHOTO
+  VIDEO
+}
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  passwordHash   String
+  memberType     MemberType     @default(MEMBER)
+  membershipTier MembershipTier @default(FREE)
+  isVerified     Boolean        @default(false)
+  isActive       Boolean        @default(true)
+  emailVerified  Boolean        @default(false)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  profile          Profile?
+  sentMessages     Message[]    @relation("SentMessages")
+  receivedMessages Message[]    @relation("ReceivedMessages")
+  bookings         Booking[]    @relation("MemberBookings")
+  payments         Payment[]
+}
+
+model Profile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Basic info
+  displayName  String
+  age          Int?
+  gender       String?
+  ethnicity    String?
+  nationality  String?
+
+  // Location
+  location     String?   // city/area
+  country      String?
+  travelAvailable Boolean @default(false)
+
+  // Listing details
+  headline     String?
+  bio          String?
+  hourlyRate   Float?    // in USD
+  inCall       Boolean   @default(true)
+  outCall      Boolean   @default(false)
+  minBookingHours Int    @default(1)
+
+  // Physical
+  height       Int?      // cm
+  bodyType     String?
+  hairColor    String?
+  eyeColor     String?
+
+  // Services / preferences (stored as comma-separated or JSON)
+  services     String?   // JSON array of strings
+  languages    String?   // JSON array
+  lookingFor   String?
+
+  // Visibility
+  isPublished  Boolean   @default(false)
+  isVip        Boolean   @default(false)
+  isFeatured   Boolean   @default(false)
+  viewCount    Int       @default(0)
+
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  photos       Photo[]
+  privateMedia PrivateMedia[]
+  bookings     Booking[]  @relation("CompanionBookings")
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  profileId String
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  url       String
+  thumbUrl  String?
+  isPrimary Boolean  @default(false)
+  isApproved Boolean @default(true)
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model PrivateMedia {
+  id        String    @id @default(cuid())
+  profileId String
+  profile   Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  url       String
+  thumbUrl  String?
+  type      MediaType @default(PHOTO)
+  title     String?
+  order     Int       @default(0)
+  createdAt DateTime  @default(now())
+}
+
+model Message {
+  id         String   @id @default(cuid())
+  senderId   String
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId String
+  receiver   User     @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content    String
+  status     String   @default("SENT") // SENT | READ
+  createdAt  DateTime @default(now())
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  ref         String        @unique @default(cuid()) // human-readable reference
+
+  // Parties
+  memberId    String
+  member      User          @relation("MemberBookings", fields: [memberId], references: [id])
+  profileId   String
+  profile     Profile       @relation("CompanionBookings", fields: [profileId], references: [id])
+
+  // Appointment details
+  type        BookingType
+  date        DateTime      // date of appointment
+  startTime   String        // "14:00" 24hr format
+  hours       Int           // duration in hours (min 1)
+  totalAmount Float         // hourlyRate * hours (USD)
+
+  // OutCall details
+  hotelName   String?
+  hotelAddress String?
+  hotelCity   String?
+  roomNumber  String?       // confirmed day-of
+
+  // InCall
+  inCallAddress String?     // companion's address (shared after confirmation)
+
+  status      BookingStatus @default(PENDING_PAYMENT)
+  notes       String?       // client notes
+  cancelReason String?
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  payment     Payment?
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  userId            String
+  user              User          @relation(fields: [userId], references: [id])
+  bookingId         String?       @unique
+  booking           Booking?      @relation(fields: [bookingId], references: [id])
+
+  // For membership upgrades (bookingId will be null)
+  tier              MembershipTier?
+  durationDays      Int?
+
+  amountUsd         Float
+  currency          String        @default("BTC")
+  btcpayInvoiceId   String?       @unique
+  btcpayCheckoutUrl String?
+
+  status            PaymentStatus @default(PENDING)
+  confirmedAt       DateTime?
+  expiresAt         DateTime?
+
+  createdAt         DateTime      @default(now())
+}

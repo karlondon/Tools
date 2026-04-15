@@ -1,0 +1,303 @@
+###############################################################################
+# GitHub Actions Workflow - WestBrom External Backup GCP
+#
+# Deploys GCP infrastructure for the cross-cloud backup solution using
+# Terraform. Supports nonprod and prod environments.
+#
+# Triggers:
+#   - Push to main branch (auto-deploy nonprod)
+#   - Pull request (plan only)
+#   - Manual dispatch (select environment)
+###############################################################################
+
+name: "Terraform - GCP External Backup"
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "WestBrom-GCP/terraform/**"
+      - "WestBrom-GCP/.github/workflows/**"
+
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "WestBrom-GCP/terraform/**"
+
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Target environment"
+        required: true
+        type: choice
+        options:
+          - nonprod
+          - prod
+        default: nonprod
+      action:
+        description: "Terraform action"
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+        default: plan
+
+env:
+  TF_VERSION: "1.8.0"
+  TF_WORKING_DIR: "WestBrom-GCP/terraform"
+  TF_LOG: "INFO"
+
+permissions:
+  contents: read
+  id-token: write  # Required for Workload Identity Federation
+  pull-requests: write
+
+jobs:
+  # -------------------------------------------------------------------------
+  # Terraform Validate & Lint
+  # -------------------------------------------------------------------------
+  validate:
+    name: "Validate"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Terraform Format Check
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform fmt -check -recursive -diff
+
+      - name: Terraform Init (validation only)
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform init -backend=false
+
+      - name: Terraform Validate
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform validate
+
+  # -------------------------------------------------------------------------
+  # Terraform Plan - Non-Production
+  # -------------------------------------------------------------------------
+  plan-nonprod:
+    name: "Plan (nonprod)"
+    needs: validate
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'nonprod')
+    environment: nonprod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_NONPROD }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_NONPROD }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="environments/nonprod/backend.conf" \
+            -reconfigure
+
+      - name: Terraform Plan
+        id: plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform plan \
+            -var-file="environments/nonprod/terraform.tfvars" \
+            -out=nonprod.tfplan \
+            -input=false \
+            -no-color 2>&1 | tee plan_output.txt
+
+      - name: Comment Plan on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const planOutput = fs.readFileSync('${{ env.TF_WORKING_DIR }}/plan_output.txt', 'utf8');
+            const truncated = planOutput.length > 60000
+              ? planOutput.substring(0, 60000) + '\n\n... (truncated)'
+              : planOutput;
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `### Terraform Plan - NonProd 📋\n\n<details>\n<summary>Show Plan</summary>\n\n\`\`\`hcl\n${truncated}\n\`\`\`\n\n</details>`
+            });
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: nonprod-tfplan
+          path: ${{ env.TF_WORKING_DIR }}/nonprod.tfplan
+          retention-days: 5
+
+  # -------------------------------------------------------------------------
+  # Terraform Apply - Non-Production
+  # -------------------------------------------------------------------------
+  apply-nonprod:
+    name: "Apply (nonprod)"
+    needs: plan-nonprod
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'nonprod' && github.event.inputs.action == 'apply')
+    environment: nonprod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_NONPROD }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_NONPROD }}
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: nonprod-tfplan
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="environments/nonprod/backend.conf" \
+            -reconfigure
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -input=false nonprod.tfplan
+
+      - name: Terraform Outputs
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform output -json
+
+  # -------------------------------------------------------------------------
+  # Terraform Plan - Production
+  # -------------------------------------------------------------------------
+  plan-prod:
+    name: "Plan (prod)"
+    needs: validate
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
+    environment: prod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_PROD }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_PROD }}
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="environments/prod/backend.conf" \
+            -reconfigure
+
+      - name: Terraform Plan
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform plan \
+            -var-file="environments/prod/terraform.tfvars" \
+            -out=prod.tfplan \
+            -input=false
+
+      - name: Upload Plan
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-tfplan
+          path: ${{ env.TF_WORKING_DIR }}/prod.tfplan
+          retention-days: 5
+
+  # -------------------------------------------------------------------------
+  # Terraform Apply - Production (manual only)
+  # -------------------------------------------------------------------------
+  apply-prod:
+    name: "Apply (prod)"
+    needs: plan-prod
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod' && github.event.inputs.action == 'apply'
+    environment: prod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TF_VERSION }}
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER_PROD }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_PROD }}
+
+      - name: Download Plan
+        uses: actions/download-artifact@v4
+        with:
+          name: prod-tfplan
+          path: ${{ env.TF_WORKING_DIR }}
+
+      - name: Terraform Init
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="environments/prod/backend.conf" \
+            -reconfigure
+
+      - name: Terraform Apply
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform apply -input=false prod.tfplan
+
+      - name: Terraform Outputs
+        working-directory: ${{ env.TF_WORKING_DIR }}
+        run: terraform output -json
