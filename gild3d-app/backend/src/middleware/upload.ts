@@ -1,35 +1,29 @@
-import multer, { FileFilterCallback } from 'multer';
+import multer from 'multer';
 import path from 'path';
-import { v4 as uuid } from 'uuid';
-import { Request } from 'express';
+import fs from 'fs';
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || '/app/uploads';
+const uploadDir = process.env.UPLOAD_DIR || '/app/uploads';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOAD_DIR),
+  destination: (_req, _file, cb) => cb(null, uploadDir),
   filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, `${uuid()}${ext}`);
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${unique}${path.extname(file.originalname)}`);
   },
 });
 
-const fileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
-  const allowed = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
-  if (allowed.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only JPEG, PNG, WebP and GIF images are allowed'));
-  }
+const fileFilter = (_req: any, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowed = /jpeg|jpg|png|gif|webp|mp4|mov/;
+  const ext = path.extname(file.originalname).toLowerCase();
+  if (allowed.test(ext)) return cb(null, true);
+  cb(new Error('Only images and videos are allowed'));
 };
 
-export const uploadPhoto = multer({
+export const upload = multer({
   storage,
   fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
-}).single('photo');
-
-export const uploadPhotos = multer({
-  storage,
-  fileFilter,
-  limits: { fileSize: 10 * 1024 * 1024 },
-}).array('photos', 10);
+  limits: { fileSize: 50 * 1024 * 1024 },
+});

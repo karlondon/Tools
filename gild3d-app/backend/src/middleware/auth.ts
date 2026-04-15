@@ -36,3 +36,19 @@ export const requirePremium = (req: AuthRequest, res: Response, next: NextFuncti
   }
   next();
 };
+
+export const requireAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  if (!req.memberType || !['ADMIN', 'SUPER_ADMIN'].includes(req.memberType)) {
+    res.status(403).json({ error: 'Admin access required' });
+    return;
+  }
+  next();
+};
+
+export const requireSuperAdmin = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  if (req.memberType !== 'SUPER_ADMIN') {
+    res.status(403).json({ error: 'Super admin access required' });
+    return;
+  }
+  next();
+};

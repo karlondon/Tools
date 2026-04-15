@@ -1,64 +1,48 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
-import { AuthRequest } from '../middleware/auth';
 
 const prisma = new PrismaClient();
 
-export const getUser = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getMyProfile = async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user?.userId;
     const user = await prisma.user.findUnique({
-      where: { id: req.params.id },
-      include: { profile: { include: { photos: { where: { isPrivate: false } } } } },
+      where: { id: userId },
+      select: {
+        id: true, email: true, memberType: true, membershipTier: true,
+        isVerified: true, isActive: true, createdAt: true,
+        profile: {
+          include: { photos: true },
+        },
+      },
     });
-    if (!user) { res.status(404).json({ error: 'User not found' }); return; }
-    const { passwordHash, email, ...safeUser } = user;
-    res.json(safeUser);
-  } catch {
-    res.status(500).json({ error: 'Failed to get user' });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    return res.json(user);
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Server error' });
   }
 };
 
-export const updateUser = async (req: AuthRequest, res: Response): Promise<void> => {
+export const updateEmail = async (req: Request, res: Response) => {
   try {
+    const userId = (req as any).user?.userId;
     const { email } = req.body;
-    const user = await prisma.user.update({
-      where: { id: req.userId },
-      data: { ...(email && { email }) },
-    });
-    const { passwordHash, ...safeUser } = user;
-    res.json(safeUser);
-  } catch {
-    res.status(500).json({ error: 'Update failed' });
+    if (!email) return res.status(400).json({ error: 'email required' });
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing && existing.id !== userId) return res.status(400).json({ error: 'Email in use' });
+    const user = await prisma.user.update({ where: { id: userId }, data: { email } });
+    return res.json({ id: user.id, email: user.email });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Server error' });
   }
 };
 
-export const deleteUser = async (req: AuthRequest, res: Response): Promise<void> => {
+export const deactivateAccount = async (req: Request, res: Response) => {
   try {
-    await prisma.user.update({ where: { id: req.userId }, data: { isActive: false } });
-    res.json({ message: 'Account deactivated' });
-  } catch {
-    res.status(500).json({ error: 'Delete failed' });
-  }
-};
-
-export const blockUser = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    await prisma.block.create({
-      data: { blockerId: req.userId as string, blockedId: req.params.id },
-    });
-    res.json({ message: 'User blocked' });
-  } catch {
-    res.status(500).json({ error: 'Block failed' });
-  }
-};
-
-export const unblockUser = async (req: AuthRequest, res: Response): Promise<void> => {
-  try {
-    await prisma.block.deleteMany({
-      where: { blockerId: req.userId, blockedId: req.params.id },
-    });
-    res.json({ message: 'User unblocked' });
-  } catch {
-    res.status(500).json({ error: 'Unblock failed' });
+    const userId = (req as any).user?.userId;
+    await prisma.user.update({ where: { id: userId }, data: { isActive: false } });
+    return res.json({ success: true });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Server error' });
   }
 };

@@ -1,21 +1,17 @@
 import { Router } from 'express';
-import { authenticate, requirePremium } from '../middleware/auth';
-import { uploadPhoto, uploadPhotos } from '../middleware/upload';
+import { authenticate } from '../middleware/auth';
+import { upload } from '../middleware/upload';
 import {
   getProfiles, getProfile, updateProfile,
-  uploadProfilePhoto, deletePhoto, setPrimaryPhoto,
-  likeProfile, unlikeProfile,
+  uploadPhoto, deletePhoto,
 } from '../controllers/profileController';
 
 const router = Router();
 
-router.get('/', authenticate, getProfiles);
-router.get('/:id', authenticate, getProfile);
+router.get('/', getProfiles);
+router.get('/:userId', authenticate, getProfile);
 router.put('/me', authenticate, updateProfile);
-router.post('/me/photos', authenticate, uploadPhotos, uploadProfilePhoto);
+router.post('/me/photos', authenticate, upload.single('photo'), uploadPhoto);
 router.delete('/me/photos/:photoId', authenticate, deletePhoto);
-router.put('/me/photos/:photoId/primary', authenticate, setPrimaryPhoto);
-router.post('/:id/like', authenticate, requirePremium, likeProfile);
-router.delete('/:id/like', authenticate, requirePremium, unlikeProfile);
 
 export default router;

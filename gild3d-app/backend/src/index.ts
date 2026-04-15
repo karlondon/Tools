@@ -7,6 +7,7 @@ import profileRoutes from './routes/profiles';
 import messageRoutes from './routes/messages';
 import paymentRoutes from './routes/payments';
 import bookingRoutes from './routes/bookings';
+import adminRoutes from './routes/admin';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -22,6 +23,7 @@ app.use('/api/profiles', profileRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/bookings', bookingRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
 

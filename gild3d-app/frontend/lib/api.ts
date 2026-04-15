@@ -26,9 +26,12 @@ export default api;
 
 // Auth
 export const authAPI = {
-  register: (data: { email: string; password: string; memberType: string }) => api.post('/auth/register', data),
+  register: (email: string, password: string, displayName: string) =>
+    api.post('/auth/register', { email, password, displayName }),
   login: (data: { email: string; password: string }) => api.post('/auth/login', data),
   getMe: () => api.get('/auth/me'),
+  verifyEmail: (userId: string, code: string) => api.post('/auth/verify-email', { userId, code }),
+  resendCode: (userId: string) => api.post('/auth/resend-code', { userId }),
 };
 
 // Profiles
@@ -55,4 +58,15 @@ export const paymentAPI = {
   getPlans: () => api.get('/payments/plans'),
   createInvoice: (tier: string) => api.post('/payments/invoice', { tier }),
   getStatus: (invoiceId: string) => api.get(`/payments/status/${invoiceId}`),
+};
+
+// Admin
+export const adminAPI = {
+  getDashboard: () => api.get('/admin/dashboard'),
+  getCompanions: () => api.get('/admin/companions'),
+  createCompanion: (data: Record<string, unknown>) => api.post('/admin/companions', data),
+  publishCompanion: (userId: string, isPublished: boolean) => api.patch(`/admin/companions/${userId}/publish`, { isPublished }),
+  getMembers: () => api.get('/admin/members'),
+  setUserActive: (userId: string, isActive: boolean) => api.patch(`/admin/users/${userId}/active`, { isActive }),
+  deleteUser: (userId: string) => api.delete(`/admin/users/${userId}`),
 };
