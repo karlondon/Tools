@@ -1,16 +1,21 @@
 'use client';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
-import { removeToken, isAuthenticated } from '@/lib/auth';
+import { removeToken, isAuthenticated, isSuperAdmin } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
   const [authed, setAuthed] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [open, setOpen] = useState(false);
   const router = useRouter();
 
-  useEffect(() => { setAuthed(isAuthenticated()); }, []);
-  const logout = () => { removeToken(); setAuthed(false); router.push('/'); };
+  useEffect(() => {
+    setAuthed(isAuthenticated());
+    setIsAdmin(isSuperAdmin());
+  }, []);
+
+  const logout = () => { removeToken(); setAuthed(false); setIsAdmin(false); router.push('/'); };
 
   const navLinks = authed
     ? [
@@ -33,12 +38,18 @@ export default function Navbar() {
             </span>
           </Link>
 
+          {/* Desktop nav */}
           <div className="hidden md:flex" style={{ alignItems: 'center', gap: '24px' }}>
             {navLinks.map(l => (
               <Link key={l.href} href={l.href} style={{ color: '#9c8c78', fontSize: '13px', textDecoration: 'none', letterSpacing: '0.05em' }}>
                 {l.label}
               </Link>
             ))}
+            {isAdmin && (
+              <Link href="/admin" style={{ color: '#c9a84c', fontSize: '12px', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', textDecoration: 'none', padding: '6px 14px', border: '1px solid #c9a84c55', borderRadius: '2px' }}>
+                ⚙ Admin
+              </Link>
+            )}
             {authed ? (
               <button onClick={logout} style={{ color: '#6b5e50', fontSize: '12px', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                 Sign Out
@@ -55,6 +66,7 @@ export default function Navbar() {
             )}
           </div>
 
+          {/* Mobile hamburger */}
           <button className="md:hidden" onClick={() => setOpen(!open)} style={{ background: 'none', border: 'none', color: '#9c8c78', cursor: 'pointer', padding: '8px' }}>
             <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={open ? 'M6 18L18 6M6 6l12 12' : 'M4 6h16M4 12h16M4 18h16'} />
@@ -62,6 +74,7 @@ export default function Navbar() {
           </button>
         </div>
 
+        {/* Mobile menu */}
         {open && (
           <div style={{ borderTop: '1px solid #1e1b2a', paddingTop: '16px', paddingBottom: '24px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <Link href="/browse" style={{ color: '#9c8c78', fontSize: '14px', textDecoration: 'none' }}>Browse</Link>
@@ -70,6 +83,9 @@ export default function Navbar() {
                 <Link href="/messages" style={{ color: '#9c8c78', fontSize: '14px', textDecoration: 'none' }}>Messages</Link>
                 <Link href="/bookings" style={{ color: '#9c8c78', fontSize: '14px', textDecoration: 'none' }}>Bookings</Link>
                 <Link href="/profile/edit" style={{ color: '#9c8c78', fontSize: '14px', textDecoration: 'none' }}>My Profile</Link>
+                {isAdmin && (
+                  <Link href="/admin" style={{ color: '#c9a84c', fontSize: '13px', fontWeight: 700, textDecoration: 'none', letterSpacing: '0.1em', textTransform: 'uppercase' }}>⚙ Admin Dashboard</Link>
+                )}
                 <button onClick={logout} style={{ color: '#6b5e50', fontSize: '13px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', letterSpacing: '0.1em', textTransform: 'uppercase' }}>Sign Out</button>
               </>
             )}

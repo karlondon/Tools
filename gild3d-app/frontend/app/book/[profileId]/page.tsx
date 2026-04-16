@@ -30,7 +30,13 @@ export default function BookingWizard({ params }: { params: { profileId: string 
 
   useEffect(() => {
     if (!isAuthenticated()) { router.push('/auth/login'); return; }
-    profileAPI.getOne(params.profileId).then((r: any) => setProfile(r.data));
+    profileAPI.getOne(params.profileId).then((r: any) => {
+      const p = r.data;
+      setProfile(p);
+      // Auto-select first available booking type
+      if (p?.inCall) setBookingType('INCALL');
+      else if (p?.outCall) setBookingType('OUTCALL');
+    });
   }, [params.profileId]);
 
   const totalPrice = profile?.hourlyRate ? (profile.hourlyRate * hours).toFixed(2) : '0.00';

@@ -39,6 +39,7 @@ export const getProfile = async (req: Request, res: Response) => {
       where: { userId },
       include: {
         photos: true,
+        privateMedia: true,
         user: { select: { id: true, memberType: true, membershipTier: true, isVerified: true } },
       },
     });
@@ -51,7 +52,7 @@ export const getProfile = async (req: Request, res: Response) => {
 
 export const updateProfile = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).userId;
     const {
       displayName, bio, age, location, headline,
       hourlyRate, minBookingHours, inCall, outCall,
@@ -88,7 +89,7 @@ export const updateProfile = async (req: Request, res: Response) => {
 
 export const uploadPhoto = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).userId;
     const file = req.file as any;
     if (!file) return res.status(400).json({ error: 'No file uploaded' });
 
@@ -113,7 +114,7 @@ export const uploadPhoto = async (req: Request, res: Response) => {
 
 export const deletePhoto = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).userId;
     const { photoId } = req.params;
     const photo = await prisma.photo.findUnique({
       where: { id: photoId },

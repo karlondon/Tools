@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { isAuthenticated } from '@/lib/auth';
 
 const sampleProfiles = [
   {
@@ -34,8 +35,10 @@ const sampleProfiles = [
 
 export default function HomePage() {
   const [scrolled, setScrolled] = useState(false);
+  const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
+    setAuthed(isAuthenticated());
     const handler = () => setScrolled(window.scrollY > 40);
     window.addEventListener('scroll', handler);
     return () => window.removeEventListener('scroll', handler);
@@ -96,40 +99,38 @@ export default function HomePage() {
 
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm mx-auto">
-            <Link
-              href="/auth/register"
-              className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase transition-all duration-300"
-              style={{
-                background: 'linear-gradient(135deg, #c9a84c, #e8cc7a, #c9a84c)',
-                color: '#0d0d14',
-                borderRadius: '2px',
-                boxShadow: '0 0 30px #c9a84c33',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 50px #c9a84c66')}
-              onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 30px #c9a84c33')}
-            >
-              Request Access
-            </Link>
-            <Link
-              href="/auth/login"
-              className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase border transition-all duration-300"
-              style={{
-                border: '1px solid #c9a84c66',
-                color: '#c9a84c',
-                borderRadius: '2px',
-                background: 'transparent',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.background = '#c9a84c11';
-                e.currentTarget.style.borderColor = '#c9a84c';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.borderColor = '#c9a84c66';
-              }}
-            >
-              Member Login
-            </Link>
+            {authed ? (
+              <Link
+                href="/browse"
+                className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase transition-all duration-300"
+                style={{ background: 'linear-gradient(135deg, #c9a84c, #e8cc7a, #c9a84c)', color: '#0d0d14', borderRadius: '2px', boxShadow: '0 0 30px #c9a84c33' }}
+                onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 50px #c9a84c66')}
+                onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 30px #c9a84c33')}
+              >
+                Browse Companions
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/auth/register"
+                  className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase transition-all duration-300"
+                  style={{ background: 'linear-gradient(135deg, #c9a84c, #e8cc7a, #c9a84c)', color: '#0d0d14', borderRadius: '2px', boxShadow: '0 0 30px #c9a84c33' }}
+                  onMouseEnter={e => (e.currentTarget.style.boxShadow = '0 0 50px #c9a84c66')}
+                  onMouseLeave={e => (e.currentTarget.style.boxShadow = '0 0 30px #c9a84c33')}
+                >
+                  Request Access
+                </Link>
+                <Link
+                  href="/auth/login"
+                  className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase border transition-all duration-300"
+                  style={{ border: '1px solid #c9a84c66', color: '#c9a84c', borderRadius: '2px', background: 'transparent' }}
+                  onMouseEnter={e => { e.currentTarget.style.background = '#c9a84c11'; e.currentTarget.style.borderColor = '#c9a84c'; }}
+                  onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.borderColor = '#c9a84c66'; }}
+                >
+                  Member Login
+                </Link>
+              </>
+            )}
           </div>
 
           <p className="text-[#4a3f35] text-xs mt-8 tracking-widest uppercase">
@@ -219,15 +220,11 @@ export default function HomePage() {
                 style={{ background: '#0d0d14cc' }}
               >
                 <Link
-                  href="/auth/register"
+                  href={authed ? '/browse' : '/auth/register'}
                   className="py-3 px-8 font-semibold text-sm tracking-widest uppercase"
-                  style={{
-                    background: 'linear-gradient(135deg, #c9a84c, #e8cc7a)',
-                    color: '#0d0d14',
-                    borderRadius: '2px',
-                  }}
+                  style={{ background: 'linear-gradient(135deg, #c9a84c, #e8cc7a)', color: '#0d0d14', borderRadius: '2px' }}
                 >
-                  Request Access
+                  {authed ? 'View Profile' : 'Request Access'}
                 </Link>
               </div>
             </div>
@@ -239,15 +236,11 @@ export default function HomePage() {
             Access to full profiles is available to verified members only.
           </p>
           <Link
-            href="/auth/register"
+            href={authed ? '/browse' : '/auth/register'}
             className="inline-block py-3 px-10 text-sm font-semibold tracking-widest uppercase"
-            style={{
-              border: '1px solid #c9a84c66',
-              color: '#c9a84c',
-              borderRadius: '2px',
-            }}
+            style={{ border: '1px solid #c9a84c66', color: '#c9a84c', borderRadius: '2px' }}
           >
-            Apply for Membership
+            {authed ? 'Browse All Companions' : 'Apply for Membership'}
           </Link>
         </div>
       </section>
@@ -321,29 +314,32 @@ export default function HomePage() {
             Exclusive · Discreet · Extraordinary
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center max-w-sm mx-auto">
-            <Link
-              href="/auth/register"
-              className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase transition-all duration-300"
-              style={{
-                background: 'linear-gradient(135deg, #c9a84c, #e8cc7a, #c9a84c)',
-                color: '#0d0d14',
-                borderRadius: '2px',
-                boxShadow: '0 0 30px #c9a84c33',
-              }}
-            >
-              Request Access
-            </Link>
-            <Link
-              href="/auth/login"
-              className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase border transition-all duration-300"
-              style={{
-                border: '1px solid #c9a84c44',
-                color: '#c9a84c',
-                borderRadius: '2px',
-              }}
-            >
-              Member Login
-            </Link>
+            {authed ? (
+              <Link
+                href="/browse"
+                className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase transition-all duration-300"
+                style={{ background: 'linear-gradient(135deg, #c9a84c, #e8cc7a, #c9a84c)', color: '#0d0d14', borderRadius: '2px', boxShadow: '0 0 30px #c9a84c33' }}
+              >
+                Browse Companions
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/auth/register"
+                  className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase transition-all duration-300"
+                  style={{ background: 'linear-gradient(135deg, #c9a84c, #e8cc7a, #c9a84c)', color: '#0d0d14', borderRadius: '2px', boxShadow: '0 0 30px #c9a84c33' }}
+                >
+                  Request Access
+                </Link>
+                <Link
+                  href="/auth/login"
+                  className="flex-1 text-center py-4 px-8 font-semibold text-sm tracking-widest uppercase border transition-all duration-300"
+                  style={{ border: '1px solid #c9a84c44', color: '#c9a84c', borderRadius: '2px' }}
+                >
+                  Member Login
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </section>

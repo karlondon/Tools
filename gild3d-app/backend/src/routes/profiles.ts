@@ -9,7 +9,7 @@ import {
 const router = Router();
 
 router.get('/', getProfiles);
-router.get('/:userId', authenticate, getProfile);
+router.get('/:userId', getProfile);
 router.put('/me', authenticate, updateProfile);
 router.post('/me/photos', authenticate, upload.single('photo'), uploadPhoto);
 router.delete('/me/photos/:photoId', authenticate, deletePhoto);
