@@ -40,11 +40,14 @@ services:
       AWS_REGION: ${AWS_REGION:-us-east-1}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
-      # Bitcoin payments via BTCPay Server
+      # Bitcoin payments via BTCPay Server (legacy)
       BTCPAY_URL: ${BTCPAY_URL:-}
       BTCPAY_API_KEY: ${BTCPAY_API_KEY:-}
       BTCPAY_STORE_ID: ${BTCPAY_STORE_ID:-}
       BTCPAY_WEBHOOK_SECRET: ${BTCPAY_WEBHOOK_SECRET:-}
+      # Crypto payments via NOWPayments
+      NOWPAYMENTS_API_KEY: ${NOWPAYMENTS_API_KEY:-}
+      NOWPAYMENTS_IPN_SECRET: ${NOWPAYMENTS_IPN_SECRET:-}
       # Email (optional — for notifications)
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}

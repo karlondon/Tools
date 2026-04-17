@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import nodemailer from 'nodemailer';
+import crypto from 'crypto';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
@@ -12,9 +13,14 @@ const mailer = nodemailer.createTransport({
   auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
 });
 
+// Cryptographically secure OTP — replaces Math.random()
 function generateOTP(): string {
-  return Math.floor(100000 + Math.random() * 900000).toString();
+  return crypto.randomInt(100000, 999999).toString();
 }
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+// Min 8 chars, at least one uppercase and one digit
+const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
 
 async function sendVerificationEmail(email: string, code: string): Promise<void> {
   await mailer.sendMail({
@@ -42,8 +48,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
       res.status(400).json({ error: 'email, password and displayName are required' });
       return;
     }
-    if (password.length < 8) {
-      res.status(400).json({ error: 'Password must be at least 8 characters' });
+    if (!EMAIL_REGEX.test(email)) {
+      res.status(400).json({ error: 'Invalid email address' });
+      return;
+    }
+    if (!PASSWORD_REGEX.test(password)) {
+      res.status(400).json({ error: 'Password must be at least 8 characters with one uppercase letter and one number' });
       return;
     }
     const existing = await prisma.user.findUnique({ where: { email: email.toLowerCase() } });

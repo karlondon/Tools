@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/auth';
 import nodemailer from 'nodemailer';
 import axios from 'axios';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -90,6 +91,8 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
   }
 };
 
+const NOWPAYMENTS_API_URL = 'https://api.nowpayments.io/v1';
+
 export const createBookingPayment = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const booking = await prisma.booking.findUnique({
@@ -100,35 +103,50 @@ export const createBookingPayment = async (req: AuthRequest, res: Response): Pro
     if (booking.memberId !== req.userId) { res.status(403).json({ error: 'Forbidden' }); return; }
     if (booking.status !== 'PENDING_PAYMENT') { res.status(400).json({ error: 'Booking already paid or cancelled' }); return; }
 
-    const response = await axios.post(
-      `${process.env.BTCPAY_URL}/api/v1/stores/${process.env.BTCPAY_STORE_ID}/invoices`,
+    const dateStr = new Date(booking.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    const invoice = await axios.post(
+      `${NOWPAYMENTS_API_URL}/invoice`,
       {
-        amount: booking.totalAmount,
-        currency: 'USD',
-        metadata: { bookingId: booking.id, bookingRef: booking.ref, userId: req.userId },
-        checkout: {
-          redirectURL: `${process.env.SITE_URL}/bookings?ref=${booking.ref}&status=success`,
-          defaultLanguage: 'en',
-        },
+        price_amount: booking.totalAmount,
+        price_currency: 'usd',
+        order_id: booking.id,
+        order_description: `${booking.type} · ${booking.hours}h on ${dateStr} · Ref #${booking.ref.slice(-8).toUpperCase()}`,
+        ipn_callback_url: `${process.env.SITE_URL}/api/bookings/webhook/nowpayments`,
+        success_url: `${process.env.SITE_URL}/bookings?ref=${booking.ref}&status=success`,
+        cancel_url: `${process.env.SITE_URL}/bookings`,
       },
-      { headers: { Authorization: `token ${process.env.BTCPAY_API_KEY}`, 'Content-Type': 'application/json' } }
+      {
+        headers: {
+          'x-api-key': process.env.NOWPAYMENTS_API_KEY,
+          'Content-Type': 'application/json',
+        },
+      }
     );
 
-    const invoice = response.data;
-    await prisma.payment.create({
-      data: {
+    const { id: invoiceId, invoice_url: checkoutUrl } = invoice.data;
+
+    await prisma.payment.upsert({
+      where: { bookingId: booking.id },
+      update: {
+        btcpayInvoiceId: String(invoiceId),
+        checkoutUrl,
+        status: 'PENDING',
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
+      },
+      create: {
         userId: req.userId as string,
         bookingId: booking.id,
-        amountUsd: booking.totalAmount,
-        currency: 'BTC',
-        btcpayInvoiceId: invoice.id,
-        btcpayCheckoutUrl: invoice.checkoutLink,
-        expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+        amount: booking.totalAmount,
+        currency: 'USD',
+        btcpayInvoiceId: String(invoiceId),
+        checkoutUrl,
+        expiresAt: new Date(Date.now() + 60 * 60 * 1000),
       },
     });
 
-    res.json({ checkoutUrl: invoice.checkoutLink, invoiceId: invoice.id });
-  } catch {
+    res.json({ checkoutUrl, invoiceId });
+  } catch (err: any) {
+    console.error('createBookingPayment error:', err.response?.data || err.message);
     res.status(500).json({ error: 'Failed to create payment' });
   }
 };
@@ -193,18 +211,50 @@ export const cancelBooking = async (req: AuthRequest, res: Response): Promise<vo
 };
 
 export const handleBookingWebhook = async (req: AuthRequest, res: Response): Promise<void> => {
-  const { type, invoiceId } = req.body;
-  if (type === 'InvoiceSettled') {
-    try {
-      const payment = await prisma.payment.findUnique({ where: { btcpayInvoiceId: invoiceId }, include: { booking: { include: { member: { select: { email: true } }, profile: true } } } });
-      if (payment && payment.status === 'PENDING' && payment.bookingId && payment.booking) {
-        await prisma.payment.update({ where: { id: payment.id }, data: { status: 'CONFIRMED', confirmedAt: new Date() } });
-        await prisma.booking.update({ where: { id: payment.bookingId }, data: { status: 'CONFIRMED' } });
-        if (payment.booking.member.email) {
-          await sendBookingEmail(payment.booking.member.email, { ...payment.booking, status: 'CONFIRMED' }, payment.booking.profile).catch(() => {});
-        }
-      }
-    } catch { /* log */ }
+  // Mandatory NOWPayments IPN signature check — reject anything unsigned
+  const signature = req.headers['x-nowpayments-sig'] as string;
+  const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET;
+  if (!signature || !ipnSecret) {
+    res.status(401).json({ error: 'Webhook signature required' }); return;
   }
+  const sortedBody = JSON.stringify(
+    Object.fromEntries(Object.entries(req.body as object).sort(([a], [b]) => a.localeCompare(b)))
+  );
+  const hmac = crypto.createHmac('sha512', ipnSecret).update(sortedBody).digest('hex');
+  if (hmac !== signature) {
+    res.status(401).json({ error: 'Invalid signature' }); return;
+  }
+
+  const { payment_status, order_id: bookingId } = req.body;
+
+  // NOWPayments statuses: waiting → confirming → confirmed → sending → finished
+  // "finished" = fully settled, safe to mark as paid
+  if (payment_status !== 'finished') {
+    res.json({ received: true }); return;
+  }
+
+  try {
+    if (!bookingId) { res.json({ received: true }); return; }
+
+    const payment = await prisma.payment.findFirst({
+      where: { bookingId },
+      include: { booking: { include: { member: { select: { email: true } }, profile: true } } },
+    });
+
+    if (payment && payment.status === 'PENDING' && payment.booking) {
+      await prisma.payment.update({ where: { id: payment.id }, data: { status: 'CONFIRMED', confirmedAt: new Date() } });
+      await prisma.booking.update({ where: { id: bookingId }, data: { status: 'CONFIRMED' } });
+      if (payment.booking.member.email) {
+        await sendBookingEmail(
+          payment.booking.member.email,
+          { ...payment.booking, status: 'CONFIRMED' },
+          payment.booking.profile
+        ).catch(() => {});
+      }
+    }
+  } catch (err) {
+    console.error('Booking webhook error:', err);
+  }
+
   res.json({ received: true });
 };

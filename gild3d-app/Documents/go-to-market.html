@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gild3d — Go-to-Market Strategy</title>
+<style>
+  :root {
+    --gold: #C9A84C; --gold-light: #E8C870; --gold-dark: #8B6914;
+    --bg: #0A0A0A; --surface: #111111; --surface2: #1A1A1A;
+    --border: #2A2A2A; --text: #E8E8E8; --muted: #888;
+    --green: #4CAF50; --red: #E57373; --amber: #FFB74D; --blue: #64B5F6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; }
+  header {
+    background: linear-gradient(135deg, #0A0A0A 0%, #1A1200 50%, #0A0A0A 100%);
+    border-bottom: 1px solid var(--gold-dark); padding: 50px 60px; position: relative;
+  }
+  .doc-label { font-size: 11px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; }
+  h1 { font-size: 40px; font-weight: 300; color: #fff; margin-bottom: 8px; }
+  h1 em { color: var(--gold); font-style: normal; }
+  .doc-meta { display: flex; gap: 30px; margin-top: 24px; flex-wrap: wrap; }
+  .doc-meta span { font-size: 12px; color: var(--muted); }
+  .doc-meta span strong { color: #ccc; }
+  .nav-back { position: absolute; top: 24px; right: 40px; }
+  .nav-back a { color: var(--gold); font-size: 13px; text-decoration: none; }
+  main { max-width: 960px; margin: 0 auto; padding: 60px 40px; }
+  section { margin-bottom: 56px; }
+  .section-title {
+    font-size: 11px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
+    margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+  .section-num { color: var(--gold-dark); }
+  h2 { font-size: 24px; font-weight: 300; color: #fff; margin-bottom: 14px; }
+  h3 { font-size: 16px; color: var(--gold-light); margin: 22px 0 12px; font-weight: 400; }
+  p { color: #ccc; line-height: 1.9; margin-bottom: 14px; font-size: 15px; }
+  .lead { font-size: 17px; color: #ddd; line-height: 1.8; border-left: 3px solid var(--gold); padding-left: 20px; margin-bottom: 28px; }
+  .callout { background: linear-gradient(135deg, #1A1200, #0A0A0A); border: 1px solid var(--gold-dark); border-radius: 10px; padding: 26px; margin: 24px 0; }
+  .callout p { margin: 0; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+  th { background: var(--surface2); color: var(--gold); padding: 10px 14px; text-align: left; font-weight: 400; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: #ccc; vertical-align: top; line-height: 1.6; }
+  tr:hover td { background: var(--surface); }
+
+  /* Audience cards */
+  .audience-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .audience-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 26px; border-top: 3px solid var(--gold-dark); }
+  .audience-card h4 { color: var(--gold); font-size: 15px; margin-bottom: 6px; font-weight: 400; }
+  .audience-card .tag { font-size: 11px; color: var(--muted); letter-spacing: 1px; margin-bottom: 14px; display: block; }
+  .audience-card dl { font-size: 13px; }
+  .audience-card dt { color: var(--muted); margin-top: 10px; font-size: 12px; }
+  .audience-card dd { color: #ccc; margin-left: 0; line-height: 1.6; }
+
+  /* Channel cards */
+  .channel-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin: 20px 0; }
+  .channel { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .channel-icon { font-size: 24px; margin-bottom: 10px; }
+  .channel h4 { color: var(--gold); font-size: 14px; margin-bottom: 6px; font-weight: 400; }
+  .channel p { font-size: 12px; color: #888; margin: 0; line-height: 1.6; }
+  .channel .eff { font-size: 11px; margin-top: 10px; color: var(--green); }
+
+  /* Phase timeline */
+  .phase-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; margin: 20px 0; }
+  .phase { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px; position: relative; }
+  .phase-num { font-size: 48px; color: var(--surface2); font-weight: 900; position: absolute; top: 10px; right: 16px; line-height: 1; }
+  .phase-label { font-size: 11px; color: var(--gold-dark); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; }
+  .phase-title { font-size: 17px; color: #fff; margin-bottom: 6px; font-weight: 300; }
+  .phase-duration { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .phase ul { list-style: none; padding: 0; }
+  .phase ul li { font-size: 13px; color: #bbb; padding: 5px 0; border-bottom: 1px solid var(--border); display: flex; gap: 8px; }
+  .phase ul li::before { content: '→'; color: var(--gold-dark); flex-shrink: 0; }
+
+  /* 90-day plan */
+  .week-block { margin: 12px 0; }
+  .week-header { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .week-badge { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 4px 12px; font-size: 11px; color: var(--gold); letter-spacing: 1px; white-space: nowrap; }
+  .week-title { font-size: 14px; color: #ddd; }
+  .week-tasks { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 14px 18px; }
+  .week-tasks li { list-style: none; font-size: 13px; color: #aaa; padding: 4px 0; display: flex; gap: 8px; }
+  .week-tasks li::before { content: '·'; color: var(--gold-dark); }
+
+  /* KPI grid */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin: 20px 0; }
+  .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .kpi-value { font-size: 26px; color: var(--gold); margin-bottom: 4px; }
+  .kpi-metric { font-size: 13px; color: #ddd; margin-bottom: 4px; }
+  .kpi-label { font-size: 11px; color: var(--muted); line-height: 1.4; }
+
+  /* Budget */
+  .budget-bar { display: flex; border-radius: 4px; overflow: hidden; height: 28px; margin: 16px 0; }
+  .budget-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; color: rgba(0,0,0,0.8); font-weight: 600; white-space: nowrap; overflow: hidden; }
+
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 11px; }
+  .pill-green { background: rgba(76,175,80,0.15); color: var(--green); }
+  .pill-amber { background: rgba(255,183,77,0.15); color: var(--amber); }
+  .pill-red { background: rgba(229,115,115,0.15); color: var(--red); }
+
+  footer { border-top: 1px solid var(--border); padding: 30px 60px; display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; }
+  footer a { color: var(--gold); text-decoration: none; }
+  @media (max-width: 700px) {
+    .audience-grid, .phase-grid { grid-template-columns: 1fr; }
+    .channel-grid { grid-template-columns: 1fr 1fr; }
+    header { padding: 30px 20px; } main { padding: 30px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-back"><a href="index.html">← Document Hub</a></div>
+  <div class="doc-label">Document 05 — Go-to-Market Strategy</div>
+  <h1><em>Gild3d</em> — Go-to-Market Strategy</h1>
+  <div class="doc-meta">
+    <span><strong>Version:</strong> 1.0</span>
+    <span><strong>Date:</strong> April 2026</span>
+    <span><strong>Horizon:</strong> 90-Day Launch Plan</span>
+    <span><strong>Classification:</strong> Confidential</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- GTM Summary -->
+  <section>
+    <div class="section-title"><span class="section-num">01 &nbsp;</span> GTM Overview</div>
+    <p class="lead">Gild3d's go-to-market strategy is built on a controlled, quality-first launch that prioritises curated supply and targeted demand acquisition over mass-market volume — consistent with the platform's luxury positioning.</p>
+    <p>The platform will launch in three phases: a private soft launch with seeded companion profiles, a limited-access beta for invited members, and a public launch with active marketing. This sequencing ensures the platform delivers a premium first impression before opening to the broader market.</p>
+    <div class="callout">
+      <p><strong style="color:var(--gold)">Core GTM Principle:</strong> Never open demand before supply is ready. A member who browses an empty platform will not return. Phase 1 launch requires a minimum of 15 published companion profiles before any member marketing begins.</p>
+    </div>
+  </section>
+
+  <!-- Target Audience -->
+  <section>
+    <div class="section-title"><span class="section-num">02 &nbsp;</span> Target Audience</div>
+    <div class="audience-grid">
+      <div class="audience-card">
+        <h4>Primary — High-Net-Worth Members</h4>
+        <span class="tag">MEMBER PERSONA · THE CLIENT</span>
+        <dl>
+          <dt>Demographics</dt>
+          <dd>Males aged 35–65, disposable income $150K+ per annum, frequent travellers (business / leisure), privacy-conscious.</dd>
+          <dt>Psychographics</dt>
+          <dd>Values discretion above all. Willing to pay premium for quality and trust. Uses cryptocurrency for privacy-sensitive transactions. Expects luxury brand experience.</dd>
+          <dt>Where to find them</dt>
+          <dd>Privacy-focused forums (Reddit r/bitcoin, crypto communities), business travel communities, luxury lifestyle content consumers, LinkedIn (professional profiles).</dd>
+          <dt>Key message</dt>
+          <dd>"Curated. Discreet. Yours."</dd>
+        </dl>
+      </div>
+      <div class="audience-card">
+        <h4>Secondary — Professional Companions</h4>
+        <span class="tag">SUPPLY PERSONA · THE COMPANION</span>
+        <dl>
+          <dt>Demographics</dt>
+          <dd>Professionals aged 21–40 who offer companionship services. Currently rely on fragmented digital channels or agency representation.</dd>
+          <dt>Psychographics</dt>
+          <dd>Seeks a credible, professional platform that elevates their brand. Values security, privacy and quality of clientele over volume.</dd>
+          <dt>Where to find them</dt>
+          <dd>Existing agency networks, companion-focused forums, social media (private accounts), referral from existing companion network.</dd>
+          <dt>Key message</dt>
+          <dd>"A platform that values your professionalism."</dd>
+        </dl>
+      </div>
+    </div>
+
+    <h3>Persona Profiles</h3>
+    <table>
+      <thead><tr><th>Attribute</th><th>Member "The Executive"</th><th>Member "The Traveller"</th><th>Companion "The Professional"</th></tr></thead>
+      <tbody>
+        <tr><td>Age</td><td>45–60</td><td>35–50</td><td>24–35</td></tr>
+        <tr><td>Income / Earnings</td><td>$200K+ salary / senior role</td><td>Frequent corporate travel budget</td><td>Seeking quality platform for premium bookings</td></tr>
+        <tr><td>Tech comfort</td><td>Medium — familiar with crypto</td><td>High — mobile-first user</td><td>High — self-manages digital presence</td></tr>
+        <tr><td>Primary need</td><td>Trust, discretion, quality</td><td>Availability in travel cities</td><td>Professional platform, quality clients</td></tr>
+        <tr><td>Conversion trigger</td><td>Referral from trusted source</td><td>Finding companion in a city pre-travel</td><td>Invited by admin — exclusivity signal</td></tr>
+        <tr><td>Preferred tier</td><td>PLATINUM</td><td>GOLD</td><td>N/A (admin-managed)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Value Proposition -->
+  <section>
+    <div class="section-title"><span class="section-num">03 &nbsp;</span> Value Proposition</div>
+    <table>
+      <thead><tr><th>For</th><th>Value Proposition</th><th>Proof Point</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Members (Clients)</td>
+          <td>The only curated luxury companion platform with full crypto-native booking — combining the discretion of private introductions with the convenience of a digital platform.</td>
+          <td>Admin-verified profiles, crypto-only payments, luxury UX, no card data stored</td>
+        </tr>
+        <tr>
+          <td>Companions</td>
+          <td>A professional-grade platform that positions you alongside other vetted companions, attracts high-quality clients and handles the administrative complexity of bookings and payments.</td>
+          <td>Admin-managed onboarding, professional profile format, secure booking system</td>
+        </tr>
+        <tr>
+          <td>Platform / Founders</td>
+          <td>A high-margin, scalable digital business with recurring subscription revenue, crypto payment rails and a defensible brand moat in a premium niche.</td>
+          <td>Multi-stream revenue, low opex, owned infrastructure, crypto-native</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Pricing Strategy -->
+  <section>
+    <div class="section-title"><span class="section-num">04 &nbsp;</span> Pricing Strategy</div>
+    <p>Pricing reflects the luxury positioning of the platform. Tiers are priced to create clear value differentiation and incentivise migration to higher tiers over time.</p>
+    <table>
+      <thead><tr><th>Tier</th><th>Price</th><th>Access</th><th>Target</th><th>Upgrade Trigger</th></tr></thead>
+      <tbody>
+        <tr>
+          <td style="color:var(--gold)">FREE</td>
+          <td>$0</td>
+          <td>Browse published profiles, no booking or messaging</td>
+          <td>Prospective members evaluating the platform</td>
+          <td>Finding a companion they want to connect with</td>
+        </tr>
+        <tr>
+          <td style="color:var(--gold)">SILVER</td>
+          <td>$49/month</td>
+          <td>Messaging, standard profile access, basic booking</td>
+          <td>Occasional, price-conscious clients</td>
+          <td>Wanting priority access or exclusive companions</td>
+        </tr>
+        <tr>
+          <td style="color:var(--gold)">GOLD</td>
+          <td>$99/month</td>
+          <td>Priority booking, extended companion media, no wait times</td>
+          <td>Regular clients, business travellers</td>
+          <td>Wanting VIP companions or private media access</td>
+        </tr>
+        <tr>
+          <td style="color:var(--gold)">PLATINUM</td>
+          <td>$199/month</td>
+          <td>Full access — VIP companions, private media, concierge priority</td>
+          <td>High-frequency, high-value clients</td>
+          <td>Already at top tier — retention focus</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <p><strong style="color:var(--gold)">Pricing psychology:</strong> The FREE tier is a deliberate acquisition tool, not a revenue stream. Members who browse and find compelling profiles will upgrade. The jump from SILVER ($49) to GOLD ($99) is intentionally small to drive tier migration. PLATINUM at $199 should feel exclusive but not prohibitive for the target demographic. Review pricing at 200 active members using actual tier distribution data.</p>
+    </div>
+  </section>
+
+  <!-- Launch Phases -->
+  <section>
+    <div class="section-title"><span class="section-num">05 &nbsp;</span> Launch Phases</div>
+    <div class="phase-grid">
+      <div class="phase">
+        <div class="phase-num">1</div>
+        <div class="phase-label">Phase One</div>
+        <div class="phase-title">Supply Seeding</div>
+        <div class="phase-duration">Weeks 1–3 (Pre-launch)</div>
+        <ul>
+          <li>Onboard 15–25 companion profiles via admin</li>
+          <li>Professional photography / profile content</li>
+          <li>Quality review of all profiles before publish</li>
+          <li>Configure NOWPayments IPN webhook</li>
+          <li>Set up automated database backups</li>
+          <li>Internal UAT — full booking flow end-to-end</li>
+          <li>Legal review of TOS and privacy policy</li>
+          <li>Configure transactional email (production SMTP)</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="phase-num">2</div>
+        <div class="phase-label">Phase Two</div>
+        <div class="phase-title">Private Beta</div>
+        <div class="phase-duration">Weeks 4–8 (Controlled Access)</div>
+        <ul>
+          <li>Invite 20–50 founding members (personal network, trusted referrals)</li>
+          <li>Collect qualitative feedback on UX and booking flow</li>
+          <li>Monitor payment conversion and drop-off</li>
+          <li>Identify and fix any booking flow friction</li>
+          <li>Test messaging and booking notification flows</li>
+          <li>Build first testimonials / social proof</li>
+          <li>Soft-launch SEO content and landing pages</li>
+        </ul>
+      </div>
+      <div class="phase">
+        <div class="phase-num">3</div>
+        <div class="phase-label">Phase Three</div>
+        <div class="phase-title">Public Launch</div>
+        <div class="phase-duration">Week 9+ (Full Acquisition)</div>
+        <ul>
+          <li>Open registration to all with verified email</li>
+          <li>Activate paid and organic marketing channels</li>
+          <li>Launch referral incentive for founding members</li>
+          <li>PR outreach to niche press and communities</li>
+          <li>Monitor KPIs weekly and iterate</li>
+          <li>Scale companion supply alongside member growth</li>
+          <li>Weekly admin review of bookings and payments</li>
+          <li>Quarterly pricing and tier strategy review</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marketing Channels -->
+  <section>
+    <div class="section-title"><span class="section-num">06 &nbsp;</span> Marketing Channels</div>
+
+    <div class="channel-grid">
+      <div class="channel">
+        <div class="channel-icon">🔍</div>
+        <h4>SEO &amp; Content</h4>
+        <p>Long-form content targeting high-intent, low-competition keywords in the luxury companionship niche. Blog, landing pages, city-specific companion guides.</p>
+        <div class="eff">High ROI · Slow ramp</div>
+      </div>
+      <div class="channel">
+        <div class="channel-icon">💬</div>
+        <h4>Community &amp; Forums</h4>
+        <p>Authentic participation in privacy, crypto and luxury lifestyle communities (Reddit, Telegram). Referral links and tasteful promotion where permitted.</p>
+        <div class="eff">High targeting · Manual effort</div>
+      </div>
+      <div class="channel">
+        <div class="channel-icon">🔗</div>
+        <h4>Referral Programme</h4>
+        <p>Founding members receive a shareable referral code. Successful referrals earn one month of membership upgrade. Viral loop with built-in trust signal.</p>
+        <div class="eff">Low cost · Trust amplifier</div>
+      </div>
+      <div class="channel">
+        <div class="channel-icon">🌐</div>
+        <h4>Niche Directories</h4>
+        <p>Listing on relevant industry directories and review platforms where the target demographic searches. Focus on quality placement over volume.</p>
+        <div class="eff">Passive acquisition · One-time effort</div>
+      </div>
+      <div class="channel">
+        <div class="channel-icon">✉️</div>
+        <h4>Email Marketing</h4>
+        <p>Capture email on landing page pre-launch. Nurture sequence for free tier members to convert to paid. Monthly newsletter for engagement retention.</p>
+        <div class="eff">High LTV impact · Owned channel</div>
+      </div>
+      <div class="channel">
+        <div class="channel-icon">🤝</div>
+        <h4>Agency &amp; Network Partnerships</h4>
+        <p>Partner with existing companion agencies to onboard their talent as verified Gild3d profiles. Commission-sharing or white-label arrangement possible.</p>
+        <div class="eff">Supply acceleration · Partnership required</div>
+      </div>
+      <div class="channel">
+        <div class="channel-icon">📱</div>
+        <h4>Private Social Media</h4>
+        <p>Curated private Instagram / Twitter (X) accounts showcasing companion aesthetics and platform lifestyle. Drives aspirational brand awareness without mass exposure.</p>
+        <div class="eff">Brand building · Compliance sensitive</div>
+      </div>
+      <div class="channel">
+        <div class="channel-icon">📰</div>
+        <h4>PR &amp; Niche Press</h4>
+        <p>Outreach to crypto-lifestyle press, privacy technology publications and luxury lifestyle media. Positioning as the premium, crypto-native alternative.</p>
+        <div class="eff">Brand authority · Low cost</div>
+      </div>
+      <div class="channel">
+        <div class="channel-icon">🎯</div>
+        <h4>Crypto Community Advertising</h4>
+        <p>Targeted advertising on crypto-native platforms (CoinGecko, crypto newsletters, Telegram channels). Reaches privacy-conscious, crypto-literate target demographic directly.</p>
+        <div class="eff">High relevance · Premium CPM</div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <p><strong style="color:var(--gold)">Note on traditional paid ads:</strong> Google Ads, Meta and mainstream platforms are unlikely to approve campaigns in this category. Budget allocated to traditional paid ads should instead be directed to crypto-native advertising and SEO content. This is a feature, not a limitation — it keeps customer acquisition costs low and reduces platform dependency on third-party ad networks.</p>
+    </div>
+  </section>
+
+  <!-- 90-Day Launch Plan -->
+  <section>
+    <div class="section-title"><span class="section-num">07 &nbsp;</span> 90-Day Launch Roadmap</div>
+
+    <div class="week-block">
+      <div class="week-header"><span class="week-badge">WEEKS 1–2</span><span class="week-title">Platform Readiness</span></div>
+      <ul class="week-tasks">
+        <li>Configure and verify automated database backups (critical — before any live data)</li>
+        <li>Set NOWPayments IPN webhook to production URL, test full payment cycle</li>
+        <li>Legal counsel review of Terms of Service and Privacy Policy for primary markets</li>
+        <li>Configure production SMTP with a managed provider (SendGrid or Postmark recommended)</li>
+        <li>Full end-to-end user journey test: register → browse → book → pay → confirm</li>
+        <li>Admin walkthrough session — Super Admin trained on dashboard, companion management, audit tools</li>
+      </ul>
+    </div>
+
+    <div class="week-block">
+      <div class="week-header"><span class="week-badge">WEEKS 3–4</span><span class="week-title">Supply Build</span></div>
+      <ul class="week-tasks">
+        <li>Onboard minimum 15 companion profiles (target: 20–25)</li>
+        <li>Professional photography or high-quality profile images for all companions</li>
+        <li>Complete profile details: bio, rates, location, services, languages, availability types</li>
+        <li>Set VIP and Featured flags for 3–5 top-tier companions</li>
+        <li>Publish profiles and conduct final QA review</li>
+        <li>Begin SEO content — 3 city guide pages, 2 blog posts targeting niche keywords</li>
+      </ul>
+    </div>
+
+    <div class="week-block">
+      <div class="week-header"><span class="week-badge">WEEKS 5–7</span><span class="week-title">Private Beta</span></div>
+      <ul class="week-tasks">
+        <li>Invite 20–50 founding members via personal network and direct outreach</li>
+        <li>Provide founding members with GOLD or PLATINUM trial period (1 month)</li>
+        <li>Collect structured feedback via short survey after first booking</li>
+        <li>Monitor booking completion rate, payment conversion rate and drop-off points</li>
+        <li>Address any UX friction points identified during beta</li>
+        <li>Build first 5–10 member testimonials (anonymous, with permission)</li>
+      </ul>
+    </div>
+
+    <div class="week-block">
+      <div class="week-header"><span class="week-badge">WEEKS 8–9</span><span class="week-title">Pre-Launch Marketing</span></div>
+      <ul class="week-tasks">
+        <li>Activate referral programme — founding members receive unique referral codes</li>
+        <li>Begin community presence in 3–5 relevant forums / Telegram groups</li>
+        <li>Submit platform to niche directories and review sites</li>
+        <li>Publish 2 additional SEO articles, begin link-building outreach</li>
+        <li>Configure email capture on homepage for pre-launch interest list</li>
+        <li>Brief crypto community advertising — test 2–3 ad creatives</li>
+      </ul>
+    </div>
+
+    <div class="week-block">
+      <div class="week-header"><span class="week-badge">WEEKS 10–12</span><span class="week-title">Public Launch &amp; Scale</span></div>
+      <ul class="week-tasks">
+        <li>Open registration publicly — monitor server performance and error logs</li>
+        <li>Activate email nurture sequence for new FREE tier registrations</li>
+        <li>Weekly KPI review: registrations, free→paid conversion, booking volume, revenue</li>
+        <li>Scale companion supply to match member growth (target ratio: 1 companion per 10 active members)</li>
+        <li>PR outreach to 5 niche publications / newsletters</li>
+        <li>Month 3 retrospective — assess pricing, tier distribution, acquisition cost by channel</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- KPIs -->
+  <section>
+    <div class="section-title"><span class="section-num">08 &nbsp;</span> KPIs &amp; Success Metrics</div>
+
+    <h3>Month 1 Targets (Beta)</h3>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-value">20</div><div class="kpi-metric">Published Profiles</div><div class="kpi-label">Minimum companion supply before member acquisition begins</div></div>
+      <div class="kpi"><div class="kpi-value">30</div><div class="kpi-metric">Beta Members</div><div class="kpi-label">Invited founding members with trial access</div></div>
+      <div class="kpi"><div class="kpi-value">5</div><div class="kpi-metric">Bookings Made</div><div class="kpi-label">Confirms end-to-end flow works with real users</div></div>
+      <div class="kpi"><div class="kpi-value">2</div><div class="kpi-metric">Payments Completed</div><div class="kpi-label">NOWPayments flow confirmed in production</div></div>
+    </div>
+
+    <h3>Month 3 Targets (Post-Launch)</h3>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="kpi-value">150</div><div class="kpi-metric">Registered Members</div><div class="kpi-label">Total signups including free tier</div></div>
+      <div class="kpi"><div class="kpi-value">60</div><div class="kpi-metric">Paid Members</div><div class="kpi-label">40% free→paid conversion target</div></div>
+      <div class="kpi"><div class="kpi-value">$6K</div><div class="kpi-metric">Monthly Revenue</div><div class="kpi-label">Subscriptions + booking fees + placements</div></div>
+      <div class="kpi"><div class="kpi-value">20</div><div class="kpi-metric">Bookings/Month</div><div class="kpi-label">Active booking volume at Month 3</div></div>
+    </div>
+
+    <h3>Ongoing Measurement Framework</h3>
+    <table>
+      <thead><tr><th>Metric</th><th>Measurement</th><th>Review Cadence</th><th>Target</th></tr></thead>
+      <tbody>
+        <tr><td>Member Registration Rate</td><td>New signups per week</td><td>Weekly</td><td>10+ per week by Month 2</td></tr>
+        <tr><td>Free-to-Paid Conversion</td><td>% of free members upgrading within 30 days</td><td>Monthly</td><td>&gt; 35%</td></tr>
+        <tr><td>Booking Conversion Rate</td><td>% of members who make at least 1 booking</td><td>Monthly</td><td>&gt; 25% of paid members</td></tr>
+        <tr><td>Payment Completion Rate</td><td>% of initiated payments that complete</td><td>Weekly</td><td>&gt; 70%</td></tr>
+        <tr><td>Member Churn Rate</td><td>% of paid members who don't renew</td><td>Monthly</td><td>&lt; 15% monthly</td></tr>
+        <tr><td>Monthly Recurring Revenue (MRR)</td><td>Total subscription revenue</td><td>Monthly</td><td>$5K by Month 3, $15K by Month 6</td></tr>
+        <tr><td>Companion Profile Views</td><td>Total and per-profile view counts</td><td>Weekly</td><td>Identify top-performing profiles for featuring</td></tr>
+        <tr><td>Referral Conversion</td><td>Members acquired via referral programme</td><td>Monthly</td><td>20% of new members via referral</td></tr>
+        <tr><td>Customer Acquisition Cost (CAC)</td><td>Total marketing spend / new paid members</td><td>Monthly</td><td>&lt; $80 CAC (vs. $588+ SILVER annual LTV)</td></tr>
+        <tr><td>Lifetime Value (LTV)</td><td>Average revenue per member × average tenure</td><td>Quarterly</td><td">Target LTV:CAC ratio &gt; 5:1</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Budget -->
+  <section>
+    <div class="section-title"><span class="section-num">09 &nbsp;</span> Launch Budget Allocation (90-Day)</div>
+    <table>
+      <thead><tr><th>Category</th><th>Budget</th><th>% of Total</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Content &amp; SEO</td><td>$2,400</td><td>32%</td><td>3 months × $800/month for content creation + link building</td></tr>
+        <tr><td>Crypto Community Advertising</td><td>$1,500</td><td>20%</td><td>Test budget for crypto newsletter placements + Telegram ads</td></tr>
+        <tr><td>Companion Photography</td><td>$1,500</td><td>20%</td><td>Professional shoots for 10–15 profiles at ~$100–150 per shoot</td></tr>
+        <tr><td>Operations &amp; Support</td><td>$900</td><td>12%</td><td>Admin time for beta support, community management</td></tr>
+        <tr><td>PR Outreach</td><td>$600</td><td>8%</td><td>Press release distribution, journalist outreach tools</td></tr>
+        <tr><td>Contingency</td><td>$600</td><td>8%</td><td>Unplanned costs, additional testing, beta incentives</td></tr>
+        <tr style="background:var(--surface2);"><td><strong>Total 90-Day Budget</strong></td><td><strong style="color:var(--gold)">$7,500</strong></td><td><strong>100%</strong></td><td>Excludes infrastructure costs (~$600 over 90 days)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="budget-bar">
+      <div class="budget-seg" style="width:32%;background:#C9A84C;">Content 32%</div>
+      <div class="budget-seg" style="width:20%;background:#8B6914;">Ads 20%</div>
+      <div class="budget-seg" style="width:20%;background:#E8C870;color:#111;">Photo 20%</div>
+      <div class="budget-seg" style="width:12%;background:#5A4500;">Ops 12%</div>
+      <div class="budget-seg" style="width:8%;background:#3A2D00;">PR 8%</div>
+      <div class="budget-seg" style="width:8%;background:#2A2000;">Other 8%</div>
+    </div>
+  </section>
+
+  <!-- Risk & Contingency -->
+  <section>
+    <div class="section-title"><span class="section-num">10 &nbsp;</span> Launch Risks &amp; Contingency</div>
+    <table>
+      <thead><tr><th>Risk</th><th>Likelihood</th><th>Contingency</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>Low beta member engagement — no bookings made during beta</td>
+          <td><span class="pill pill-amber">Medium</span></td>
+          <td>Extend beta by 2 weeks. Review companion profile quality and pricing. Consider offering founding members first booking fee waived.</td>
+        </tr>
+        <tr>
+          <td>Companion supply too thin at launch — members can't find suitable profiles</td>
+          <td><span class="pill pill-amber">Medium</span></td>
+          <td>Delay public launch until minimum 20 profiles are live. Prioritise supply over demand in early weeks.</td>
+        </tr>
+        <tr>
+          <td>Payment flow friction — members drop out at crypto payment step</td>
+          <td><span class="pill pill-amber">Medium</span></td>
+          <td>Add clearer crypto payment instructions and tutorial video on checkout page. Consider stablecoin (USDT) as default currency option.</td>
+        </tr>
+        <tr>
+          <td>Community marketing backfire — negative reception in forums</td>
+          <td><span class="pill pill-green">Low</span></td>
+          <td>Approach all community marketing authentically — no spam. If reception is negative, pause that channel and focus on SEO and referral instead.</td>
+        </tr>
+        <tr>
+          <td>NOWPayments API instability affecting payments</td>
+          <td><span class="pill pill-green">Low</span></td>
+          <td>Monitor NOWPayments status page. Identify backup crypto payment processor (CoinGate, BitPay) for emergency fallover if needed.</td>
+        </tr>
+        <tr>
+          <td>Free-to-paid conversion significantly below 35% target</td>
+          <td><span class="pill pill-amber">Medium</span></td>
+          <td>Review what access FREE tier provides — consider further restricting to make SILVER upgrade more compelling. Add exit-intent upgrade prompt.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Success Summary -->
+  <section>
+    <div class="section-title"><span class="section-num">11 &nbsp;</span> Definition of Launch Success</div>
+    <div class="callout">
+      <p style="margin-bottom:14px;"><strong style="color:var(--gold)">Month 1 (Beta Complete):</strong> 20+ published companion profiles, 30 beta members active, at least 3 successful end-to-end bookings completed including crypto payment. No critical bugs or payment failures.</p>
+      <p style="margin-bottom:14px;"><strong style="color:var(--gold)">Month 3 (Post-Launch):</strong> 60+ paid members, $5,000+ MRR, 15+ bookings in the month, CAC below $80. Platform is operationally stable and generating revenue above operating costs.</p>
+      <p><strong style="color:var(--gold)">Month 6 (Scale):</strong> 150+ paid members, $15,000+ MRR, 40+ bookings per month, 3+ companion profiles added during the period. Phase 2 features (password reset, booking notifications) scoped and funded from operating revenue.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Document 05 — Go-to-Market Strategy &nbsp;|&nbsp; <a href="index.html">← Document Hub</a></span>
+  <span>Gild3d &mdash; Confidential &mdash; April 2026</span>
+</footer>
+
+</body>
+</html>

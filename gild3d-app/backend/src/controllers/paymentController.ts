@@ -17,7 +17,7 @@ const TIER_PRICES: Record<string, { amount: string; name: string; description: s
 
 export const createInvoice = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).userId;
     const { tierId } = req.body;
 
     if (!tierId || !TIER_PRICES[tierId.toUpperCase()]) {
@@ -120,7 +120,7 @@ export const handleWebhook = async (req: Request, res: Response) => {
 
 export const getMyPayments = async (req: Request, res: Response) => {
   try {
-    const userId = (req as any).user?.userId;
+    const userId = (req as any).userId;
     const payments = await prisma.payment.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },

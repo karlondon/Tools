@@ -192,6 +192,7 @@ export const setCompanionRate = async (req: AuthRequest, res: Response): Promise
     if (body.isPublished !== undefined) data.isPublished = body.isPublished === true || body.isPublished === 'true';
     if (body.isVip !== undefined) data.isVip = body.isVip === true || body.isVip === 'true';
     if (body.displayName !== undefined) data.displayName = body.displayName;
+    if (body.age !== undefined) data.age = body.age ? parseInt(String(body.age)) : null;
     if (body.location !== undefined) data.location = body.location;
     if (body.bio !== undefined) data.bio = body.bio;
     if (body.headline !== undefined) data.headline = body.headline;

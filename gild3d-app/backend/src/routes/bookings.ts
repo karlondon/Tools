@@ -6,9 +6,13 @@ import {
   getMyBookings,
   getBooking,
   cancelBooking,
+  handleBookingWebhook,
 } from '../controllers/bookingController';
 
 const router = Router();
+
+// Webhook must be unauthenticated — NOWPayments calls this directly
+router.post('/webhook/nowpayments', handleBookingWebhook);
 
 router.use(authenticate);
 

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gild3d — Business Analysis Document</title>
+<style>
+  :root {
+    --gold: #C9A84C; --gold-light: #E8C870; --gold-dark: #8B6914;
+    --bg: #0A0A0A; --surface: #111111; --surface2: #1A1A1A;
+    --border: #2A2A2A; --text: #E8E8E8; --muted: #888;
+    --green: #4CAF50; --red: #E57373; --amber: #FFB74D; --blue: #64B5F6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; }
+  header {
+    background: linear-gradient(135deg, #0A0A0A 0%, #1A1200 50%, #0A0A0A 100%);
+    border-bottom: 1px solid var(--gold-dark); padding: 50px 60px; position: relative;
+  }
+  .doc-label { font-size: 11px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; }
+  h1 { font-size: 40px; font-weight: 300; color: #fff; margin-bottom: 8px; }
+  h1 em { color: var(--gold); font-style: normal; }
+  .doc-meta { display: flex; gap: 30px; margin-top: 24px; flex-wrap: wrap; }
+  .doc-meta span { font-size: 12px; color: var(--muted); }
+  .doc-meta span strong { color: #ccc; }
+  .nav-back { position: absolute; top: 24px; right: 40px; }
+  .nav-back a { color: var(--gold); font-size: 13px; text-decoration: none; }
+  main { max-width: 960px; margin: 0 auto; padding: 60px 40px; }
+  section { margin-bottom: 56px; }
+  .section-title {
+    font-size: 11px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
+    margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+  .section-num { color: var(--gold-dark); }
+  h2 { font-size: 24px; font-weight: 300; color: #fff; margin-bottom: 14px; }
+  h3 { font-size: 16px; color: var(--gold-light); margin: 20px 0 10px; font-weight: 400; }
+  p { color: #ccc; line-height: 1.9; margin-bottom: 14px; font-size: 15px; }
+
+  /* Stakeholder cards */
+  .stakeholder-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .stakeholder {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 24px;
+    border-top: 3px solid var(--gold-dark);
+  }
+  .stakeholder h4 { color: var(--gold); font-size: 15px; margin-bottom: 4px; font-weight: 400; }
+  .stakeholder .role { font-size: 12px; color: var(--muted); margin-bottom: 14px; letter-spacing: 1px; }
+  .stakeholder dl { font-size: 13px; }
+  .stakeholder dt { color: var(--muted); margin-top: 8px; font-size: 12px; }
+  .stakeholder dd { color: #ccc; margin-left: 0; line-height: 1.6; }
+
+  /* Requirements table */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+  th { background: var(--surface2); color: var(--gold); padding: 10px 14px; text-align: left; font-weight: 400; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); color: #ccc; vertical-align: top; line-height: 1.6; }
+  tr:hover td { background: var(--surface); }
+  .req-id { color: var(--gold-dark); font-size: 11px; letter-spacing: 1px; white-space: nowrap; }
+  .pill { display: inline-block; padding: 2px 9px; border-radius: 10px; font-size: 11px; }
+  .pill-must { background: rgba(229,115,115,0.15); color: var(--red); }
+  .pill-should { background: rgba(255,183,77,0.15); color: var(--amber); }
+  .pill-could { background: rgba(100,181,246,0.15); color: var(--blue); }
+  .pill-done { background: rgba(76,175,80,0.15); color: var(--green); }
+
+  /* User stories */
+  .story-grid { display: grid; grid-template-columns: 1fr; gap: 12px; margin: 16px 0; }
+  .story {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 18px 20px; display: flex; gap: 16px; align-items: flex-start;
+  }
+  .story-persona {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 6px;
+    padding: 6px 12px; font-size: 11px; color: var(--gold); letter-spacing: 1px;
+    white-space: nowrap; text-transform: uppercase; flex-shrink: 0;
+  }
+  .story-text { font-size: 14px; color: #ccc; line-height: 1.7; }
+  .story-text em { color: var(--gold); font-style: normal; }
+
+  /* Process flow */
+  .flow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-step {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 18px; text-align: center; min-width: 100px;
+  }
+  .flow-step .step-num { font-size: 10px; color: var(--gold-dark); letter-spacing: 2px; margin-bottom: 4px; }
+  .flow-step .step-label { font-size: 12px; color: #ddd; }
+  .flow-arrow { color: var(--gold-dark); font-size: 20px; padding: 0 6px; }
+
+  /* Gap / future */
+  .gap-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin: 10px 0; display: flex; gap: 14px; align-items: flex-start; }
+  .gap-phase { font-size: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 4px 10px; color: var(--muted); white-space: nowrap; flex-shrink: 0; }
+  .gap-text h4 { font-size: 14px; color: #ddd; margin-bottom: 4px; font-weight: 400; }
+  .gap-text p { font-size: 13px; color: #888; margin: 0; }
+
+  /* Acceptance criteria */
+  .ac-list { list-style: none; padding: 0; }
+  .ac-list li { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: #ccc; display: flex; gap: 10px; align-items: flex-start; }
+  .ac-list li::before { content: '✓'; color: var(--green); flex-shrink: 0; margin-top: 2px; }
+
+  footer { border-top: 1px solid var(--border); padding: 30px 60px; display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; }
+  footer a { color: var(--gold); text-decoration: none; }
+  @media (max-width: 700px) { .stakeholder-grid { grid-template-columns: 1fr; } header { padding: 30px 20px; } main { padding: 30px 20px; } .flow { flex-direction: column; align-items: flex-start; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-back"><a href="index.html">← Document Hub</a></div>
+  <div class="doc-label">Document 03 — Business Analysis</div>
+  <h1><em>Gild3d</em> — Business Analysis Document</h1>
+  <div class="doc-meta">
+    <span><strong>Version:</strong> 1.0</span>
+    <span><strong>Date:</strong> April 2026</span>
+    <span><strong>Classification:</strong> Confidential</span>
+    <span><strong>Standard:</strong> MoSCoW Prioritisation</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Background -->
+  <section>
+    <div class="section-title"><span class="section-num">01 &nbsp;</span> Project Background</div>
+    <p>This Business Analysis Document (BAD) captures the functional requirements, stakeholder needs, process flows, user stories and acceptance criteria for the Gild3d luxury companion platform. It serves as the formal record of what was specified, what was delivered and what forms the baseline for future development phases.</p>
+    <p>The analysis was conducted iteratively alongside development, with requirements refined based on technical feasibility and stakeholder feedback. All requirements marked as <span class="pill pill-done">Delivered</span> are implemented in the current production system.</p>
+  </section>
+
+  <!-- Stakeholders -->
+  <section>
+    <div class="section-title"><span class="section-num">02 &nbsp;</span> Stakeholder Analysis</div>
+    <div class="stakeholder-grid">
+      <div class="stakeholder">
+        <h4>Super Administrator</h4>
+        <div class="role">SUPER_ADMIN role &nbsp;·&nbsp; Platform owner / operator</div>
+        <dl>
+          <dt>Goals</dt>
+          <dd>Full control of platform. Manage companions, oversee all members, audit activity, manage revenue and ensure quality standards are met.</dd>
+          <dt>Pain Points</dt>
+          <dd>Needs efficient companion onboarding tools; requires oversight of bookings and payments without being involved in every transaction.</dd>
+          <dt>Key Interactions</dt>
+          <dd>Admin dashboard, companion CRUD, member management, booking/message audit, reports.</dd>
+        </dl>
+      </div>
+      <div class="stakeholder">
+        <h4>Administrator</h4>
+        <div class="role">ADMIN role &nbsp;·&nbsp; Operational staff</div>
+        <dl>
+          <dt>Goals</dt>
+          <dd>Day-to-day platform operations — approve/reject content, assist members, ensure companion profiles are current and accurate.</dd>
+          <dt>Pain Points</dt>
+          <dd>Needs clear workflows for content moderation; should not require technical knowledge to perform admin tasks.</dd>
+          <dt>Key Interactions</dt>
+          <dd>Admin dashboard (subset), profile publishing, member status management.</dd>
+        </dl>
+      </div>
+      <div class="stakeholder">
+        <h4>Member (Client)</h4>
+        <div class="role">MEMBER role &nbsp;·&nbsp; Paying client</div>
+        <dl>
+          <dt>Goals</dt>
+          <dd>Discover and connect with companions. Browse profiles, make bookings, pay securely and manage their own engagement history.</dd>
+          <dt>Pain Points</dt>
+          <dd>Privacy is paramount; does not want payment traces. Expects luxury UX — not generic or low-quality interfaces.</dd>
+          <dt>Key Interactions</dt>
+          <dd>Registration, profile browsing, booking, payment, messaging, membership upgrade.</dd>
+        </dl>
+      </div>
+      <div class="stakeholder">
+        <h4>Companion</h4>
+        <div class="role">COMPANION role &nbsp;·&nbsp; Service provider</div>
+        <dl>
+          <dt>Goals</dt>
+          <dd>Present a professional profile, receive bookings from quality clients and manage their schedule. Requires platform credibility to attract high-value members.</dd>
+          <dt>Pain Points</dt>
+          <dd>Profiles managed by admin — companion has no self-service portal in Phase 1. Photo upload and profile editing requires admin mediation.</dd>
+          <dt>Key Interactions</dt>
+          <dd>Profile (admin-managed), bookings assigned to them, messaging received.</dd>
+        </dl>
+      </div>
+    </div>
+
+    <h3>Stakeholder Influence Matrix</h3>
+    <table>
+      <thead><tr><th>Stakeholder</th><th>Interest Level</th><th>Influence Level</th><th>Engagement Strategy</th></tr></thead>
+      <tbody>
+        <tr><td>Founders / Platform Owner</td><td>High</td><td>High</td><td>Core decision-makers. Approval required for all scope changes.</td></tr>
+        <tr><td>Super Administrator</td><td>High</td><td>High</td><td>Primary operator. UAT sign-off, training required.</td></tr>
+        <tr><td>Members (Clients)</td><td>High</td><td>Medium</td><td>UX feedback drives feature prioritisation. Privacy expectations are non-negotiable.</td></tr>
+        <tr><td>Companions</td><td>High</td><td>Low (Phase 1)</td><td>Supply-side health is critical. Phase 2 self-service portal raises their influence.</td></tr>
+        <tr><td>Development Team</td><td>Medium</td><td>High</td><td>Technical feasibility inputs. Ongoing engagement for Phase 2 planning.</td></tr>
+        <tr><td>Legal Counsel</td><td>Medium</td><td>Medium</td><td>Compliance and TOS review. Jurisdictional guidance required at launch.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Functional Requirements -->
+  <section>
+    <div class="section-title"><span class="section-num">03 &nbsp;</span> Functional Requirements</div>
+    <p>Requirements are prioritised using MoSCoW notation: <span class="pill pill-must">Must Have</span> <span class="pill pill-should">Should Have</span> <span class="pill pill-could">Could Have</span></p>
+
+    <h3>Authentication & User Management</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="req-id">AUTH-01</td><td>Users must be able to register with email and password</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">AUTH-02</td><td>Email address must be verified via OTP before account activation</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">AUTH-03</td><td>Sessions must be maintained via secure JWT in HttpOnly cookies</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">AUTH-04</td><td>Login must be rate-limited to prevent brute force attacks</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">AUTH-05</td><td>Users must be able to log out and invalidate their session</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">AUTH-06</td><td>Password reset via email should be available</td><td><span class="pill pill-should">Should</span></td><td><span class="pill pill-could">Phase 2</span></td></tr>
+        <tr><td class="req-id">AUTH-07</td><td>Two-factor authentication (2FA/TOTP) could be offered to members</td><td><span class="pill pill-could">Could</span></td><td><span class="pill pill-could">Phase 2</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Profile Management</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="req-id">PROF-01</td><td>Companion profiles must display name, age, location, rates, bio and availability</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PROF-02</td><td>Profiles must support multiple photos with primary photo designation</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PROF-03</td><td>Private media must only be visible to eligible membership tiers</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PROF-04</td><td>Profiles must be admin-approved before public visibility</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PROF-05</td><td>VIP and Featured flags should be admin-controllable</td><td><span class="pill pill-should">Should</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PROF-06</td><td>Profile view count should be tracked for analytics</td><td><span class="pill pill-should">Should</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PROF-07</td><td>Companion self-service profile editing portal could be provided</td><td><span class="pill pill-could">Could</span></td><td><span class="pill pill-could">Phase 2</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Booking System</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="req-id">BOOK-01</td><td>Members must be able to create a booking for a specific companion, date and duration</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">BOOK-02</td><td>Bookings must support both in-call and out-call types</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">BOOK-03</td><td>Out-call bookings must capture hotel name, address, city and room number</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">BOOK-04</td><td>Booking total must be calculated from companion hourly rate × hours</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">BOOK-05</td><td>Bookings must transition through states: PENDING_PAYMENT → CONFIRMED → COMPLETED</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">BOOK-06</td><td>Members must be able to cancel a booking with a reason</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">BOOK-07</td><td>Minimum booking hours must be enforced per companion profile</td><td><span class="pill pill-should">Should</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">BOOK-08</td><td>Companion calendar availability should be introduced</td><td><span class="pill pill-should">Should</span></td><td><span class="pill pill-could">Phase 2</span></td></tr>
+        <tr><td class="req-id">BOOK-09</td><td>Booking confirmation email notifications should be sent</td><td><span class="pill pill-should">Should</span></td><td><span class="pill pill-could">Phase 2</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Payment System</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="req-id">PAY-01</td><td>All payments must be processed via cryptocurrency (NOWPayments)</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PAY-02</td><td>Booking payment must create a NOWPayments invoice and return a checkout URL</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PAY-03</td><td>Payment status must be updated via HMAC-verified IPN webhook</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PAY-04</td><td>Membership upgrades must be purchasable via the same payment flow</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">PAY-05</td><td>Payment creation must be idempotent (retry-safe)</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Admin Dashboard</h3>
+    <table>
+      <thead><tr><th>ID</th><th>Requirement</th><th>Priority</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td class="req-id">ADM-01</td><td>Super Admin must be able to create, edit and delete companion profiles</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">ADM-02</td><td>Super Admin must be able to publish/unpublish companion profiles</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">ADM-03</td><td>Super Admin must be able to activate/deactivate member accounts</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">ADM-04</td><td>Super Admin must have access to booking and message audit logs</td><td><span class="pill pill-must">Must</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td class="req-id">ADM-05</td><td>Dashboard should display key platform metrics and revenue data</td><td><span class="pill pill-should">Should</span></td><td><span class="pill pill-done">Delivered</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Non-Functional Requirements -->
+  <section>
+    <div class="section-title"><span class="section-num">04 &nbsp;</span> Non-Functional Requirements</div>
+    <table>
+      <thead><tr><th>Category</th><th>Requirement</th><th>Target</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Performance</td><td>API response time for profile list</td><td>&lt; 300ms under normal load</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Performance</td><td>Page load time (First Contentful Paint)</td><td>&lt; 2 seconds on 4G</td><td><span class="pill pill-done">Delivered (SSR)</span></td></tr>
+        <tr><td>Security</td><td>OWASP Top 10 coverage</td><td>All major vectors mitigated</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Security</td><td>HTTPS enforced on all endpoints</td><td>100% — HTTP redirects to HTTPS</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Security</td><td>Rate limiting on sensitive endpoints</td><td>Login: 5/15min, Global: 100/min</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Availability</td><td>Platform uptime target</td><td>99.5% (AWS Lightsail SLA)</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Scalability</td><td>Support concurrent users without degradation</td><td>~500 concurrent (Phase 1)</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Data Integrity</td><td>Database transactions for booking + payment</td><td>ACID compliant (PostgreSQL)</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Privacy</td><td>No plaintext passwords stored</td><td>bcrypt hashing enforced</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Privacy</td><td>No card/payment data stored on platform</td><td>All payment data at NOWPayments</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Maintainability</td><td>TypeScript throughout codebase</td><td>100% typed (frontend + backend)</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Maintainability</td><td>Database migrations managed</td><td>Prisma migrate</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Compliance</td><td>GDPR data deletion capability</td><td>User delete via admin</td><td><span class="pill pill-should">Phase 2 (self-service)</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- User Stories -->
+  <section>
+    <div class="section-title"><span class="section-num">05 &nbsp;</span> User Stories</div>
+    <h3>Member (Client) Stories</h3>
+    <div class="story-grid">
+      <div class="story"><div class="story-persona">Member</div><div class="story-text">As a <em>new member</em>, I want to register with my email and verify via OTP, so that my account is confirmed and my identity is protected.</div></div>
+      <div class="story"><div class="story-persona">Member</div><div class="story-text">As a <em>member</em>, I want to browse companion profiles with photos, bios and rates, so that I can find a companion that suits my preferences.</div></div>
+      <div class="story"><div class="story-persona">Member</div><div class="story-text">As a <em>member</em>, I want to book a companion for a specific date, duration and location type, so that I can plan an engagement in advance.</div></div>
+      <div class="story"><div class="story-persona">Member</div><div class="story-text">As a <em>member</em>, I want to pay for my booking via cryptocurrency, so that my payment is private and leaves no traceable financial record.</div></div>
+      <div class="story"><div class="story-persona">Member</div><div class="story-text">As a <em>member</em>, I want to view my booking history and status, so that I can track my engagements and payment confirmations.</div></div>
+      <div class="story"><div class="story-persona">Member</div><div class="story-text">As a <em>member</em>, I want to upgrade my membership tier via crypto payment, so that I can unlock access to premium companions and private content.</div></div>
+      <div class="story"><div class="story-persona">Member</div><div class="story-text">As a <em>member</em>, I want to cancel a booking before it is confirmed, so that I can change my plans without losing my payment if it has not been processed.</div></div>
+    </div>
+
+    <h3>Super Administrator Stories</h3>
+    <div class="story-grid">
+      <div class="story"><div class="story-persona">Super Admin</div><div class="story-text">As a <em>super admin</em>, I want to add a new companion profile with all details and photos, so that I can grow the platform's companion supply.</div></div>
+      <div class="story"><div class="story-persona">Super Admin</div><div class="story-text">As a <em>super admin</em>, I want to publish or unpublish a companion profile, so that I control what is visible to members at any time.</div></div>
+      <div class="story"><div class="story-persona">Super Admin</div><div class="story-text">As a <em>super admin</em>, I want to edit a companion's hourly rate, age and key details, so that profiles remain accurate and commercially current.</div></div>
+      <div class="story"><div class="story-persona">Super Admin</div><div class="story-text">As a <em>super admin</em>, I want to delete a companion or member account, so that I can remove platform participants who violate terms or are no longer active.</div></div>
+      <div class="story"><div class="story-persona">Super Admin</div><div class="story-text">As a <em>super admin</em>, I want to view all bookings with status and amounts, so that I can audit platform activity and ensure revenue accuracy.</div></div>
+      <div class="story"><div class="story-persona">Super Admin</div><div class="story-text">As a <em>super admin</em>, I want to see platform KPIs on a dashboard, so that I have visibility of member growth, booking volumes and revenue at a glance.</div></div>
+    </div>
+  </section>
+
+  <!-- Business Process Flows -->
+  <section>
+    <div class="section-title"><span class="section-num">06 &nbsp;</span> Business Process Flows</div>
+
+    <h3>Member Registration & Verification</h3>
+    <div class="flow">
+      <div class="flow-step"><div class="step-num">01</div><div class="step-label">Register<br>Email + PW</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">02</div><div class="step-label">OTP sent<br>via Email</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">03</div><div class="step-label">Submit<br>OTP code</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">04</div><div class="step-label">Account<br>Verified</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">05</div><div class="step-label">JWT Cookie<br>Set</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">06</div><div class="step-label">Access<br>Platform</div></div>
+    </div>
+
+    <h3>Booking & Payment Flow</h3>
+    <div class="flow">
+      <div class="flow-step"><div class="step-num">01</div><div class="step-label">Browse<br>Profiles</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">02</div><div class="step-label">Select<br>Companion</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">03</div><div class="step-label">Submit<br>Booking</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">04</div><div class="step-label">Create<br>Invoice</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">05</div><div class="step-label">Pay via<br>Crypto</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">06</div><div class="step-label">Webhook<br>Confirms</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">07</div><div class="step-label">Booking<br>CONFIRMED</div></div>
+    </div>
+
+    <h3>Companion Onboarding (Admin-Managed)</h3>
+    <div class="flow">
+      <div class="flow-step"><div class="step-num">01</div><div class="step-label">Admin<br>Creates Profile</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">02</div><div class="step-label">Upload<br>Photos</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">03</div><div class="step-label">Set Rate<br>& Details</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">04</div><div class="step-label">Internal<br>Review</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">05</div><div class="step-label">Publish<br>Profile</div></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="step-num">06</div><div class="step-label">Visible<br>to Members</div></div>
+    </div>
+  </section>
+
+  <!-- Assumptions & Constraints -->
+  <section>
+    <div class="section-title"><span class="section-num">07 &nbsp;</span> Assumptions &amp; Constraints</div>
+    <h3>Assumptions</h3>
+    <table>
+      <thead><tr><th>#</th><th>Assumption</th><th>Impact if Wrong</th></tr></thead>
+      <tbody>
+        <tr><td>A1</td><td>NOWPayments API remains available and supported throughout platform lifecycle</td><td>Payment system would require migration to alternative crypto processor</td></tr>
+        <tr><td>A2</td><td>All companion profiles are created and managed by administrators (no self-service in Phase 1)</td><td>If companions need self-service, a companion portal is required in Phase 2</td></tr>
+        <tr><td>A3</td><td>Platform operates from a single geographic region initially (AWS Lightsail, single AZ)</td><td>Regional failure would cause platform downtime; multi-AZ required for HA at scale</td></tr>
+        <tr><td>A4</td><td>Members are adults (18+) in jurisdictions where platform use is legal</td><td>Age verification and geo-restriction features must be implemented before operating in regulated markets</td></tr>
+        <tr><td>A5</td><td>Cryptocurrency adoption among target member demographic is sufficient for payment conversion</td><td>Fiat payment fallback (Stripe, bank transfer) would need to be added in Phase 2</td></tr>
+        <tr><td>A6</td><td>Email delivery via Nodemailer/SMTP is reliable for OTP and notifications</td><td>Transactional email failure impacts registration; managed provider (SendGrid, Postmark) recommended</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Constraints</h3>
+    <table>
+      <thead><tr><th>#</th><th>Constraint</th><th>Rationale</th></tr></thead>
+      <tbody>
+        <tr><td>C1</td><td>All payment channels must be cryptocurrency only</td><td>Business decision for privacy. Fiat processors may decline the merchant category.</td></tr>
+        <tr><td>C2</td><td>Companion profiles must be admin-created, not self-service</td><td>Quality and legal control requirement. Prevents unvetted content appearing on platform.</td></tr>
+        <tr><td>C3</td><td>Platform must operate over HTTPS at all times</td><td>Security and trust requirement. HTTP access is redirected.</td></tr>
+        <tr><td>C4</td><td>File uploads are restricted to images ≤ 20MB, validated by MIME type and extension</td><td>Security constraint to prevent malicious file uploads.</td></tr>
+        <tr><td>C5</td><td>Session tokens are not accessible via JavaScript (HttpOnly cookie)</td><td>XSS protection — tokens cannot be exfiltrated by scripts.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Gap Analysis -->
+  <section>
+    <div class="section-title"><span class="section-num">08 &nbsp;</span> Gap Analysis &amp; Future Requirements</div>
+    <p>The following items were identified during analysis but are deferred to Phase 2 or beyond, due to scope, complexity or sequencing:</p>
+
+    <div class="gap-item"><div class="gap-phase">Phase 2</div><div class="gap-text"><h4>Real-Time Messaging (WebSocket)</h4><p>Current messaging is stored but not real-time. WebSocket or Socket.io integration required for live chat experience between members and companions.</p></div></div>
+    <div class="gap-item"><div class="gap-phase">Phase 2</div><div class="gap-text"><h4>Companion Self-Service Portal</h4><p>Companions currently rely on admins for all profile changes. A self-service portal with admin approval workflow would reduce operational burden and improve companion experience.</p></div></div>
+    <div class="gap-item"><div class="gap-phase">Phase 2</div><div class="gap-text"><h4>Companion Availability Calendar</h4><p>No availability management exists in Phase 1. A calendar-based availability system would prevent double-booking and improve booking conversion.</p></div></div>
+    <div class="gap-item"><div class="gap-phase">Phase 2</div><div class="gap-text"><h4>Booking Email Notifications</h4><p>Automated email notifications for booking confirmation, cancellation and payment confirmation are not yet implemented. Required for professional member experience.</p></div></div>
+    <div class="gap-item"><div class="gap-phase">Phase 2</div><div class="gap-text"><h4>Companion Rating & Review System</h4><p>No feedback mechanism exists. A moderated review system would build trust and surface quality companions to members.</p></div></div>
+    <div class="gap-item"><div class="gap-phase">Phase 2</div><div class="gap-text"><h4>Password Reset Flow</h4><p>Members who forget their password currently have no self-service recovery. Email-based reset link required.</p></div></div>
+    <div class="gap-item"><div class="gap-phase">Phase 2</div><div class="gap-text"><h4>GDPR / Privacy Rights Portal</h4><p>Members should be able to request data export and account deletion. Currently admin-mediated only. Regulatory requirement in EU/UK markets.</p></div></div>
+    <div class="gap-item"><div class="gap-phase">Phase 3</div><div class="gap-text"><h4>Native Mobile Applications</h4><p>iOS and Android apps would significantly increase member engagement and retention. React Native or Flutter recommended for code reuse with existing API.</p></div></div>
+    <div class="gap-item"><div class="gap-phase">Phase 3</div><div class="gap-text"><h4>Multi-Region Infrastructure</h4><p>Current single-region AWS Lightsail deployment has no geographic redundancy. As platform scales, ECS + RDS Multi-AZ + CloudFront recommended.</p></div></div>
+  </section>
+
+  <!-- Acceptance Criteria -->
+  <section>
+    <div class="section-title"><span class="section-num">09 &nbsp;</span> Phase 1 Acceptance Criteria</div>
+    <p>The following criteria define the acceptance baseline for Phase 1 sign-off:</p>
+    <ul class="ac-list">
+      <li>A new user can register, receive and validate an OTP, and access the platform within a single session</li>
+      <li>A logged-in member can browse all published companion profiles and view photos</li>
+      <li>A member can create a booking specifying date, type (incall/outcall), hours and companion</li>
+      <li>A member can initiate a crypto payment and receive a NOWPayments checkout URL</li>
+      <li>A booking status transitions from PENDING_PAYMENT to CONFIRMED upon payment webhook receipt</li>
+      <li>A Super Admin can log in and access the admin dashboard with companion and member data</li>
+      <li>A Super Admin can add a new companion profile with all fields and at least one photo</li>
+      <li>A Super Admin can publish and unpublish a companion profile</li>
+      <li>A Super Admin can edit companion rate and age; changes appear immediately on the profile</li>
+      <li>A Super Admin can delete a companion or member account with inline confirmation</li>
+      <li>All API endpoints return appropriate HTTP status codes and JSON error messages</li>
+      <li>All pages load over HTTPS; HTTP requests are permanently redirected (301)</li>
+      <li>Rate limiting blocks login attempts exceeding 5 per 15 minutes from the same IP</li>
+      <li>File uploads are rejected for non-image MIME types and files exceeding 20MB</li>
+      <li>The platform loads without JavaScript errors in Chrome, Firefox and Safari (latest versions)</li>
+    </ul>
+  </section>
+
+</main>
+
+<footer>
+  <span>Document 03 — Business Analysis &nbsp;|&nbsp; <a href="index.html">← Document Hub</a></span>
+  <span>Gild3d &mdash; Confidential &mdash; April 2026</span>
+</footer>
+
+</body>
+</html>

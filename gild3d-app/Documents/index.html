@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gild3d Platform — Project Delivery Documents</title>
+<style>
+  :root {
+    --gold: #C9A84C;
+    --gold-light: #E8C870;
+    --gold-dark: #8B6914;
+    --bg: #0A0A0A;
+    --surface: #111111;
+    --surface2: #1A1A1A;
+    --border: #2A2A2A;
+    --text: #E8E8E8;
+    --muted: #888;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; min-height: 100vh; }
+  header {
+    background: linear-gradient(135deg, #0A0A0A 0%, #1A1200 50%, #0A0A0A 100%);
+    border-bottom: 1px solid var(--gold-dark);
+    padding: 60px 40px;
+    text-align: center;
+  }
+  .logo { font-size: 14px; letter-spacing: 6px; color: var(--gold); text-transform: uppercase; margin-bottom: 20px; }
+  h1 { font-size: 42px; font-weight: 300; color: #fff; margin-bottom: 12px; }
+  h1 span { color: var(--gold); }
+  .subtitle { color: var(--muted); font-size: 16px; letter-spacing: 1px; }
+  .badge {
+    display: inline-block; margin-top: 20px; padding: 6px 18px;
+    border: 1px solid var(--gold-dark); border-radius: 20px;
+    font-size: 12px; letter-spacing: 3px; color: var(--gold); text-transform: uppercase;
+  }
+  main { max-width: 1100px; margin: 0 auto; padding: 60px 40px; }
+  .intro {
+    background: var(--surface); border: 1px solid var(--border);
+    border-left: 4px solid var(--gold); border-radius: 8px;
+    padding: 30px; margin-bottom: 60px; line-height: 1.8;
+  }
+  .intro p { color: #ccc; margin-bottom: 10px; }
+  .intro strong { color: var(--gold); }
+  .section-label {
+    font-size: 11px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
+    margin-bottom: 24px; display: flex; align-items: center; gap: 16px;
+  }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 60px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 32px; transition: all 0.3s ease; position: relative; overflow: hidden;
+    text-decoration: none; display: block;
+  }
+  .card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--gold-dark), var(--gold));
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .card:hover { border-color: var(--gold-dark); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(201,168,76,0.08); }
+  .card:hover::before { opacity: 1; }
+  .card-num { font-size: 11px; color: var(--gold-dark); letter-spacing: 3px; margin-bottom: 12px; text-transform: uppercase; }
+  .card-title { font-size: 20px; color: #fff; margin-bottom: 8px; font-weight: 400; }
+  .card-desc { font-size: 14px; color: var(--muted); line-height: 1.7; margin-bottom: 20px; }
+  .card-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 11px; padding: 3px 10px; background: var(--surface2); border: 1px solid var(--border); border-radius: 12px; color: #aaa; }
+  .card-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--gold); font-size: 13px; margin-top: 20px;
+    text-decoration: none; letter-spacing: 1px;
+  }
+  .card-link::after { content: '→'; }
+  .doc-number {
+    position: absolute; top: 20px; right: 24px;
+    font-size: 60px; font-weight: 900; color: var(--surface2);
+    line-height: 1; user-select: none;
+  }
+  .meta-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .meta-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  .meta-table td:first-child { color: var(--muted); width: 200px; }
+  .meta-table td:last-child { color: #ddd; }
+  footer {
+    border-top: 1px solid var(--border); padding: 30px 40px;
+    text-align: center; color: var(--muted); font-size: 13px;
+    max-width: 1100px; margin: 0 auto;
+  }
+  footer span { color: var(--gold); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Gild3d Platform</div>
+  <h1>Project <span>Delivery</span> Suite</h1>
+  <div class="subtitle">Client Documentation Package — Confidential</div>
+  <div class="badge">Version 1.0 &nbsp;·&nbsp; April 2026</div>
+</header>
+
+<main>
+
+  <div class="intro">
+    <p>This document suite constitutes the <strong>formal project delivery package</strong> for the Gild3d luxury companion platform. All documents are prepared for client handover and cover strategic, analytical, operational and commercial dimensions of the delivered system.</p>
+    <p>Documents are intended for <strong>executive review, investor briefings, internal operations and ongoing business governance</strong>. They should be treated as confidential and commercially sensitive.</p>
+  </div>
+
+  <div class="section-label">Delivery Documents</div>
+
+  <div class="grid">
+
+    <a href="executive-summary.html" class="card">
+      <div class="doc-number">01</div>
+      <div class="card-num">Document 01</div>
+      <div class="card-title">Executive Summary</div>
+      <div class="card-desc">High-level overview of the platform, what was built, key capabilities, and strategic value. Suitable for executive and investor audiences.</div>
+      <div class="card-tags">
+        <span class="tag">2 Pages</span>
+        <span class="tag">Executive</span>
+        <span class="tag">Investor Ready</span>
+      </div>
+      <div class="card-link">Open Document</div>
+    </a>
+
+    <a href="business-case.html" class="card">
+      <div class="doc-number">02</div>
+      <div class="card-num">Document 02</div>
+      <div class="card-title">Business Case</div>
+      <div class="card-desc">Market opportunity, revenue model, financial projections (3-year), cost structure, break-even analysis and investment recommendation.</div>
+      <div class="card-tags">
+        <span class="tag">Financials</span>
+        <span class="tag">Market Analysis</span>
+        <span class="tag">ROI</span>
+      </div>
+      <div class="card-link">Open Document</div>
+    </a>
+
+    <a href="business-analysis.html" class="card">
+      <div class="doc-number">03</div>
+      <div class="card-num">Document 03</div>
+      <div class="card-title">Business Analysis</div>
+      <div class="card-desc">Stakeholder map, functional and non-functional requirements, user stories, process flows, assumptions, constraints and acceptance criteria.</div>
+      <div class="card-tags">
+        <span class="tag">Requirements</span>
+        <span class="tag">User Stories</span>
+        <span class="tag">Process Flows</span>
+      </div>
+      <div class="card-link">Open Document</div>
+    </a>
+
+    <a href="project-handover.html" class="card">
+      <div class="doc-number">04</div>
+      <div class="card-num">Document 04</div>
+      <div class="card-title">Project Delivery &amp; Handover</div>
+      <div class="card-desc">Full deliverables register, system access handover, known issues, outstanding items, warranty terms, Phase 2 recommendations and sign-off record.</div>
+      <div class="card-tags">
+        <span class="tag">Handover</span>
+        <span class="tag">Sign-off</span>
+        <span class="tag">Phase 2</span>
+      </div>
+      <div class="card-link">Open Document</div>
+    </a>
+
+    <a href="go-to-market.html" class="card">
+      <div class="doc-number">05</div>
+      <div class="card-num">Document 05</div>
+      <div class="card-title">Go-to-Market Strategy</div>
+      <div class="card-desc">Launch phasing, target audience definition, pricing strategy, marketing channel plan, KPIs, 90-day launch roadmap and budget allocation.</div>
+      <div class="card-tags">
+        <span class="tag">Launch Plan</span>
+        <span class="tag">Marketing</span>
+        <span class="tag">KPIs</span>
+      </div>
+      <div class="card-link">Open Document</div>
+    </a>
+
+    <a href="technical-architecture.html" class="card">
+      <div class="doc-number">06</div>
+      <div class="card-num">Document 06</div>
+      <div class="card-title">Technical Architecture</div>
+      <div class="card-desc">Full system architecture, infrastructure, security design, API reference, database schema, deployment process and operational runbook.</div>
+      <div class="card-tags">
+        <span class="tag">Architecture</span>
+        <span class="tag">API Docs</span>
+        <span class="tag">Security</span>
+      </div>
+      <div class="card-link">Open Document</div>
+    </a>
+
+  </div>
+
+  <div class="section-label">Document Register</div>
+
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:60px;">
+    <table class="meta-table">
+      <tr>
+        <td>Project Name</td>
+        <td>Gild3d — Luxury Companion Platform</td>
+      </tr>
+      <tr>
+        <td>Document Version</td>
+        <td>1.0</td>
+      </tr>
+      <tr>
+        <td>Prepared By</td>
+        <td>Development Team</td>
+      </tr>
+      <tr>
+        <td>Prepared For</td>
+        <td>Gild3d Client / Founders</td>
+      </tr>
+      <tr>
+        <td>Date of Issue</td>
+        <td>April 2026</td>
+      </tr>
+      <tr>
+        <td>Classification</td>
+        <td>Confidential — Not for Public Distribution</td>
+      </tr>
+      <tr>
+        <td>Total Documents</td>
+        <td>6 (including Technical Architecture)</td>
+      </tr>
+      <tr>
+        <td>Review Cycle</td>
+        <td>Quarterly or on material platform change</td>
+      </tr>
+    </table>
+  </div>
+
+</main>
+
+<footer>
+  <p><span>Gild3d</span> &mdash; Confidential Project Delivery Suite &mdash; April 2026</p>
+  <p style="margin-top:8px;">All documents are commercially sensitive. Distribution restricted to authorised personnel only.</p>
+</footer>
+
+</body>
+</html>

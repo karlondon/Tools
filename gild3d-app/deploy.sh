@@ -1,101 +1,106 @@
 #!/bin/bash
+# Run from PS-Scripts directory:
+#   bash gild3d-app/deploy.sh
 set -e
+
 PEM="gild3d-app/gild3d-production.pem"
 HOST="ubuntu@3.93.100.110"
+SSH="ssh -i $PEM -o StrictHostKeyChecking=no"
+SCP="scp -i $PEM -o StrictHostKeyChecking=no"
 
-echo "[1/6] Uploading profile page fix..."
-scp -i "$PEM" -o StrictHostKeyChecking=no \
-  "gild3d-app/frontend/app/profile/[id]/page.tsx" \
+echo "========================================"
+echo "  Gild3d Deploy"
+echo "========================================"
+
+echo ""
+echo "[1/6] Uploading environment config..."
+$SCP gild3d-app/.env $HOST:/home/ubuntu/gild3d-app/.env
+$SCP gild3d-app/docker-compose.yml $HOST:/home/ubuntu/gild3d-app/docker-compose.yml
+echo "  .env + docker-compose.yml uploaded"
+
+echo ""
+echo "[2/6] Uploading backend files..."
+$SCP gild3d-app/backend/package.json \
+  $HOST:/home/ubuntu/gild3d-app/backend/package.json
+$SCP gild3d-app/backend/src/index.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/index.ts
+$SCP gild3d-app/backend/src/controllers/profileController.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/profileController.ts
+$SCP gild3d-app/backend/src/controllers/bookingController.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/bookingController.ts
+$SCP gild3d-app/backend/src/controllers/paymentController.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/paymentController.ts
+$SCP gild3d-app/backend/src/controllers/authController.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/authController.ts
+$SCP gild3d-app/backend/src/controllers/adminController.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/adminController.ts
+$SCP gild3d-app/backend/src/routes/auth.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/routes/auth.ts
+$SCP gild3d-app/backend/src/routes/bookings.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/routes/bookings.ts
+$SCP gild3d-app/backend/src/middleware/upload.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/middleware/upload.ts
+echo "  Backend files uploaded"
+
+echo ""
+echo "[3/6] Uploading frontend + nginx files..."
+$SCP "gild3d-app/frontend/app/profile/[id]/page.tsx" \
   "$HOST:/home/ubuntu/gild3d-app/frontend/app/profile/[id]/page.tsx"
-echo "  OK"
+$SCP "gild3d-app/frontend/app/bookings/page.tsx" \
+  "$HOST:/home/ubuntu/gild3d-app/frontend/app/bookings/page.tsx"
+$SCP "gild3d-app/frontend/app/admin/page.tsx" \
+  "$HOST:/home/ubuntu/gild3d-app/frontend/app/admin/page.tsx"
+$SCP gild3d-app/nginx/nginx.conf \
+  $HOST:/home/ubuntu/gild3d-app/nginx/nginx.conf
+echo "  Frontend + nginx files uploaded"
 
-echo "[2/6] Writing admin patch script locally..."
-cat > /tmp/patch_admin.py << 'PYEOF'
-import sys
+echo ""
+echo "[4/6] Rebuilding backend (installs new packages: helmet, express-rate-limit)..."
+$SSH $HOST "cd /home/ubuntu/gild3d-app && docker compose build backend 2>&1 | tail -5 && docker compose up -d --force-recreate backend"
+echo "  Backend rebuilt and restarted"
 
-ctrl = "/home/ubuntu/gild3d-app/backend/src/controllers/adminController.ts"
-with open(ctrl) as f:
-    src = f.read()
+echo ""
+echo "[5/6] Rebuilding frontend (takes ~3 min)..."
+$SSH $HOST "cd /home/ubuntu/gild3d-app && docker compose build frontend 2>&1 | tail -5 && docker compose up -d frontend"
+echo "  Frontend rebuilt and restarted"
 
-if "setCompanionRate" not in src:
-    fn = (
-        "\nexport const setCompanionRate = async (req: AuthRequest, res: Response): Promise<void> => {\n"
-        "  try {\n"
-        "    const { userId } = req.params;\n"
-        "    const body = req.body as any;\n"
-        "    const usr = await prisma.user.findUnique({ where: { id: userId }, include: { profile: true } });\n"
-        '    if (!usr || usr.memberType !== "COMPANION") { res.status(404).json({ error: "Companion not found" }); return; }\n'
-        '    if (!usr.profile) { res.status(400).json({ error: "No profile" }); return; }\n'
-        "    const data: any = {};\n"
-        "    if (body.hourlyRate !== undefined) data.hourlyRate = parseFloat(String(body.hourlyRate));\n"
-        "    if (body.minBookingHours !== undefined) data.minBookingHours = parseInt(String(body.minBookingHours));\n"
-        '    if (body.inCall !== undefined) data.inCall = body.inCall === true || body.inCall === "true";\n'
-        '    if (body.outCall !== undefined) data.outCall = body.outCall === true || body.outCall === "true";\n'
-        "    await prisma.profile.update({ where: { id: usr.profile.id }, data });\n"
-        '    res.json({ message: "Rate updated", hourlyRate: data.hourlyRate });\n'
-        "  } catch (e: any) {\n"
-        '    res.status(500).json({ error: "Failed to update rate" });\n'
-        "  }\n"
-        "};\n"
-    )
-    with open(ctrl, "a") as f:
-        f.write(fn)
-    print("CONTROLLER: setCompanionRate appended")
-else:
-    print("CONTROLLER: already present - skipping")
+echo ""
+echo "[5b/6] Reloading Nginx with new security config..."
+$SSH $HOST "docker exec gild3d-nginx nginx -t && docker exec gild3d-nginx nginx -s reload"
+echo "  Nginx reloaded"
 
-routes = "/home/ubuntu/gild3d-app/backend/src/routes/admin.ts"
-with open(routes) as f:
-    rsrc = f.read()
-
-if "setCompanionRate" not in rsrc:
-    for q in ['"', "'"]:
-        old = "} from " + q + "../controllers/adminController" + q + ";"
-        new = "  setCompanionRate,\n} from " + q + "../controllers/adminController" + q + ";"
-        rsrc = rsrc.replace(old, new)
-    rsrc = rsrc.replace(
-        "export default router;",
-        'router.patch("/companions/:userId/rate", setCompanionRate);\nexport default router;'
-    )
-    with open(routes, "w") as f:
-        f.write(rsrc)
-    print("ROUTES: setCompanionRate route added")
-else:
-    print("ROUTES: already present - skipping")
-PYEOF
-echo "  OK"
-
-echo "[3/6] Uploading and running admin patch on server..."
-scp -i "$PEM" -o StrictHostKeyChecking=no /tmp/patch_admin.py "$HOST:/tmp/patch_admin.py"
-ssh -i "$PEM" -o StrictHostKeyChecking=no "$HOST" "python3 /tmp/patch_admin.py"
-echo "  OK"
-
-echo "[4/6] Rebuilding backend (this takes ~2 min)..."
-ssh -i "$PEM" -o StrictHostKeyChecking=no "$HOST" \
-  "cd /home/ubuntu/gild3d-app && docker compose build --no-cache backend 2>&1 | grep -E 'Step|DONE|error|ERROR|Built' && docker compose up -d backend && echo BACKEND_UP"
-echo "  OK"
-
-echo "[5/6] Rebuilding frontend (this takes ~3 min)..."
-ssh -i "$PEM" -o StrictHostKeyChecking=no "$HOST" \
-  "cd /home/ubuntu/gild3d-app && docker compose build --no-cache frontend 2>&1 | grep -E 'Step|DONE|error|ERROR|Built' && docker compose up -d frontend && echo FRONTEND_UP"
-echo "  OK"
-
-echo "[6/6] Final verification (waiting 20s for startup)..."
-sleep 20
-ssh -i "$PEM" -o StrictHostKeyChecking=no "$HOST" "
+echo ""
+echo "[6/6] Verifying (waiting 25s for startup)..."
+sleep 25
+$SSH $HOST "
 echo '--- Container status ---'
 docker ps --format 'table {{.Names}}\t{{.Status}}'
 echo ''
-echo '--- HTTP status ---'
-curl -s -o /dev/null -w 'Site: HTTP %{http_code}\n' http://localhost/
+echo '--- API health (direct backend port 4000) ---'
+curl -s http://localhost:4000/api/health
 echo ''
-echo '--- Companion rates ---'
-curl -s http://localhost/api/profiles | python3 -c 'import sys,json; ps=json.load(sys.stdin)[\"profiles\"]; [print(p[\"displayName\"],\"rate: USD\",p.get(\"hourlyRate\")) for p in ps]'
+echo '--- Security headers (HTTPS via Nginx) ---'
+curl -sk -I https://localhost/api/health | grep -iE 'x-frame|x-content|strict-transport|referrer|content-security'
 echo ''
-echo '--- Admin rate endpoint (expect 401 not 404) ---'
-curl -s -o /dev/null -w 'PATCH /api/admin/companions/x/rate -> HTTP %{http_code}\n' -X PATCH http://localhost/api/admin/companions/x/rate
+echo '--- Profiles endpoint (expect 200) ---'
+curl -sk -o /dev/null -w 'GET /api/profiles -> HTTP %{http_code}\n' https://localhost/api/profiles
+echo ''
+echo '--- Auth brute-force limiter (6 rapid login attempts, expect 429 on last) ---'
+for i in 1 2 3 4 5 6; do curl -s -o /dev/null -w \"Login attempt \$i -> HTTP %{http_code}\n\" -X POST -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"wrong\"}' http://localhost:4000/api/auth/login; done
+echo ''
+echo '--- Webhook no-signature (expect 401) ---'
+curl -s -o /dev/null -w 'POST /api/bookings/webhook/nowpayments (no sig) -> HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{\"payment_status\":\"finished\"}' http://localhost:4000/api/bookings/webhook/nowpayments
 "
+
 echo ""
-echo "=============================="
-echo "   DEPLOYMENT COMPLETE"
-echo "=============================="
+echo "========================================"
+echo "  DEPLOYMENT COMPLETE"
+echo "  Changes deployed:"
+echo "  - .env synced (NOWPAYMENTS_API_KEY + NOWPAYMENTS_IPN_SECRET)"
+echo "  - Booking payment: NOWPayments invoice API (BTC/LTC/ETH/USDC/DASH)"
+echo "  - Booking webhook: /api/bookings/webhook/nowpayments"
+echo "  - IPN signature verification with NOWPAYMENTS_IPN_SECRET"
+echo "  - Profile fixes: req.userId, privateMedia, Verified badge"
+echo "  - Bookings page: Pay Now redirects to NOWPayments hosted checkout"
+echo "  - Admin: Companion CRUD — Add, Edit (with age), Delete with confirmation"
+echo "========================================"

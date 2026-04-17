@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gilded Companions – Technical Architecture</title>
+<style>
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #e8cc7a;
+    --gold-dim: #8a6f2e;
+    --bg: #0d0d14;
+    --bg2: #13111c;
+    --bg3: #1a1726;
+    --border: #2a2520;
+    --border2: #3a3430;
+    --text: #e8d5b7;
+    --muted: #9c8c78;
+    --dim: #6b5e50;
+    --green: #4caf7d;
+    --red: #e85555;
+    --blue: #5588e8;
+    --purple: #8855e8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  /* ── Cover Page ── */
+  .cover {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 40px;
+    background: radial-gradient(ellipse 80% 60% at 50% 0%, #c9a84c22 0%, transparent 70%),
+                linear-gradient(180deg, #0d0d14 0%, #13111c 100%);
+    border-bottom: 1px solid var(--border);
+    page-break-after: always;
+  }
+  .cover-star { font-size: 64px; color: var(--gold); margin-bottom: 24px; text-shadow: 0 0 60px #c9a84c55; }
+  .cover h1 { font-family: Georgia, serif; font-size: 42px; color: #fff; margin-bottom: 10px; letter-spacing: -0.5px; }
+  .cover h1 span { color: var(--gold); }
+  .cover-sub { font-size: 16px; color: var(--muted); margin-bottom: 8px; }
+  .cover-divider { width: 80px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 24px auto; }
+  .cover-meta { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px; margin-top: 40px; max-width: 640px; }
+  .cover-meta-item label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--dim); display: block; margin-bottom: 6px; }
+  .cover-meta-item span { font-size: 14px; color: var(--text); }
+  .cover-badge {
+    display: inline-block; margin-top: 32px;
+    padding: 6px 20px; border: 1px solid var(--gold-dim);
+    border-radius: 2px; font-size: 11px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
+  }
+
+  /* ── Layout ── */
+  .page { max-width: 1100px; margin: 0 auto; padding: 60px 40px; }
+
+  /* ── TOC ── */
+  .toc { background: var(--bg2); border: 1px solid var(--border); border-radius: 4px; padding: 32px 40px; margin-bottom: 60px; }
+  .toc h2 { font-family: Georgia, serif; color: var(--gold); font-size: 18px; margin-bottom: 20px; }
+  .toc ol { list-style: none; counter-reset: toc; }
+  .toc ol li { counter-increment: toc; padding: 5px 0; border-bottom: 1px solid var(--border); }
+  .toc ol li:last-child { border-bottom: none; }
+  .toc ol li::before { content: counter(toc) "."; color: var(--gold-dim); font-weight: 700; margin-right: 10px; font-size: 13px; }
+  .toc a { color: var(--text); text-decoration: none; }
+  .toc a:hover { color: var(--gold); }
+
+  /* ── Sections ── */
+  .section { margin-bottom: 72px; }
+  .section-header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 28px; padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-num {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--gold); color: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px; flex-shrink: 0;
+  }
+  .section-header h2 { font-family: Georgia, serif; font-size: 24px; color: #fff; }
+
+  h3 { font-size: 15px; color: var(--gold); margin: 24px 0 12px; letter-spacing: 0.05em; text-transform: uppercase; }
+  h4 { font-size: 13px; color: var(--muted); margin: 16px 0 8px; letter-spacing: 0.08em; text-transform: uppercase; }
+  p { color: var(--muted); margin-bottom: 12px; }
+  ul, ol { color: var(--muted); padding-left: 20px; margin-bottom: 12px; }
+  li { margin-bottom: 4px; }
+  strong { color: var(--text); }
+  code {
+    font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+    font-size: 12px; background: var(--bg3);
+    color: var(--gold-light); padding: 1px 6px;
+    border-radius: 3px; border: 1px solid var(--border);
+  }
+  pre {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; padding: 20px 24px;
+    font-family: 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
+    font-size: 12px; color: var(--gold-light); overflow-x: auto;
+    margin-bottom: 20px; line-height: 1.8;
+  }
+  pre .comment { color: var(--dim); }
+  pre .key { color: var(--blue); }
+  pre .val { color: var(--green); }
+
+  /* ── Cards & Grids ── */
+  .card {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 4px; padding: 20px 24px; margin-bottom: 16px;
+  }
+  .card-title { font-size: 12px; color: var(--dim); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 8px; }
+  .card-value { font-size: 20px; font-family: Georgia, serif; color: var(--gold); font-weight: 700; }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px; }
+
+  /* ── Tables ── */
+  table { width: 100%; border-collapse: collapse; margin-bottom: 24px; font-size: 13px; }
+  thead tr { background: var(--bg3); border-bottom: 1px solid var(--border2); }
+  th {
+    padding: 10px 14px; text-align: left;
+    font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--dim); white-space: nowrap;
+  }
+  td { padding: 10px 14px; border-bottom: 1px solid #2a252010; color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #ffffff05; }
+  .tag {
+    display: inline-block; padding: 2px 8px; border-radius: 2px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.08em;
+  }
+  .tag-green { background: #4caf7d22; color: var(--green); border: 1px solid #4caf7d44; }
+  .tag-gold  { background: #c9a84c22; color: var(--gold);  border: 1px solid #c9a84c44; }
+  .tag-blue  { background: #5588e822; color: var(--blue);  border: 1px solid #5588e844; }
+  .tag-red   { background: #e8555522; color: var(--red);   border: 1px solid #e8555544; }
+  .tag-purple{ background: #8855e822; color: var(--purple);border: 1px solid #8855e844; }
+  .tag-muted { background: #9c8c7822; color: var(--muted); border: 1px solid #9c8c7844; }
+  .method-get    { color: var(--green); font-weight: 700; font-family: monospace; }
+  .method-post   { color: var(--blue);  font-weight: 700; font-family: monospace; }
+  .method-patch  { color: var(--gold);  font-weight: 700; font-family: monospace; }
+  .method-delete { color: var(--red);   font-weight: 700; font-family: monospace; }
+
+  /* ── Architecture Diagram ── */
+  .diagram-wrap {
+    background: var(--bg2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 32px; overflow-x: auto;
+    margin-bottom: 24px;
+  }
+
+  /* ── Info boxes ── */
+  .info-box {
+    border-left: 3px solid var(--gold); background: var(--bg2);
+    border-radius: 0 4px 4px 0; padding: 16px 20px; margin-bottom: 20px;
+  }
+  .warn-box {
+    border-left: 3px solid var(--red); background: var(--bg2);
+    border-radius: 0 4px 4px 0; padding: 16px 20px; margin-bottom: 20px;
+  }
+  .success-box {
+    border-left: 3px solid var(--green); background: var(--bg2);
+    border-radius: 0 4px 4px 0; padding: 16px 20px; margin-bottom: 20px;
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { background: #fff; color: #111; }
+    .cover { background: #f8f5ee; border-bottom: 2px solid #c9a84c; }
+    pre, code { background: #f5f5f5; color: #333; border-color: #ddd; }
+    .card, .toc, .diagram-wrap, .info-box, .warn-box, .success-box { background: #fafafa; border-color: #ddd; }
+    table, th, td { border-color: #eee; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════ COVER ══ -->
+<div class="cover">
+  <div class="cover-star">✦</div>
+  <h1>Gilded <span>Companions</span></h1>
+  <div class="cover-sub">Technical Architecture Document</div>
+  <div class="cover-sub" style="color:var(--dim);font-size:12px;">gild3d.com · AWS Lightsail · Docker · Next.js · Express · PostgreSQL</div>
+  <div class="cover-divider"></div>
+  <div class="cover-meta">
+    <div class="cover-meta-item">
+      <label>Version</label>
+      <span>1.0.0</span>
+    </div>
+    <div class="cover-meta-item">
+      <label>Date</label>
+      <span>April 2026</span>
+    </div>
+    <div class="cover-meta-item">
+      <label>Classification</label>
+      <span>Confidential</span>
+    </div>
+  </div>
+  <div class="cover-badge">Internal Technical Reference</div>
+</div>
+
+<!-- ════════════════════════════════════════════ CONTENT ══ -->
+<div class="page">
+
+  <!-- ── Table of Contents ── -->
+  <div class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+      <li><a href="#s1">Executive Summary</a></li>
+      <li><a href="#s2">System Architecture Diagram</a></li>
+      <li><a href="#s3">Infrastructure &amp; Hosting</a></li>
+      <li><a href="#s4">Technology Stack</a></li>
+      <li><a href="#s5">Containerisation &amp; Docker</a></li>
+      <li><a href="#s6">Networking &amp; Reverse Proxy (Nginx)</a></li>
+      <li><a href="#s7">Security Architecture</a></li>
+      <li><a href="#s8">Authentication &amp; Authorisation</a></li>
+      <li><a href="#s9">Database Schema</a></li>
+      <li><a href="#s10">API Reference</a></li>
+      <li><a href="#s11">Payment System (NOWPayments)</a></li>
+      <li><a href="#s12">File Upload &amp; Media Management</a></li>
+      <li><a href="#s13">Email Notifications</a></li>
+      <li><a href="#s14">Environment Configuration</a></li>
+      <li><a href="#s15">Deployment Process</a></li>
+      <li><a href="#s16">Third-Party Integrations</a></li>
+      <li><a href="#s17">Operational Runbook</a></li>
+    </ol>
+  </div>
+
+  <!-- ══════════════════════════════════════ 1. EXECUTIVE SUMMARY ══ -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num">1</div>
+      <h2>Executive Summary</h2>
+    </div>
+
+    <p>Gilded Companions (<strong>gild3d.com</strong>) is a luxury private-booking platform connecting verified members with companion profiles. The platform provides profile browsing, secure messaging, calendar-based booking, and cryptocurrency payment processing — all within a privacy-focused, invitation-only environment.</p>
+
+    <div class="grid-4">
+      <div class="card">
+        <div class="card-title">Frontend</div>
+        <div class="card-value" style="font-size:15px;">Next.js 14</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Backend</div>
+        <div class="card-value" style="font-size:15px;">Express + TS</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Database</div>
+        <div class="card-value" style="font-size:15px;">PostgreSQL 15</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Hosting</div>
+        <div class="card-value" style="font-size:15px;">AWS Lightsail</div>
+      </div>
+    </div>
+
+    <h3>Key Design Principles</h3>
+    <ul>
+      <li><strong>Privacy-first:</strong> No third-party analytics, private media gating, discreet billing references.</li>
+      <li><strong>Container isolation:</strong> Every service runs in its own Docker container on a private bridge network.</li>
+      <li><strong>Defence in depth:</strong> Security enforced at Cloudflare edge, Nginx reverse proxy, Express middleware, and database layers simultaneously.</li>
+      <li><strong>Crypto-native payments:</strong> NOWPayments integration accepts BTC, LTC, ETH, USDC, DASH with no card-processor involvement.</li>
+      <li><strong>Zero-downtime deploys:</strong> Docker Compose <code>--force-recreate</code> with health-check dependencies ensures services restart only when the DB is ready.</li>
+    </ul>
+  </div>
+
+  <!-- ══════════════════════════════════════ 2. ARCHITECTURE DIAGRAM ══ -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num">2</div>
+      <h2>System Architecture Diagram</h2>
+    </div>
+
+    <div class="diagram-wrap">
+      <svg viewBox="0 0 960 640" xmlns="http://www.w3.org/2000/svg" style="width:100%;font-family:'Segoe UI',sans-serif;">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#c9a84c" opacity="0.7"/>
+          </marker>
+          <marker id="arr-blue" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#5588e8" opacity="0.7"/>
+          </marker>
+          <marker id="arr-green" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+            <polygon points="0 0, 8 3, 0 6" fill="#4caf7d" opacity="0.7"/>
+          </marker>
+        </defs>
+
+        <!-- Background bands -->
+        <rect x="0" y="0" width="960" height="640" fill="#13111c" rx="6"/>
+
+        <!-- Layer labels -->
+        <text x="14" y="76" fill="#6b5e50" font-size="9" font-weight="700" letter-spacing="2" text-anchor="start" transform="rotate(-90,14,76)">EXTERNAL</text>
+        <text x="14" y="196" fill="#6b5e50" font-size="9" font-weight="700" letter-spacing="2" text-anchor="start" transform="rotate(-90,14,196)">EDGE</text>
+        <text x="14" y="336" fill="#6b5e50" font-size="9" font-weight="700" letter-spacing="2" text-anchor="start" transform="rotate(-90,14,336)">PROXY</text>
+        <text x="14" y="470" fill="#6b5e50" font-size="9" font-weight="700" letter-spacing="2" text-anchor="start" transform="rotate(-90,14,470)">APP</text>
+        <text x="14" y="600" fill="#6b5e50" font-size="9" font-weight="700" letter-spacing="2" text-anchor="start" transform="rotate(-90,14,600)">DATA</text>
+
+        <!-- Horizontal separators -->
+        <line x1="36" y1="115" x2="940" y2="115" stroke="#2a2520" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="36" y1="240" x2="940" y2="240" stroke="#2a2520" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="36" y1="370" x2="940" y2="370" stroke="#2a2520" stroke-width="1" stroke-dasharray="4 4"/>
+        <line x1="36" y1="510" x2="940" y2="510" stroke="#2a2520" stroke-width="1" stroke-dasharray="4 4"/>
+
+        <!-- ── Row 1: EXTERNAL ── -->
+        <!-- Browser -->
+        <rect x="100" y="30" width="130" height="72" rx="4" fill="#1a1726" stroke="#c9a84c" stroke-width="1.5"/>
+        <text x="165" y="56" fill="#c9a84c" font-size="18" text-anchor="middle">🌐</text>
+        <text x="165" y="75" fill="#e8d5b7" font-size="11" text-anchor="middle" font-weight="600">Browser</text>
+        <text x="165" y="91" fill="#9c8c78" font-size="9" text-anchor="middle">HTTPS / WSS</text>
+
+        <!-- NOWPayments -->
+        <rect x="720" y="30" width="145" height="72" rx="4" fill="#1a1726" stroke="#5588e8" stroke-width="1.5"/>
+        <text x="792" y="56" fill="#5588e8" font-size="18" text-anchor="middle">₿</text>
+        <text x="792" y="75" fill="#e8d5b7" font-size="11" text-anchor="middle" font-weight="600">NOWPayments</text>
+        <text x="792" y="91" fill="#9c8c78" font-size="9" text-anchor="middle">IPN Webhook / Invoice API</text>
+
+        <!-- Gmail SMTP -->
+        <rect x="880" y="30" width="60" height="72" rx="4" fill="#1a1726" stroke="#4caf7d" stroke-width="1.5"/>
+        <text x="910" y="56" fill="#4caf7d" font-size="18" text-anchor="middle">✉</text>
+        <text x="910" y="75" fill="#e8d5b7" font-size="10" text-anchor="middle" font-weight="600">Gmail</text>
+        <text x="910" y="88" fill="#9c8c78" font-size="8" text-anchor="middle">SMTP</text>
+
+        <!-- ── Row 2: EDGE ── -->
+        <!-- Cloudflare -->
+        <rect x="100" y="130" width="680" height="96" rx="4" fill="#1a1726" stroke="#e8a84c" stroke-width="1.5"/>
+        <text x="440" y="161" fill="#e8a84c" font-size="13" text-anchor="middle" font-weight="700">☁  CLOUDFLARE EDGE</text>
+        <text x="440" y="179" fill="#9c8c78" font-size="10" text-anchor="middle">DDoS Protection · Bot Management · WAF · SSL Termination (Flexible) · DNS</text>
+        <text x="440" y="196" fill="#9c8c78" font-size="10" text-anchor="middle">Real IP forwarded via CF-Connecting-IP header  ·  Proxy IPs: 103.21.x – 198.41.x</text>
+        <text x="440" y="214" fill="#6b5e50" font-size="9" text-anchor="middle">gild3d.com A → 3.93.100.110 (AWS Lightsail, us-east-1)</text>
+
+        <!-- ── Row 3: NGINX PROXY ── -->
+        <rect x="100" y="255" width="680" height="100" rx="4" fill="#1a1726" stroke="#c9a84c" stroke-width="1.5"/>
+        <text x="440" y="280" fill="#c9a84c" font-size="13" text-anchor="middle" font-weight="700">NGINX REVERSE PROXY  (nginx:alpine · Docker)</text>
+        <text x="440" y="298" fill="#9c8c78" font-size="10" text-anchor="middle">Ports 80 → 443 HTTPS redirect  ·  TLS 1.2 / 1.3 via Let's Encrypt (Certbot)</text>
+        <text x="440" y="315" fill="#9c8c78" font-size="10" text-anchor="middle">Rate limits: auth 10r/m · api 60r/m · general 120r/m  ·  HSTS max-age=31536000</text>
+        <text x="440" y="332" fill="#9c8c78" font-size="10" text-anchor="middle">Security headers: CSP · X-Frame-Options · Referrer-Policy · Permissions-Policy · server_tokens off</text>
+        <text x="440" y="349" fill="#6b5e50" font-size="9" text-anchor="middle">Routes: /api/* → backend:4000  ·  /uploads/* → static volume  ·  /* → frontend:3000</text>
+
+        <!-- ── Row 4: APP LAYER ── -->
+        <!-- Frontend -->
+        <rect x="60" y="385" width="290" height="112" rx="4" fill="#1a1726" stroke="#8855e8" stroke-width="1.5"/>
+        <text x="205" y="410" fill="#8855e8" font-size="12" text-anchor="middle" font-weight="700">FRONTEND  (Next.js 14)</text>
+        <text x="205" y="428" fill="#9c8c78" font-size="9.5" text-anchor="middle">App Router · Server Components · TailwindCSS</text>
+        <text x="205" y="443" fill="#6b5e50" font-size="9" text-anchor="middle">Pages: / · /browse · /profile/[id] · /bookings</text>
+        <text x="205" y="458" fill="#6b5e50" font-size="9" text-anchor="middle">/auth/login · /auth/register · /messages</text>
+        <text x="205" y="473" fill="#6b5e50" font-size="9" text-anchor="middle">/profile/edit · /upgrade · /admin</text>
+        <text x="205" y="488" fill="#6b5e50" font-size="9" text-anchor="middle">Auth: js-cookie (gc_token JWT)  ·  Port 3000</text>
+
+        <!-- Backend -->
+        <rect x="390" y="385" width="390" height="112" rx="4" fill="#1a1726" stroke="#c9a84c" stroke-width="1.5"/>
+        <text x="585" y="410" fill="#c9a84c" font-size="12" text-anchor="middle" font-weight="700">BACKEND API  (Express 4 · TypeScript)</text>
+        <text x="585" y="428" fill="#9c8c78" font-size="9.5" text-anchor="middle">Helmet · express-rate-limit · CORS · Multer · Nodemailer</text>
+        <text x="585" y="445" fill="#6b5e50" font-size="9" text-anchor="middle">/api/auth  ·  /api/profiles  ·  /api/bookings  ·  /api/payments</text>
+        <text x="585" y="460" fill="#6b5e50" font-size="9" text-anchor="middle">/api/messages  ·  /api/users  ·  /api/admin  ·  /api/health</text>
+        <text x="585" y="475" fill="#6b5e50" font-size="9" text-anchor="middle">JWT Bearer Auth · bcryptjs (cost 12) · crypto OTP · Prisma ORM</text>
+        <text x="585" y="490" fill="#6b5e50" font-size="9" text-anchor="middle">Global rate limit: 100 req/min  ·  JSON body limit: 1 MB  ·  Port 4000</text>
+
+        <!-- ── Row 5: DATA ── -->
+        <!-- PostgreSQL -->
+        <rect x="60" y="525" width="230" height="92" rx="4" fill="#1a1726" stroke="#4caf7d" stroke-width="1.5"/>
+        <text x="175" y="551" fill="#4caf7d" font-size="12" text-anchor="middle" font-weight="700">PostgreSQL 15</text>
+        <text x="175" y="568" fill="#9c8c78" font-size="9.5" text-anchor="middle">postgres:15-alpine · Docker volume</text>
+        <text x="175" y="583" fill="#6b5e50" font-size="9" text-anchor="middle">Models: User · Profile · Photo</text>
+        <text x="175" y="596" fill="#6b5e50" font-size="9" text-anchor="middle">PrivateMedia · Message · Booking · Payment</text>
+        <text x="175" y="609" fill="#6b5e50" font-size="9" text-anchor="middle">Managed via Prisma ORM + migrations</text>
+
+        <!-- Uploads Volume -->
+        <rect x="320" y="525" width="200" height="92" rx="4" fill="#1a1726" stroke="#9c8c78" stroke-width="1.5"/>
+        <text x="420" y="551" fill="#9c8c78" font-size="12" text-anchor="middle" font-weight="700">Uploads Volume</text>
+        <text x="420" y="568" fill="#9c8c78" font-size="9.5" text-anchor="middle">Docker named volume</text>
+        <text x="420" y="583" fill="#6b5e50" font-size="9" text-anchor="middle">Photos · Videos (MP4/MOV)</text>
+        <text x="420" y="596" fill="#6b5e50" font-size="9" text-anchor="middle">Random hex filenames</text>
+        <text x="420" y="609" fill="#6b5e50" font-size="9" text-anchor="middle">Max 20 MB · MIME+ext validated</text>
+
+        <!-- Certbot Volume -->
+        <rect x="550" y="525" width="200" height="92" rx="4" fill="#1a1726" stroke="#9c8c78" stroke-width="1.5"/>
+        <text x="650" y="551" fill="#9c8c78" font-size="12" text-anchor="middle" font-weight="700">SSL Volume</text>
+        <text x="650" y="568" fill="#9c8c78" font-size="9.5" text-anchor="middle">Let's Encrypt via Certbot</text>
+        <text x="650" y="583" fill="#6b5e50" font-size="9" text-anchor="middle">Auto-renew every 12h</text>
+        <text x="650" y="596" fill="#6b5e50" font-size="9" text-anchor="middle">certbot_data · letsencrypt_data</text>
+        <text x="650" y="609" fill="#6b5e50" font-size="9" text-anchor="middle">gild3d.com + www.gild3d.com</text>
+
+        <!-- ── Arrows ── -->
+        <!-- Browser → Cloudflare -->
+        <line x1="165" y1="102" x2="300" y2="130" stroke="#c9a84c" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+        <!-- NOWPayments → backend (IPN) -->
+        <line x1="792" y1="102" x2="680" y2="255" stroke="#5588e8" stroke-width="1.5" marker-end="url(#arr-blue)" opacity="0.7" stroke-dasharray="5 3"/>
+        <!-- Gmail ← backend -->
+        <line x1="910" y1="102" x2="780" y2="385" stroke="#4caf7d" stroke-width="1.2" marker-end="url(#arr-green)" opacity="0.5" stroke-dasharray="5 3"/>
+        <!-- Cloudflare → Nginx -->
+        <line x1="440" y1="226" x2="440" y2="255" stroke="#c9a84c" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+        <!-- Nginx → Frontend -->
+        <line x1="300" y1="355" x2="205" y2="385" stroke="#c9a84c" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+        <!-- Nginx → Backend -->
+        <line x1="560" y1="355" x2="585" y2="385" stroke="#c9a84c" stroke-width="1.5" marker-end="url(#arr)" opacity="0.7"/>
+        <!-- Backend → PostgreSQL -->
+        <line x1="490" y1="497" x2="280" y2="525" stroke="#4caf7d" stroke-width="1.5" marker-end="url(#arr-green)" opacity="0.7"/>
+        <!-- Backend → Uploads volume -->
+        <line x1="585" y1="497" x2="480" y2="525" stroke="#9c8c78" stroke-width="1.2" marker-end="url(#arr)" opacity="0.5"/>
+        <!-- Nginx → Uploads volume (read) -->
+        <line x1="420" y1="355" x2="420" y2="525" stroke="#9c8c78" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arr)" opacity="0.4"/>
+
+        <!-- Docker network label -->
+        <rect x="45" y="375" width="700" height="10" rx="2" fill="none" stroke="#c9a84c" stroke-width="0.5" stroke-dasharray="6 4" opacity="0.3"/>
+        <text x="750" y="383" fill="#c9a84c" font-size="8" opacity="0.5">gild3d-network (bridge)</text>
+
+        <!-- Legend -->
+        <rect x="800" y="385" width="150" height="115" rx="4" fill="#0d0d14" stroke="#2a2520" stroke-width="1"/>
+        <text x="875" y="404" fill="#6b5e50" font-size="9" text-anchor="middle" letter-spacing="1" font-weight="700">LEGEND</text>
+        <line x1="815" y1="418" x2="845" y2="418" stroke="#c9a84c" stroke-width="1.5" marker-end="url(#arr)"/>
+        <text x="852" y="422" fill="#9c8c78" font-size="9">HTTPS / Internal</text>
+        <line x1="815" y1="436" x2="845" y2="436" stroke="#5588e8" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-blue)"/>
+        <text x="852" y="440" fill="#9c8c78" font-size="9">Webhook (IPN)</text>
+        <line x1="815" y1="454" x2="845" y2="454" stroke="#4caf7d" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arr-green)"/>
+        <text x="852" y="458" fill="#9c8c78" font-size="9">SMTP Email</text>
+        <line x1="815" y1="472" x2="845" y2="472" stroke="#9c8c78" stroke-width="1" stroke-dasharray="4 4" marker-end="url(#arr)"/>
+        <text x="852" y="476" fill="#9c8c78" font-size="9">Static files (read)</text>
+        <line x1="815" y1="488" x2="930" y2="488" stroke="#2a2520" stroke-width="1"/>
+        <rect x="815" y="494" width="10" height="8" rx="1" fill="none" stroke="#c9a84c" stroke-width="1"/>
+        <text x="831" y="502" fill="#9c8c78" font-size="9">Docker container</text>
+      </svg>
+    </div>
+
+    <p style="font-size:12px;color:var(--dim);text-align:center;">Figure 1 — Full system architecture showing request flow from browser through Cloudflare → Nginx → application containers → data layer.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════ 3. INFRASTRUCTURE ══ -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num">3</div>
+      <h2>Infrastructure &amp; Hosting</h2>
+    </div>
+
+    <table>
+      <thead><tr><th>Component</th><th>Service</th><th>Detail</th><th>Region</th></tr></thead>
+      <tbody>
+        <tr><td><strong>VPS / Compute</strong></td><td>AWS Lightsail</td><td>Ubuntu 22.04 LTS · 1 static public IP: <code>3.93.100.110</code></td><td>us-east-1</td></tr>
+        <tr><td><strong>DNS / CDN / WAF</strong></td><td>Cloudflare</td><td>Proxy mode (orange-cloud) · DDoS, Bot, WAF, SSL termination</td><td>Global edge</td></tr>
+        <tr><td><strong>SSL Certificate</strong></td><td>Let's Encrypt (Certbot)</td><td>Wildcard cert for <code>gild3d.com</code> + <code>www.gild3d.com</code> · Auto-renew every 12h</td><td>On-server</td></tr>
+        <tr><td><strong>Container Runtime</strong></td><td>Docker + Compose</td><td>docker compose v2 · bridge network <code>gild3d-network</code></td><td>On-server</td></tr>
+        <tr><td><strong>Object Storage</strong></td><td>Local Docker volume</td><td><code>uploads_data</code> volume · AWS S3 config available but inactive</td><td>On-server</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Network &amp; DNS Configuration</h3>
+    <table>
+      <thead><tr><th>Record</th><th>Type</th><th>Value</th><th>Proxy</th></tr></thead>
+      <tbody>
+        <tr><td><code>gild3d.com</code></td><td>A</td><td>3.93.100.110</td><td><span class="tag tag-gold">Cloudflare</span></td></tr>
+        <tr><td><code>www.gild3d.com</code></td><td>CNAME</td><td>gild3d.com</td><td><span class="tag tag-gold">Cloudflare</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      <strong style="color:var(--gold);">Cloudflare Real-IP Forwarding</strong><br/>
+      <p style="margin-top:6px;">Because all traffic passes through Cloudflare, the connecting IP seen by Nginx is always a Cloudflare IP. Nginx is configured with all 15 published Cloudflare IPv4 ranges under <code>set_real_ip_from</code> and uses <code>real_ip_header CF-Connecting-IP</code> to restore the true visitor IP. Express is configured with <code>app.set('trust proxy', 1)</code> for the same reason, ensuring rate limiting operates on real client IPs.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ 4. TECH STACK ══ -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num">4</div>
+      <h2>Technology Stack</h2>
+    </div>
+
+    <h3>Frontend</h3>
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>next</code></td><td>14.x</td><td>React framework — App Router, Server Components, SSR</td></tr>
+        <tr><td><code>react</code> / <code>react-dom</code></td><td>18.x</td><td>UI rendering</td></tr>
+        <tr><td><code>tailwindcss</code></td><td>3.x</td><td>Utility-first CSS — gold/dark luxury theme</td></tr>
+        <tr><td><code>js-cookie</code></td><td>3.x</td><td>JWT token persistence in <code>gc_token</code> cookie (SameSite: Strict, Secure)</td></tr>
+        <tr><td><code>axios</code></td><td>1.x</td><td>API client for all <code>/api/*</code> requests</td></tr>
+        <tr><td><code>typescript</code></td><td>5.x</td><td>Static typing across all frontend code</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Backend</h3>
+    <table>
+      <thead><tr><th>Package</th><th>Version</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>express</code></td><td>4.18</td><td>HTTP server framework</td></tr>
+        <tr><td><code>typescript</code></td><td>5.3</td><td>Static typing; compiled to JS via <code>tsc</code></td></tr>
+        <tr><td><code>@prisma/client</code></td><td>5.9</td><td>Type-safe PostgreSQL ORM — all DB queries</td></tr>
+        <tr><td><code>prisma</code></td><td>5.9</td><td>Migration runner &amp; schema manager</td></tr>
+        <tr><td><code>helmet</code></td><td>7.1</td><td>Sets 11 security HTTP headers (contentSecurityPolicy delegated to Nginx)</td></tr>
+        <tr><td><code>express-rate-limit</code></td><td>7.2</td><td>Per-route rate limiting — login (5/15min), register (3/hr), global (100/min)</td></tr>
+        <tr><td><code>cors</code></td><td>2.8</td><td>CORS — allows <code>gild3d.com</code> and <code>www.gild3d.com</code> only</td></tr>
+        <tr><td><code>jsonwebtoken</code></td><td>9.0</td><td>JWT sign (login/verify) and verify (auth middleware)</td></tr>
+        <tr><td><code>bcryptjs</code></td><td>2.4</td><td>Password hashing at cost factor 12</td></tr>
+        <tr><td><code>multer</code></td><td>1.4 LTS</td><td>Multipart file upload handling — MIME + extension dual validation</td></tr>
+        <tr><td><code>nodemailer</code></td><td>6.9</td><td>SMTP email dispatch (OTP verification, booking confirmations)</td></tr>
+        <tr><td><code>axios</code></td><td>1.6</td><td>HTTP client for NOWPayments invoice API</td></tr>
+        <tr><td><code>crypto</code></td><td>Node built-in</td><td><code>randomInt()</code> for OTPs · <code>randomBytes()</code> for filenames · <code>createHmac('sha512')</code> for webhook signatures</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Infrastructure Tools</h3>
+    <table>
+      <thead><tr><th>Tool</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>nginx:alpine</code></td><td>Reverse proxy, TLS termination, rate limiting, static file serving</td></tr>
+        <tr><td><code>postgres:15-alpine</code></td><td>Primary relational database</td></tr>
+        <tr><td><code>certbot/certbot</code></td><td>Automated Let's Encrypt certificate renewal (every 12h)</td></tr>
+        <tr><td>Docker Compose v2</td><td>Multi-container orchestration with health-check dependencies</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════ 5. DOCKER ══ -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num">5</div>
+      <h2>Containerisation &amp; Docker</h2>
+    </div>
+
+    <h3>Container Inventory</h3>
+    <table>
+      <thead><tr><th>Container Name</th><th>Image</th><th>Internal Port</th><th>External Port</th><th>Restart Policy</th></tr></thead>
+      <tbody>
+        <tr><td><code>gild3d-db</code></td><td>postgres:15-alpine</td><td>5432</td><td>None (internal only)</td><td>unless-stopped</td></tr>
+        <tr><td><code>gild3d-backend</code></td><td>Custom (./backend/Dockerfile)</td><td>4000</td><td>None (proxied by Nginx)</td><td>unless-stopped</td></tr>
+        <tr><td><code>gild3d-frontend</code></td><td>Custom (./frontend/Dockerfile)</td><td>3000</td><td>None (proxied by Nginx)</td><td>unless-stopped</td></tr>
+        <tr><td><code>gild3d-nginx</code></td><td>nginx:alpine</td><td>80, 443</td><td>80, 443</td><td>unless-stopped</td></tr>
+        <tr><td><code>gild3d-certbot</code></td><td>certbot/certbot</td><td>—</td><td>None</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Docker Volumes</h3>
+    <table>
+      <thead><tr><th>Volume Name</th><th>Mounted In</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><code>postgres_data</code></td><td>gild3d-db</td><td>Persistent PostgreSQL data directory</td></tr>
+        <tr><td><code>uploads_data</code></td><td>gild3d-backend (rw) · gild3d-nginx (ro)</td><td>User-uploaded photos and videos</td></tr>
+        <tr><td><code>certbot_data</code></td><td>gild3d-certbot · gild3d-nginx (ro)</td><td>ACME challenge files for cert renewal</td></tr>
+        <tr><td><code>letsencrypt_data</code></td><td>gild3d-certbot · gild3d-nginx (ro)</td><td>TLS certificate and private key files</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Service Startup Order</h3>
+    <pre>postgres (health: pg_isready)
+  └─ backend (depends_on: postgres healthy)
+       └─ frontend (depends_on: backend)
+            └─ nginx (depends_on: frontend + backend)
+                 └─ certbot (runs alongside, no dependency)</pre>
+
+    <h3>Network</h3>
+    <p>All containers share the <code>gild3d-network</code> Docker bridge network. Services communicate by container name (e.g., <code>backend:4000</code>, <code>frontend:3000</code>, <code>postgres:5432</code>). No service except Nginx exposes ports to the host.</p>
+  </div>
+
+  <!-- ══════════════════════════════════════ 6. NGINX ══ -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num">6</div>
+      <h2>Networking &amp; Reverse Proxy (Nginx)</h2>
+    </div>
+
+    <h3>Request Routing</h3>
+    <table>
+      <thead><tr><th>Path Pattern</th><th>Upstream</th><th>Rate Zone</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>/api/auth/*</code></td><td>backend:4000</td><td>auth — 10r/m, burst 5</td><td>Strictest limiter for login/register</td></tr>
+        <tr><td><code>/api/*</code></td><td>backend:4000</td><td>api — 60r/m, burst 20</td><td>All other API routes</td></tr>
+        <tr><td><code>/uploads/*</code></td><td>Static volume</td><td>—</td><td>30-day cache, immutable, <code>autoindex off</code></td></tr>
+        <tr><td><code>~* \.(php|asp|jsp|cgi|sh|py|pl|rb)$</code></td><td>403 Forbidden</td><td>—</td><td>Block common exploit probes</td></tr>
+        <tr><td><code>~/\.</code></td><td>deny all</td><td>—</td><td>Block hidden files (.env, .git etc.)</td></tr>
+        <tr><td><code>/*</code></td><td>frontend:3000</td><td>general — 120r/m, burst 30</td><td>Next.js SSR, WebSocket upgrade</td></tr>
+      </tbody>
+    </table>
+
+    <h3>HTTP → HTTPS Redirect</h3>
+    <p>The HTTP server block (port 80) serves only <code>/.well-known/acme-challenge/</code> for Certbot renewals and redirects all other traffic to <code>https://$host$request_uri</code> with a 301.</p>
+
+    <h3>TLS Configuration</h3>
+    <table>
+      <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Protocols</td><td>TLSv1.2, TLSv1.3</td></tr>
+        <tr><td>Ciphers</td><td>HIGH:!aNULL:!MD5</td></tr>
+        <tr><td>Session cache</td><td>shared:SSL:10m</td></tr>
+        <tr><td>Session timeout</td><td>10 minutes</td></tr>
+        <tr><td>Server preference</td><td>Enabled (<code>ssl_prefer_server_ciphers on</code>)</td></tr>
+        <tr><td>Certificate</td><td>Let's Encrypt via Certbot (<code>/etc/letsencrypt/live/gild3d.com/</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Security Headers Set by Nginx</h3>
+    <table>
+      <thead><tr><th>Header</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td><code>Strict-Transport-Security</code></td><td>max-age=31536000; includeSubDomains; preload</td></tr>
+        <tr><td><code>X-Frame-Options</code></td><td>SAMEORIGIN</td></tr>
+        <tr><td><code>X-Content-Type-Options</code></td><td>nosniff</td></tr>
+        <tr><td><code>X-XSS-Protection</code></td><td>1; mode=block</td></tr>
+        <tr><td><code>Referrer-Policy</code></td><td>strict-origin-when-cross-origin</td></tr>
+        <tr><td><code>Permissions-Policy</code></td><td>camera=(), microphone=(), geolocation=(), payment=()</td></tr>
+        <tr><td><code>Content-Security-Policy</code></td><td>default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: https:; connect-src 'self' https://api.nowpayments.io https://nowpayments.io; frame-src https://nowpayments.io; frame-ancestors 'none';</td></tr>
+        <tr><td><code>server_tokens</code></td><td>off (Nginx version hidden)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════ 7. SECURITY ══ -->
+  <div class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num">7</div>
+      <h2>Security Architecture</h2>
+    </div>
+
+    <h3>Defence-in-Depth Layers</h3>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-title">Layer 1 — Cloudflare Edge</div>
+        <ul style="font-size:12px;margin-top:8px;">
+          <li>DDoS mitigation (L3/L4/L7)</li>
+          <li>Bot score filtering</li>
+          <li>Managed WAF rules</li>
+          <li>SSL/TLS handshake offload</li>
+          <li>IP reputation blocking</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Layer 2 — Nginx</div>
+        <ul style="font-size:12px;margin-top:8px;">
+          <li>Rate limiting (3 zones)</li>
+          <li>Full security header suite</li>
+          <li>Script extension blocking</li>
+          <li>Hidden file blocking</li>
+          <li>Real-IP via CF header</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div class="card-title">Layer 3 — Express</div>
+        <ul style="font-size:12px;margin-top:8px;">
+          <li>Helmet (11 HTTP headers)</li>
+          <li>CORS origin whitelist</li>
+          <li>1 MB JSON body limit</li>
+          <li>Per-route rate limiters</li>
+          <li>Global error handler</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>OWASP Top 10 Coverage</h3>
+    <table>
+      <thead><tr><th>Risk</th><th>Mitigation</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>A01 Broken Access Control</td><td>JWT auth on all private routes · <code>requireSuperAdmin</code> middleware for admin · ownership checks on bookings/payments</td><td><span class="tag tag-green">Mitigated</span></td></tr>
+        <tr><td>A02 Cryptographic Failures</td><td>bcryptjs cost 12 · JWT HS256 · HMAC-SHA512 webhooks · TLS 1.2/1.3 only · <code>crypto.randomInt</code> OTP</td><td><span class="tag tag-green">Mitigated</span></td></tr>
+        <tr><td>A03 Injection</td><td>Prisma ORM (parameterised queries) · no raw SQL · express-validator available</td><td><span class="tag tag-green">Mitigated</span></td></tr>
+        <tr><td>A04 Insecure Design</td><td>Email verified before login · booking ownership verified server-side · super admin cannot be disabled/deleted</td><td><span class="tag tag-green">Mitigated</span></td></tr>
+        <tr><td>A05 Security Misconfiguration</td><td>server_tokens off · all containers internal-only · no default creds · env vars via .env file</td><td><span class="tag tag-green">Mitigated</span></td></tr>
+        <tr><td>A06 Vulnerable Components</td><td>npm audit recommended on deploy · pinned major versions · LTS images only</td><td><span class="tag tag-gold">Partial</span></td></tr>
+        <tr><td>A07 Auth Failures</td><td>Rate limit 5 login/15min · 3 register/hr · email OTP verification · account disable by admin</td><td><span class="tag tag-green">Mitigated</span></td></tr>
+        <tr><td>A08 Software Integrity Failures</td><td>HMAC-SHA512 webhook signature verification · no unsigned webhooks accepted</td><td><span class="tag tag-green">Mitigated</span></td></tr>
+        <tr><td>A09 Logging &amp; Monitoring</td><td>Console error logging in place · Cloudflare analytics · no structured log aggregator yet</td><td><span class="tag tag-gold">Partial</span></td></tr>
+        <tr><td>A10 SSRF</td><td>Only NOWPayments API called server-side (fixed endpoint) · user input never used in URL construction</td><td><span class="tag tag-green">Mitigated</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>File Upload Security</h3>
+    <ul>
+      <li><strong>Dual validation:</strong> File extension AND MIME type must both match the allow-list.</li>
+      <li><strong>Allowed types:</strong> .jpg/.jpeg (image/jpeg) · .png (image/png) · .gif (image/gif) · .webp (image/webp) · .mp4 (video/mp4) · .mov (video/quicktime)</li>
+      <li><strong>Random filenames:</strong> <code>crypto.randomBytes(16).toString('hex') + ext</code> — prevents enumeration, path traversal, and filename collision.</li>
+      <li><strong>Size limit:</strong> 20 MB per file · 1 file per request.</li>
+      <li><strong>Directory listing:</strong> Disabled via Nginx <code>autoindex off</code>.</li>
+    </ul>
+
+    <h3>Webhook Security (NOWPayments IPN)</h3>
+    <p>Every incoming IPN webhook is verified with HMAC-SHA512 before any database write:</p>
+    <pre><span class="comment">// 1. Extract signature from request header</span>
+const signature = req.headers['x-nowpayments-sig'];
+const ipnSecret = process.env.NOWPAYMENTS_IPN_SECRET;
+<span class="comment">// 2. Reject immediately if missing</span>
+if (!signature || !ipnSecret) { res.status(401); return; }
+<span class="comment">// 3. Canonicalise body (sorted JSON keys)</span>
+const sortedBody = JSON.stringify(
+  Object.fromEntries(Object.entries(req.body).sort())
+);
+<span class="comment">// 4. Compute expected signature</span>
+const hmac = crypto.createHmac('sha512', ipnSecret).update(sortedBody).digest('hex');
+<span class="comment">// 5. Reject if mismatch</span>
+if (hmac !== signature) { res.status(401); return; }</pre>
+  </div>
+
+  <!-- ══════════════════════════════════════ 8. AUTH ══ -->
+  <div class="section" id="s8">
+    <div class="section-header">
+      <div class="section-num">8</div>
+      <h2>Authentication &amp; Authorisation</h2>
+    </div>
+
+    <h3>Authentication Flow</h3>
+    <pre>POST /api/auth/register
+  → Validate email (regex) + password (min 8, 1 uppercase, 1 digit)
+  → bcrypt.hash(password, 12)
+  → Create User (emailVerified: false)
+  → Generate 6-digit OTP via crypto.randomInt(100000, 999999)
+  → Send OTP via SMTP
+  → 201 { userId, emailVerified: false }
+
+POST /api/auth/verify-email
+  → Find user by userId
+  → Compare OTP + check expiry (15 min window)
+  → Update emailVerified: true, clear OTP fields
+  → Sign JWT { userId, memberType, membershipTier }  exp: 7d
+  → 200 { token }
+
+POST /api/auth/login
+  → Find user by email (lowercase)
+  → Check isActive flag
+  → bcrypt.compare(password, passwordHash)
+  → Check emailVerified (required for MEMBER type)
+  → Sign JWT
+  → 200 { token, user }
+
+<span class="comment">Client stores token in:</span>
+  Cookies.set('gc_token', token, { expires: 7, secure: true, sameSite: 'strict' })</pre>
+
+    <h3>JWT Payload</h3>
+    <pre>{
+  "<span class="key">userId</span>":         "<span class="val">clxxxxx</span>",
+  "<span class="key">memberType</span>":    "<span class="val">MEMBER | COMPANION | ADMIN | SUPER_ADMIN</span>",
+  "<span class="key">membershipTier</span>": "<span class="val">FREE | SILVER | GOLD | PLATINUM</span>",
+  "<span class="key">iat</span>":           1713000000,
+  "<span class="key">exp</span>":           1713604800   <span class="comment">// 7 days</span>
+}</pre>
+
+    <h3>Authorisation Roles</h3>
+    <table>
+      <thead><tr><th>Role</th><th>Capabilities</th></tr></thead>
+      <tbody>
+        <tr><td><span class="tag tag-blue">MEMBER</span></td><td>Browse profiles · Book companions · Make payments · Send messages · View own bookings</td></tr>
+        <tr><td><span class="tag tag-gold">COMPANION</span></td><td>Manage own profile · View bookings for their profile · Upload photos/media</td></tr>
+        <tr><td><span class="tag tag-red">ADMIN</span></td><td>Elevated access (reserved for future use)</td></tr>
+        <tr><td><span class="tag tag-purple">SUPER_ADMIN</span></td><td>Full admin dashboard · Create/edit/delete companions · Manage all users · View all bookings/messages · Reports</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Auth Middleware</h3>
+    <p>The <code>authenticate</code> middleware extracts the Bearer token from the <code>Authorization</code> header, verifies it with <code>jwt.verify()</code>, and attaches <code>req.userId</code> and <code>req.memberType</code> to the request. The <code>requireSuperAdmin</code> middleware checks <code>req.memberType === 'SUPER_ADMIN'</code> and returns 403 otherwise.</p>
+
+    <h3>Rate Limiting — Auth Routes</h3>
+    <table>
+      <thead><tr><th>Route</th><th>Window</th><th>Max Requests</th><th>Response on Limit</th></tr></thead>
+      <tbody>
+        <tr><td>POST /api/auth/login</td><td>15 minutes</td><td>5</td><td>429 — "Too many login attempts"</td></tr>
+        <tr><td>POST /api/auth/register</td><td>60 minutes</td><td>3</td><td>429 — "Too many registration attempts"</td></tr>
+        <tr><td>POST /api/auth/resend-code</td><td>15 minutes</td><td>3</td><td>429 — "Too many resend attempts"</td></tr>
+        <tr><td>All /api/* routes</td><td>60 seconds</td><td>100</td><td>429 — "Too many requests"</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════ 9. DATABASE ══ -->
+  <div class="section" id="s9">
+    <div class="section-header">
+      <div class="section-num">9</div>
+      <h2>Database Schema</h2>
+    </div>
+
+    <p>Database: <strong>PostgreSQL 15</strong> · ORM: <strong>Prisma 5.9</strong> · All IDs: CUID (<code>@default(cuid())</code>) · All timestamps in UTC.</p>
+
+    <h3>Entity Relationship Overview</h3>
+    <pre>User ─────────────── Profile (1:1)
+User ──────────────── Photo (via Profile, 1:N)
+User ──────────────── PrivateMedia (via Profile, 1:N)
+User ──────────────── Message (as sender, 1:N)
+User ──────────────── Message (as receiver, 1:N)
+User ──────────────── Booking (as member, 1:N)
+Profile ──────────── Booking (as companion, 1:N)
+Booking ─────────── Payment (1:1)</pre>
+
+    <h3>Model: User</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>String (CUID)</td><td>Primary key</td></tr>
+        <tr><td><code>email</code></td><td>String (unique)</td><td>Stored lowercase</td></tr>
+        <tr><td><code>passwordHash</code></td><td>String</td><td>bcrypt, cost 12</td></tr>
+        <tr><td><code>memberType</code></td><td>MemberType enum</td><td>MEMBER / COMPANION / ADMIN / SUPER_ADMIN</td></tr>
+        <tr><td><code>membershipTier</code></td><td>MembershipTier enum</td><td>FREE / SILVER / GOLD / PLATINUM</td></tr>
+        <tr><td><code>isVerified</code></td><td>Boolean</td><td>Admin-verified badge</td></tr>
+        <tr><td><code>isActive</code></td><td>Boolean</td><td>Account enabled/disabled by admin</td></tr>
+        <tr><td><code>emailVerified</code></td><td>Boolean</td><td>OTP verification complete</td></tr>
+        <tr><td><code>verificationCode</code></td><td>String?</td><td>6-digit OTP (cleared after verify)</td></tr>
+        <tr><td><code>verificationExpiry</code></td><td>DateTime?</td><td>OTP expires after 15 minutes</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Model: Profile</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>displayName</code></td><td>String</td><td>Public name shown on listings</td></tr>
+        <tr><td><code>age, gender, ethnicity, nationality</code></td><td>Optional</td><td>Demographic display fields</td></tr>
+        <tr><td><code>location, country</code></td><td>String?</td><td>Base location for listings</td></tr>
+        <tr><td><code>travelAvailable</code></td><td>Boolean</td><td>Available for travel bookings</td></tr>
+        <tr><td><code>headline, bio</code></td><td>String?</td><td>Profile marketing copy</td></tr>
+        <tr><td><code>hourlyRate</code></td><td>Float?</td><td>USD per hour — used for booking total calculation</td></tr>
+        <tr><td><code>inCall, outCall</code></td><td>Boolean</td><td>Service type availability flags</td></tr>
+        <tr><td><code>minBookingHours</code></td><td>Int</td><td>Default 1</td></tr>
+        <tr><td><code>isPublished</code></td><td>Boolean</td><td>Visible in browse listings when true</td></tr>
+        <tr><td><code>isVip, isFeatured</code></td><td>Boolean</td><td>Tier display indicators</td></tr>
+        <tr><td><code>viewCount</code></td><td>Int</td><td>Profile view counter</td></tr>
+        <tr><td><code>services, languages, lookingFor</code></td><td>String?</td><td>Free-text descriptors</td></tr>
+        <tr><td><code>height, bodyType, hairColor, eyeColor</code></td><td>Mixed</td><td>Physical description fields</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Model: Booking</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>ref</code></td><td>String (CUID, unique)</td><td>Human-readable booking reference</td></tr>
+        <tr><td><code>type</code></td><td>BookingType enum</td><td>INCALL / OUTCALL</td></tr>
+        <tr><td><code>date, startTime, hours</code></td><td>DateTime, String, Int</td><td>Schedule details</td></tr>
+        <tr><td><code>totalAmount</code></td><td>Float</td><td>Calculated: <code>hourlyRate × hours</code></td></tr>
+        <tr><td><code>hotelName, hotelAddress, hotelCity</code></td><td>String?</td><td>OutCall location details</td></tr>
+        <tr><td><code>status</code></td><td>BookingStatus enum</td><td>PENDING_PAYMENT → CONFIRMED → COMPLETED / CANCELLED / NO_SHOW</td></tr>
+        <tr><td><code>cancelReason</code></td><td>String?</td><td>Provided on cancellation</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Model: Payment</h3>
+    <table>
+      <thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>amount, currency</code></td><td>Float, String</td><td>USD amount, currency code</td></tr>
+        <tr><td><code>btcpayInvoiceId</code></td><td>String? (unique)</td><td>NOWPayments invoice ID (field name legacy from BTCPay era)</td></tr>
+        <tr><td><code>checkoutUrl</code></td><td>String?</td><td>NOWPayments hosted checkout URL</td></tr>
+        <tr><td><code>status</code></td><td>PaymentStatus enum</td><td>PENDING → CONFIRMED → COMPLETED / EXPIRED / FAILED</td></tr>
+        <tr><td><code>confirmedAt</code></td><td>DateTime?</td><td>Set when IPN <code>finished</code> received</td></tr>
+        <tr><td><code>expiresAt</code></td><td>DateTime?</td><td>Invoice expiry (60 min from creation)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════ 10. API REFERENCE ══ -->
+  <div class="section" id="s10">
+    <div class="section-header">
+      <div class="section-num">10</div>
+      <h2>API Reference</h2>
+    </div>
+
+    <p>Base URL: <code>https://gild3d.com/api</code> &nbsp;·&nbsp; All authenticated routes require <code>Authorization: Bearer &lt;jwt&gt;</code></p>
+
+    <h3>Auth — <code>/api/auth</code></h3>
+    <table>
+      <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Rate Limit</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="method-post">POST</td><td><code>/register</code></td><td>None</td><td>3/hr</td><td>Register new member account. Sends OTP email.</td></tr>
+        <tr><td class="method-post">POST</td><td><code>/verify-email</code></td><td>None</td><td>—</td><td>Verify email with 6-digit OTP. Returns JWT on success.</td></tr>
+        <tr><td class="method-post">POST</td><td><code>/resend-code</code></td><td>None</td><td>3/15min</td><td>Re-send OTP email for unverified account.</td></tr>
+        <tr><td class="method-post">POST</td><td><code>/login</code></td><td>None</td><td>5/15min</td><td>Authenticate and receive JWT.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Profiles — <code>/api/profiles</code></h3>
+    <table>
+      <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="method-get">GET</td><td><code>/</code></td><td>None</td><td>List all published companion profiles.</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/:userId</code></td><td>None</td><td>Get single profile with photos. Private media returned for authenticated users.</td></tr>
+        <tr><td class="method-patch">PUT</td><td><code>/me</code></td><td>Required</td><td>Update own profile fields.</td></tr>
+        <tr><td class="method-post">POST</td><td><code>/me/photos</code></td><td>Required</td><td>Upload photo (multipart/form-data · field: <code>photo</code>).</td></tr>
+        <tr><td class="method-delete">DELETE</td><td><code>/me/photos/:photoId</code></td><td>Required</td><td>Delete own photo.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Bookings — <code>/api/bookings</code></h3>
+    <table>
+      <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="method-post">POST</td><td><code>/webhook/nowpayments</code></td><td>None (HMAC verified)</td><td>NOWPayments IPN callback. Validates HMAC-SHA512 signature, confirms booking on <code>finished</code> status.</td></tr>
+        <tr><td class="method-post">POST</td><td><code>/</code></td><td>Required</td><td>Create booking. Returns <code>bookingId</code> for payment step.</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/</code></td><td>Required</td><td>List own bookings (member view) or received bookings (companion view).</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/:bookingId</code></td><td>Required</td><td>Get single booking. Ownership check enforced.</td></tr>
+        <tr><td class="method-post">POST</td><td><code>/:bookingId/payment</code></td><td>Required</td><td>Create NOWPayments invoice. Returns <code>checkoutUrl</code> for redirect.</td></tr>
+        <tr><td class="method-patch">PATCH</td><td><code>/:bookingId/cancel</code></td><td>Required</td><td>Cancel booking (member only, before COMPLETED).</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Messages — <code>/api/messages</code></h3>
+    <table>
+      <thead><tr><th>Method</th><th>Path</th><th>Auth</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="method-post">POST</td><td><code>/</code></td><td>Required</td><td>Send message to another user.</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/conversations</code></td><td>Required</td><td>List all conversation threads.</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/:userId</code></td><td>Required</td><td>Get message thread with a specific user.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Admin — <code>/api/admin</code> (SUPER_ADMIN only)</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Path</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="method-get">GET</td><td><code>/dashboard</code></td><td>Platform stats: member counts, revenue totals, recent bookings.</td></tr>
+        <tr><td class="method-post">POST</td><td><code>/companions</code></td><td>Create new companion account + profile.</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/companions</code></td><td>List all companion accounts with profiles.</td></tr>
+        <tr><td class="method-patch">PATCH</td><td><code>/companions/:userId/publish</code></td><td>Toggle companion profile published state.</td></tr>
+        <tr><td class="method-patch">PATCH</td><td><code>/companions/:userId/rate</code></td><td>Update companion profile fields (rate, bio, age, availability flags, VIP).</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/members</code></td><td>List all members (filterable by active/inactive).</td></tr>
+        <tr><td class="method-patch">PATCH</td><td><code>/users/:userId/active</code></td><td>Enable or disable a user account.</td></tr>
+        <tr><td class="method-delete">DELETE</td><td><code>/users/:userId</code></td><td>Permanently delete a user and all associated data.</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/audit/bookings</code></td><td>Full booking audit log (filterable by date, companion, member, status). Max 500 rows.</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/audit/messages</code></td><td>Paginated message audit log (50 per page, filterable by userId).</td></tr>
+        <tr><td class="method-get">GET</td><td><code>/reports</code></td><td>Revenue reports: per-companion earnings, status breakdown, new registrations. Period: week or month.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Health Check</h3>
+    <table>
+      <thead><tr><th>Method</th><th>Path</th><th>Response</th></tr></thead>
+      <tbody>
+        <tr><td class="method-get">GET</td><td><code>/api/health</code></td><td><code>{ "status": "ok" }</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════ 11. PAYMENTS ══ -->
+  <div class="section" id="s11">
+    <div class="section-header">
+      <div class="section-num">11</div>
+      <h2>Payment System (NOWPayments)</h2>
+    </div>
+
+    <h3>Accepted Cryptocurrencies</h3>
+    <div class="grid-4">
+      <div class="card"><div class="card-title">Bitcoin</div><div class="card-value">₿ BTC</div></div>
+      <div class="card"><div class="card-title">Litecoin</div><div class="card-value">Ł LTC</div></div>
+      <div class="card"><div class="card-title">Ethereum</div><div class="card-value">Ξ ETH</div></div>
+      <div class="card"><div class="card-title">USD Coin</div><div class="card-value">◈ USDC</div></div>
+    </div>
+    <div class="grid-4">
+      <div class="card"><div class="card-title">Dash</div><div class="card-value">⚡ DASH</div></div>
+    </div>
+
+    <h3>Payment Flow</h3>
+    <pre>1. Member submits booking → POST /api/bookings
+   → Booking created with status: PENDING_PAYMENT
+   → Returns bookingId
+
+2. Member clicks "Pay Now" → POST /api/bookings/:bookingId/payment
+   → Backend calls NOWPayments Invoice API:
+     POST https://api.nowpayments.io/v1/invoice
+     {
+       price_amount: booking.totalAmount,
+       price_currency: "usd",
+       order_id: booking.id,
+       ipn_callback_url: "https://gild3d.com/api/bookings/webhook/nowpayments",
+       success_url: "https://gild3d.com/bookings?ref=...&status=success",
+       cancel_url:  "https://gild3d.com/bookings"
+     }
+   → Payment record upserted (handles retry scenario)
+   → Returns { checkoutUrl, invoiceId }
+
+3. Browser redirects to NOWPayments hosted checkout
+   → User selects crypto, sends payment
+
+4. NOWPayments calls IPN webhook on payment_status changes:
+   waiting → confirming → confirmed → sending → finished
+
+5. On status = "finished":
+   → HMAC-SHA512 signature verified
+   → Payment.status → CONFIRMED
+   → Booking.status → CONFIRMED
+   → Confirmation email sent to member via SMTP</pre>
+
+    <h3>Key Configuration</h3>
+    <table>
+      <thead><tr><th>Setting</th><th>Env Var</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>API Key</td><td><code>NOWPAYMENTS_API_KEY</code></td><td>Advanced API key from NOWPayments dashboard</td></tr>
+        <tr><td>IPN Secret</td><td><code>NOWPAYMENTS_IPN_SECRET</code></td><td>Used to verify webhook HMAC-SHA512 signatures</td></tr>
+        <tr><td>IPN URL</td><td><code>SITE_URL + /api/bookings/webhook/nowpayments</code></td><td>Must match the URL configured in NOWPayments dashboard</td></tr>
+        <tr><td>Invoice expiry</td><td>Hardcoded</td><td>60 minutes (<code>Date.now() + 60 * 60 * 1000</code>)</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      <strong style="color:var(--gold);">Idempotency Note</strong><br/>
+      <p style="margin-top:6px;">The payment creation endpoint uses <code>prisma.payment.upsert()</code> keyed on <code>bookingId</code>. If a member clicks "Pay Now" multiple times (e.g. after a failed attempt), the existing Payment record is updated rather than creating a duplicate, preventing unique-constraint errors.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ 12. FILE MANAGEMENT ══ -->
+  <div class="section" id="s12">
+    <div class="section-header">
+      <div class="section-num">12</div>
+      <h2>File Upload &amp; Media Management</h2>
+    </div>
+
+    <h3>Upload Configuration</h3>
+    <table>
+      <thead><tr><th>Setting</th><th>Value</th></tr></thead>
+      <tbody>
+        <tr><td>Middleware</td><td>Multer (diskStorage)</td></tr>
+        <tr><td>Storage destination</td><td><code>/app/uploads</code> (Docker volume <code>uploads_data</code>)</td></tr>
+        <tr><td>Filename format</td><td><code>{crypto.randomBytes(16).hex}{ext}</code> — e.g. <code>a3f8e2c1...d9.jpg</code></td></tr>
+        <tr><td>Max file size</td><td>20 MB</td></tr>
+        <tr><td>Max files per request</td><td>1</td></tr>
+        <tr><td>Allowed extensions</td><td>.jpg · .jpeg · .png · .gif · .webp · .mp4 · .mov</td></tr>
+        <tr><td>MIME validation</td><td>Extension AND MIME type must both match allow-list</td></tr>
+        <tr><td>Serving</td><td>Nginx serves <code>/uploads/*</code> directly from volume (30-day cache, no Express overhead)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Media Models</h3>
+    <ul>
+      <li><strong>Photo</strong> — Public profile photos. Fields: <code>url</code>, <code>thumbUrl</code>, <code>isPrimary</code>, <code>isApproved</code>, <code>order</code>.</li>
+      <li><strong>PrivateMedia</strong> — Gated media (PHOTO or VIDEO type). Only returned in API when viewer is authenticated. Fields: <code>url</code>, <code>thumbUrl</code>, <code>type</code>, <code>title</code>, <code>order</code>.</li>
+    </ul>
+
+    <div class="info-box">
+      <strong style="color:var(--gold);">AWS S3 Ready</strong><br/>
+      <p style="margin-top:6px;">Environment variables <code>UPLOAD_PROVIDER</code>, <code>AWS_S3_BUCKET</code>, <code>AWS_REGION</code>, <code>AWS_ACCESS_KEY_ID</code>, and <code>AWS_SECRET_ACCESS_KEY</code> are pre-configured in docker-compose.yml. Switching from local to S3 storage requires only implementing the S3 upload path in the upload middleware and setting <code>UPLOAD_PROVIDER=s3</code>.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ 13. EMAIL ══ -->
+  <div class="section" id="s13">
+    <div class="section-header">
+      <div class="section-num">13</div>
+      <h2>Email Notifications</h2>
+    </div>
+
+    <h3>SMTP Configuration</h3>
+    <table>
+      <thead><tr><th>Setting</th><th>Env Var</th><th>Current Value</th></tr></thead>
+      <tbody>
+        <tr><td>SMTP Host</td><td><code>SMTP_HOST</code></td><td>smtp.gmail.com</td></tr>
+        <tr><td>SMTP Port</td><td><code>SMTP_PORT</code></td><td>587 (STARTTLS)</td></tr>
+        <tr><td>SMTP User</td><td><code>SMTP_USER</code></td><td>wordpress.myblognow.uk@gmail.com</td></tr>
+        <tr><td>From Address</td><td><code>SMTP_FROM</code></td><td>noreply@gild3d.com</td></tr>
+        <tr><td>Auth</td><td><code>SMTP_PASS</code></td><td>Gmail App Password (16-char)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Triggered Emails</h3>
+    <table>
+      <thead><tr><th>Trigger</th><th>Recipient</th><th>Subject</th><th>Content</th></tr></thead>
+      <tbody>
+        <tr><td>New registration</td><td>New member</td><td>Gilded Companions – Verify Your Email</td><td>6-digit OTP code, expires 15 min. HTML branded template.</td></tr>
+        <tr><td>Resend OTP</td><td>Member</td><td>Gilded Companions – Verify Your Email</td><td>New 6-digit OTP code.</td></tr>
+        <tr><td>Booking confirmed (payment finished)</td><td>Member</td><td>Booking Confirmed – Ref #XXXXXXXX</td><td>Full booking details: companion name, date, time, hours, amount, type, OutCall address if applicable.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="info-box">
+      <strong style="color:var(--gold);">Email Failure Handling</strong><br/>
+      <p style="margin-top:6px;">Registration email failures are logged but do not block account creation — the user ID is returned and the member can request a resend. Booking confirmation email failures are caught with <code>.catch(() => {})</code> to prevent webhook processing failure affecting the payment confirmation state.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ 14. ENV CONFIG ══ -->
+  <div class="section" id="s14">
+    <div class="section-header">
+      <div class="section-num">14</div>
+      <h2>Environment Configuration</h2>
+    </div>
+
+    <p>Environment variables are stored in <code>gild3d-app/.env</code> and injected into containers via <code>docker-compose.yml</code>.</p>
+
+    <pre><span class="comment"># ── Runtime ──────────────────────────────────</span>
+<span class="key">NODE_ENV</span>=<span class="val">production</span>
+<span class="key">SITE_URL</span>=<span class="val">https://gild3d.com</span>
+
+<span class="comment"># ── Frontend (NEXT_PUBLIC_* exposed to browser) ──</span>
+<span class="key">NEXT_PUBLIC_API_URL</span>=<span class="val">https://gild3d.com/api</span>
+<span class="key">NEXT_PUBLIC_SITE_NAME</span>=<span class="val">Gilded Companions</span>
+
+<span class="comment"># ── Database ──────────────────────────────────</span>
+<span class="key">DB_USER</span>=<span class="val">gild3duser</span>
+<span class="key">DB_PASSWORD</span>=<span class="val">[redacted]</span>
+<span class="key">DB_NAME</span>=<span class="val">gild3d</span>
+<span class="comment"># Full URL built by docker-compose: postgresql://DB_USER:DB_PASSWORD@postgres:5432/DB_NAME</span>
+
+<span class="comment"># ── Auth ──────────────────────────────────────</span>
+<span class="key">JWT_SECRET</span>=<span class="val">[redacted — min 32 chars]</span>
+<span class="key">JWT_EXPIRES_IN</span>=<span class="val">7d</span>
+<span class="key">CORS_ORIGIN</span>=<span class="val">https://gild3d.com</span>
+
+<span class="comment"># ── Payments ──────────────────────────────────</span>
+<span class="key">NOWPAYMENTS_API_KEY</span>=<span class="val">[redacted]</span>
+<span class="key">NOWPAYMENTS_IPN_SECRET</span>=<span class="val">[redacted]</span>
+
+<span class="comment"># ── SMTP Email ────────────────────────────────</span>
+<span class="key">SMTP_HOST</span>=<span class="val">smtp.gmail.com</span>
+<span class="key">SMTP_PORT</span>=<span class="val">587</span>
+<span class="key">SMTP_USER</span>=<span class="val">[redacted]</span>
+<span class="key">SMTP_PASS</span>=<span class="val">[redacted — Gmail App Password]</span>
+<span class="key">SMTP_FROM</span>=<span class="val">noreply@gild3d.com</span>
+
+<span class="comment"># ── File Storage ──────────────────────────────</span>
+<span class="key">UPLOAD_PROVIDER</span>=<span class="val">local</span>
+<span class="comment"># AWS S3 vars pre-configured but inactive (UPLOAD_PROVIDER=local)</span>
+<span class="key">AWS_S3_BUCKET</span>=<span class="val">gild3d-uploads</span>
+<span class="key">AWS_REGION</span>=<span class="val">us-east-1</span>
+
+<span class="comment"># ── Legacy (BTCPay — no longer active) ────────</span>
+<span class="key">BTCPAY_URL</span>=<span class="val">https://mainnet.demo.btcpayserver.org</span>
+<span class="key">BTCPAY_API_KEY</span>=<span class="val">[redacted]</span>
+<span class="key">BTCPAY_STORE_ID</span>=<span class="val">[redacted]</span>
+<span class="key">BTCPAY_WEBHOOK_SECRET</span>=<span class="val">[redacted]</span></pre>
+
+    <div class="warn-box">
+      <strong style="color:var(--red);">Security Recommendation</strong><br/>
+      <p style="margin-top:6px;">The <code>.env</code> file must never be committed to version control. Rotate all secrets if the git history was exposed. For production hardening: consider AWS Secrets Manager or HashiCorp Vault for secret rotation. At minimum, ensure <code>.env</code> is in <code>.gitignore</code>.</p>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════ 15. DEPLOYMENT ══ -->
+  <div class="section" id="s15">
+    <div class="section-header">
+      <div class="section-num">15</div>
+      <h2>Deployment Process</h2>
+    </div>
+
+    <h3>deploy.sh — Step-by-Step</h3>
+    <p>Run from the <code>PS-Scripts/</code> directory on the developer's Mac: <code>bash gild3d-app/deploy.sh</code></p>
+
+    <table>
+      <thead><tr><th>Step</th><th>Action</th><th>Files</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>SCP environment config to server</td><td><code>.env</code> · <code>docker-compose.yml</code></td></tr>
+        <tr><td>2</td><td>SCP backend source files</td><td><code>package.json</code> · <code>src/index.ts</code> · all controllers · all routes · middleware</td></tr>
+        <tr><td>3</td><td>SCP frontend + nginx files</td><td><code>app/profile/[id]/page.tsx</code> · <code>app/bookings/page.tsx</code> · <code>app/admin/page.tsx</code> · <code>nginx/nginx.conf</code></td></tr>
+        <tr><td>4</td><td>Rebuild &amp; restart backend</td><td><code>docker compose build backend &amp;&amp; docker compose up -d --force-recreate backend</code></td></tr>
+        <tr><td>5</td><td>Rebuild &amp; restart frontend</td><td><code>docker compose build frontend &amp;&amp; docker compose up -d frontend</code></td></tr>
+        <tr><td>5b</td><td>Reload Nginx config</td><td><code>docker exec gild3d-nginx nginx -t &amp;&amp; nginx -s reload</code></td></tr>
+        <tr><td>6</td><td>Verify deployment (25s wait)</td><td>Container status · API health · Security headers · Rate limit test · Webhook signature test</td></tr>
+      </tbody>
+    </table>
+
+    <h3>SSH / SCP Access</h3>
+    <pre>PEM=gild3d-app/gild3d-production.pem
+HOST=ubuntu@3.93.100.110
+SSH="ssh -i $PEM -o StrictHostKeyChecking=no"
+SCP="scp -i $PEM -o StrictHostKeyChecking=no"</pre>
+
+    <h3>Prisma Migrations</h3>
+    <p>Schema changes require running inside the backend container:</p>
+    <pre>docker exec gild3d-backend npx prisma migrate deploy
+docker exec gild3d-backend npx prisma generate</pre>
+
+    <h3>Useful Operational Commands</h3>
+    <pre><span class="comment"># View all container logs</span>
+docker compose logs -f
+
+<span class="comment"># View specific container logs</span>
+docker compose logs -f backend
+docker compose logs -f nginx
+
+<span class="comment"># Container status</span>
+docker ps --format 'table {{.Names}}\t{{.Status}}'
+
+<span class="comment"># Access PostgreSQL interactively</span>
+docker exec -it gild3d-db psql -U gild3duser -d gild3d
+
+<span class="comment"># Reload nginx after config change (no downtime)</span>
+docker exec gild3d-nginx nginx -s reload
+
+<span class="comment"># Restart single service</span>
+docker compose up -d --force-recreate backend</pre>
+  </div>
+
+  <!-- ══════════════════════════════════════ 16. INTEGRATIONS ══ -->
+  <div class="section" id="s16">
+    <div class="section-header">
+      <div class="section-num">16</div>
+      <h2>Third-Party Integrations</h2>
+    </div>
+
+    <table>
+      <thead><tr><th>Service</th><th>Purpose</th><th>Integration Method</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Cloudflare</strong></td>
+          <td>DNS, CDN, DDoS, WAF, SSL</td>
+          <td>DNS delegation (nameservers) · Cloudflare IPs trusted in Nginx</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>NOWPayments</strong></td>
+          <td>Crypto payment processing</td>
+          <td>REST Invoice API (<code>x-api-key</code> header) · IPN webhook (HMAC-SHA512)</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>Let's Encrypt</strong></td>
+          <td>Free TLS certificates</td>
+          <td>Certbot container · ACME HTTP-01 challenge via Nginx</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>Gmail / Google SMTP</strong></td>
+          <td>Transactional email (OTP, booking confirmations)</td>
+          <td>Nodemailer SMTP · Gmail App Password authentication</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>AWS Lightsail</strong></td>
+          <td>VPS hosting</td>
+          <td>Ubuntu 22.04 instance · static IP</td>
+          <td><span class="tag tag-green">Active</span></td>
+        </tr>
+        <tr>
+          <td><strong>AWS S3</strong></td>
+          <td>Media storage (optional)</td>
+          <td>SDK credentials pre-configured · inactive (local volume used)</td>
+          <td><span class="tag tag-muted">Standby</span></td>
+        </tr>
+        <tr>
+          <td><strong>BTCPay Server</strong></td>
+          <td>Bitcoin payments (legacy)</td>
+          <td>REST API · Webhook — superseded by NOWPayments</td>
+          <td><span class="tag tag-muted">Legacy</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ══════════════════════════════════════ 17. RUNBOOK ══ -->
+  <div class="section" id="s17">
+    <div class="section-header">
+      <div class="section-num">17</div>
+      <h2>Operational Runbook</h2>
+    </div>
+
+    <h3>Recommended Ongoing Security Actions</h3>
+    <table>
+      <thead><tr><th>Task</th><th>Frequency</th><th>Command / Action</th></tr></thead>
+      <tbody>
+        <tr><td>npm audit (backend)</td><td>Before every deploy</td><td><code>cd gild3d-app/backend &amp;&amp; npm audit</code></td></tr>
+        <tr><td>Rotate NOWPayments API key</td><td>Every 90 days</td><td>NOWPayments dashboard → Regenerate → Update <code>.env</code> → Deploy</td></tr>
+        <tr><td>Rotate JWT_SECRET</td><td>Every 90 days</td><td>Update <code>.env</code> → Deploy (all active sessions will be invalidated)</td></tr>
+        <tr><td>Check Cloudflare IP ranges</td><td>Quarterly</td><td>Verify <code>nginx.conf</code> <code>set_real_ip_from</code> blocks match <a href="https://www.cloudflare.com/ips/" style="color:var(--gold);">cloudflare.com/ips/</a></td></tr>
+        <tr><td>SSL certificate status</td><td>Monitor monthly</td><td><code>docker exec gild3d-certbot certbot certificates</code></td></tr>
+        <tr><td>Disk space (uploads volume)</td><td>Monthly</td><td><code>docker system df</code> on server</td></tr>
+        <tr><td>PostgreSQL backup</td><td>Weekly minimum</td><td><code>docker exec gild3d-db pg_dump -U gild3duser gild3d &gt; backup.sql</code></td></tr>
+        <tr><td>Review Cloudflare WAF logs</td><td>Weekly</td><td>Cloudflare Dashboard → Security → Events</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Common Troubleshooting</h3>
+    <table>
+      <thead><tr><th>Symptom</th><th>Likely Cause</th><th>Resolution</th></tr></thead>
+      <tbody>
+        <tr><td>Login returns CORS error</td><td>Origin not in <code>allowedOrigins</code> set</td><td>Check <code>CORS_ORIGIN</code> env var; code allows both www and non-www variants</td></tr>
+        <tr><td>Payment "Failed to create payment"</td><td>Invalid or expired <code>NOWPAYMENTS_API_KEY</code></td><td>Regenerate key in NOWPayments dashboard, update <code>.env</code>, rebuild backend</td></tr>
+        <tr><td>Webhook returns 401</td><td>Missing or wrong <code>NOWPAYMENTS_IPN_SECRET</code></td><td>Verify IPN secret matches between <code>.env</code> and NOWPayments dashboard</td></tr>
+        <tr><td>Backend not starting</td><td>PostgreSQL not ready</td><td>health-check dependency will retry; check <code>docker compose logs postgres</code></td></tr>
+        <tr><td>Nginx 502 Bad Gateway</td><td>Backend or frontend container crashed</td><td><code>docker compose logs backend</code> / <code>docker compose up -d --force-recreate backend</code></td></tr>
+        <tr><td>429 Too Many Requests on login</td><td>Rate limit hit (5 attempts / 15 min per IP)</td><td>Wait 15 minutes or clear Express rate-limit window (restart backend)</td></tr>
+        <tr><td>File upload rejected</td><td>MIME type / extension mismatch</td><td>Ensure file is genuine JPG/PNG/GIF/WebP/MP4/MOV — not renamed</td></tr>
+      </tbody>
+    </table>
+
+    <div class="success-box">
+      <strong style="color:var(--green);">Platform Status at Document Date (April 2026)</strong>
+      <ul style="margin-top:10px;font-size:13px;">
+        <li>All 5 containers running and healthy</li>
+        <li>TLS certificates valid and auto-renewing</li>
+        <li>NOWPayments integration active (BTC/LTC/ETH/USDC/DASH)</li>
+        <li>HMAC-SHA512 webhook signature verification enforced</li>
+        <li>Full OWASP Top 10 coverage at application layer</li>
+        <li>Cloudflare WAF and DDoS protection active at edge</li>
+        <li>Admin dashboard with full companion CRUD deployed</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="border-top:1px solid var(--border);padding-top:32px;margin-top:40px;text-align:center;">
+    <p style="font-family:Georgia,serif;color:var(--gold);font-size:20px;margin-bottom:8px;">✦</p>
+    <p style="color:var(--dim);font-size:11px;letter-spacing:0.1em;text-transform:uppercase;">Gilded Companions · Technical Architecture Document · Confidential · April 2026</p>
+    <p style="color:var(--dim);font-size:11px;margin-top:4px;">gild3d.com · AWS Lightsail us-east-1 · 3.93.100.110</p>
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>

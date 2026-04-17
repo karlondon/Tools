@@ -12,7 +12,7 @@ const inp: React.CSSProperties = { width:'100%', padding:'10px 12px', background
 
 function BookingModal({ profile, onClose }: { profile:any; onClose:()=>void }) {
   const router = useRouter();
-  const [type, setType] = useState<'OUT_CALL'|'IN_CALL'>(profile.outCall ? 'OUT_CALL' : 'IN_CALL');
+  const [type, setType] = useState<'OUTCALL'|'INCALL'>(profile.outCall ? 'OUTCALL' : 'INCALL');
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
   const [hours, setHours] = useState(profile.minBookingHours||1);
@@ -29,7 +29,7 @@ function BookingModal({ profile, onClose }: { profile:any; onClose:()=>void }) {
     e.preventDefault(); setErr(''); setBusy(true);
     try {
       const body:any = {profileId:profile.id,type,date,startTime:time,hours,notes};
-      if(type==='OUT_CALL'){body.hotelName=venue.name;body.hotelAddress=venue.addr;body.hotelCity=venue.city;body.roomNumber=venue.room;}
+      if(type==='OUTCALL'){body.hotelName=venue.name;body.hotelAddress=venue.addr;body.hotelCity=venue.city;body.roomNumber=venue.room;}
       const r = await api.post('/bookings',body);
       setOk('Booking submitted! Ref: '+(r.data.booking?.ref||'confirmed'));
       setTimeout(()=>{onClose();router.push('/bookings');},2800);
@@ -59,8 +59,8 @@ function BookingModal({ profile, onClose }: { profile:any; onClose:()=>void }) {
             <div style={{marginBottom:16}}>
               <p style={{color:DIM,fontSize:10,letterSpacing:'0.15em',textTransform:'uppercase',marginBottom:8}}>Booking Type</p>
               <div style={{display:'flex',gap:10}}>
-                {profile.outCall&&<button type="button" onClick={()=>setType('OUT_CALL')} style={{flex:1,padding:'10px 6px',fontSize:12,borderRadius:2,cursor:'pointer',border:`1px solid ${type==='OUT_CALL'?G:BORDER}`,background:type==='OUT_CALL'?'#c9a84c18':BG,color:type==='OUT_CALL'?G:MUTED}}>🏨 Out Call</button>}
-                {profile.inCall&&<button type="button" onClick={()=>setType('IN_CALL')} style={{flex:1,padding:'10px 6px',fontSize:12,borderRadius:2,cursor:'pointer',border:`1px solid ${type==='IN_CALL'?G:BORDER}`,background:type==='IN_CALL'?'#c9a84c18':BG,color:type==='IN_CALL'?G:MUTED}}>📍 In Call</button>}
+                {profile.outCall&&<button type="button" onClick={()=>setType('OUTCALL')} style={{flex:1,padding:'10px 6px',fontSize:12,borderRadius:2,cursor:'pointer',border:`1px solid ${type==='OUTCALL'?G:BORDER}`,background:type==='OUTCALL'?'#c9a84c18':BG,color:type==='OUTCALL'?G:MUTED}}>🏨 Out Call</button>}
+                {profile.inCall&&<button type="button" onClick={()=>setType('INCALL')} style={{flex:1,padding:'10px 6px',fontSize:12,borderRadius:2,cursor:'pointer',border:`1px solid ${type==='INCALL'?G:BORDER}`,background:type==='INCALL'?'#c9a84c18':BG,color:type==='INCALL'?G:MUTED}}>📍 In Call</button>}
               </div>
             </div>
             <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:16}}>
@@ -75,7 +75,7 @@ function BookingModal({ profile, onClose }: { profile:any; onClose:()=>void }) {
                 ))}
               </div>
             </div>
-            {type==='OUT_CALL'&&(
+            {type==='OUTCALL'&&(
               <div style={{background:'#0a0912',border:`1px solid ${BORDER}`,borderRadius:2,padding:14,marginBottom:16}}>
                 <p style={{color:G,fontSize:11,letterSpacing:'0.12em',marginBottom:10}}>YOUR LOCATION</p>
                 {[['Venue / Hotel',venue.name,(v:string)=>setVenue(x=>({...x,name:v}))],

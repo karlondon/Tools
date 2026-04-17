@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gild3d — Project Delivery & Handover</title>
+<style>
+  :root {
+    --gold: #C9A84C; --gold-light: #E8C870; --gold-dark: #8B6914;
+    --bg: #0A0A0A; --surface: #111111; --surface2: #1A1A1A;
+    --border: #2A2A2A; --text: #E8E8E8; --muted: #888;
+    --green: #4CAF50; --red: #E57373; --amber: #FFB74D; --blue: #64B5F6;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; }
+  header {
+    background: linear-gradient(135deg, #0A0A0A 0%, #1A1200 50%, #0A0A0A 100%);
+    border-bottom: 1px solid var(--gold-dark); padding: 50px 60px; position: relative;
+  }
+  .doc-label { font-size: 11px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; }
+  h1 { font-size: 40px; font-weight: 300; color: #fff; margin-bottom: 8px; }
+  h1 em { color: var(--gold); font-style: normal; }
+  .doc-meta { display: flex; gap: 30px; margin-top: 24px; flex-wrap: wrap; }
+  .doc-meta span { font-size: 12px; color: var(--muted); }
+  .doc-meta span strong { color: #ccc; }
+  .nav-back { position: absolute; top: 24px; right: 40px; }
+  .nav-back a { color: var(--gold); font-size: 13px; text-decoration: none; }
+  main { max-width: 960px; margin: 0 auto; padding: 60px 40px; }
+  section { margin-bottom: 56px; }
+  .section-title {
+    font-size: 11px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
+    margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+  .section-num { color: var(--gold-dark); }
+  h2 { font-size: 24px; font-weight: 300; color: #fff; margin-bottom: 14px; }
+  h3 { font-size: 16px; color: var(--gold-light); margin: 20px 0 12px; font-weight: 400; }
+  p { color: #ccc; line-height: 1.9; margin-bottom: 14px; font-size: 15px; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 16px 0; }
+  th { background: var(--surface2); color: var(--gold); padding: 10px 14px; text-align: left; font-weight: 400; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+  td { padding: 11px 14px; border-bottom: 1px solid var(--border); color: #ccc; vertical-align: top; line-height: 1.6; }
+  tr:hover td { background: var(--surface); }
+
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 11px; font-weight: 500; }
+  .pill-done { background: rgba(76,175,80,0.15); color: var(--green); border: 1px solid rgba(76,175,80,0.3); }
+  .pill-pending { background: rgba(255,183,77,0.15); color: var(--amber); border: 1px solid rgba(255,183,77,0.3); }
+  .pill-future { background: rgba(100,181,246,0.15); color: var(--blue); border: 1px solid rgba(100,181,246,0.3); }
+  .pill-critical { background: rgba(229,115,115,0.15); color: var(--red); border: 1px solid rgba(229,115,115,0.3); }
+
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .info-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 22px; }
+  .info-box h4 { color: var(--gold); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px; font-weight: 400; }
+  .info-row { display: flex; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .info-row:last-child { border-bottom: none; }
+  .info-row span:first-child { color: var(--muted); }
+  .info-row span:last-child { color: #ddd; }
+
+  .credential-box {
+    background: #0D0D00; border: 1px solid var(--gold-dark); border-radius: 8px;
+    padding: 20px; margin: 12px 0; font-family: 'Courier New', monospace; font-size: 13px;
+  }
+  .credential-box .cred-label { color: var(--gold); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  .credential-box .cred-row { display: flex; gap: 20px; padding: 5px 0; }
+  .credential-box .cred-key { color: var(--muted); width: 200px; flex-shrink: 0; }
+  .credential-box .cred-val { color: #ddd; }
+  .credential-box .redacted { color: var(--red); font-style: italic; }
+
+  .warning-box { background: rgba(229,115,115,0.08); border: 1px solid rgba(229,115,115,0.3); border-radius: 8px; padding: 20px; margin: 20px 0; }
+  .warning-box p { color: #fcc; margin: 0; font-size: 14px; }
+  .warning-box strong { color: var(--red); }
+
+  .note-box { background: rgba(201,168,76,0.06); border: 1px solid var(--gold-dark); border-radius: 8px; padding: 20px; margin: 20px 0; }
+  .note-box p { color: #ddc; margin: 0; font-size: 14px; }
+  .note-box strong { color: var(--gold); }
+
+  .checklist { list-style: none; padding: 0; }
+  .checklist li { padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: #ccc; display: flex; align-items: flex-start; gap: 12px; }
+  .checklist li .check-box { width: 18px; height: 18px; border: 1px solid var(--border); border-radius: 3px; flex-shrink: 0; margin-top: 2px; display: flex; align-items: center; justify-content: center; }
+  .checklist li.done .check-box { background: rgba(76,175,80,0.2); border-color: var(--green); color: var(--green); font-size: 12px; }
+  .checklist li.todo .check-box { background: transparent; }
+  .checklist li.done span { color: #aaa; }
+
+  /* Phase 2 roadmap */
+  .roadmap-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 18px 20px; margin: 10px 0; display: flex; gap: 16px; align-items: flex-start; }
+  .roadmap-priority { font-size: 11px; padding: 4px 10px; border-radius: 4px; white-space: nowrap; flex-shrink: 0; }
+  .rp-high { background: rgba(229,115,115,0.15); color: var(--red); }
+  .rp-med { background: rgba(255,183,77,0.15); color: var(--amber); }
+  .rp-low { background: rgba(100,181,246,0.15); color: var(--blue); }
+  .roadmap-content h4 { font-size: 14px; color: #ddd; margin-bottom: 4px; font-weight: 400; }
+  .roadmap-content p { font-size: 13px; color: #888; margin: 0; line-height: 1.5; }
+
+  /* Sign-off */
+  .signoff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; }
+  .signoff-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 28px; }
+  .signoff-box h4 { color: var(--gold); font-size: 13px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 20px; font-weight: 400; }
+  .signoff-line { border-bottom: 1px solid var(--border); margin: 30px 0 8px; }
+  .signoff-label { font-size: 12px; color: var(--muted); }
+
+  footer { border-top: 1px solid var(--border); padding: 30px 60px; display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; }
+  footer a { color: var(--gold); text-decoration: none; }
+  @media (max-width: 700px) { .info-grid, .signoff-grid { grid-template-columns: 1fr; } header { padding: 30px 20px; } main { padding: 30px 20px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-back"><a href="index.html">← Document Hub</a></div>
+  <div class="doc-label">Document 04 — Project Delivery &amp; Handover</div>
+  <h1><em>Gild3d</em> — Project Delivery &amp; Handover</h1>
+  <div class="doc-meta">
+    <span><strong>Version:</strong> 1.0</span>
+    <span><strong>Date:</strong> April 2026</span>
+    <span><strong>Phase:</strong> Phase 1 — Complete</span>
+    <span><strong>Classification:</strong> Confidential</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Project Summary -->
+  <section>
+    <div class="section-title"><span class="section-num">01 &nbsp;</span> Project Summary</div>
+    <div class="info-grid">
+      <div class="info-box">
+        <h4>Project Details</h4>
+        <div class="info-row"><span>Project Name</span><span>Gild3d Luxury Platform</span></div>
+        <div class="info-row"><span>Phase</span><span>Phase 1 — Core Platform</span></div>
+        <div class="info-row"><span>Start Date</span><span>2025</span></div>
+        <div class="info-row"><span>Delivery Date</span><span>April 2026</span></div>
+        <div class="info-row"><span>Status</span><span style="color:var(--green)">Delivered ✓</span></div>
+        <div class="info-row"><span>Environment</span><span>Production — Live</span></div>
+      </div>
+      <div class="info-box">
+        <h4>Infrastructure</h4>
+        <div class="info-row"><span>Cloud Provider</span><span>AWS Lightsail</span></div>
+        <div class="info-row"><span>Domain</span><span>gild3d.com</span></div>
+        <div class="info-row"><span>CDN / WAF</span><span>Cloudflare</span></div>
+        <div class="info-row"><span>SSL</span><span>Let's Encrypt (auto-renew)</span></div>
+        <div class="info-row"><span>Database</span><span>PostgreSQL 15 (Docker)</span></div>
+        <div class="info-row"><span>Containerisation</span><span>Docker Compose</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deliverables Register -->
+  <section>
+    <div class="section-title"><span class="section-num">02 &nbsp;</span> Deliverables Register</div>
+
+    <h3>Software Deliverables</h3>
+    <table>
+      <thead><tr><th>Deliverable</th><th>Description</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Next.js Frontend Application</td><td>Full web application with all pages: home, auth, profiles, bookings, admin dashboard, profile pages</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Express + TypeScript Backend API</td><td>REST API with 40+ endpoints covering auth, profiles, bookings, payments, admin, messages</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>PostgreSQL Database Schema</td><td>7 data models (User, Profile, Photo, PrivateMedia, Message, Booking, Payment) with migrations</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Authentication System</td><td>JWT, OTP email verification, role-based access control, HttpOnly cookie sessions</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Booking Lifecycle</td><td>Full booking flow from creation through payment confirmation to completion/cancellation</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>NOWPayments Integration</td><td>Invoice API, IPN webhook with HMAC-SHA512 verification, booking and membership payments</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Membership Tier System</td><td>FREE / SILVER / GOLD / PLATINUM tiers with crypto upgrade payment flow</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Admin Dashboard</td><td>Companion CRUD (add/edit/delete/publish), member management, booking audit, message audit, reports</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>File Upload System</td><td>Secure photo upload with MIME + extension validation, random filename generation, 20MB limit</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Direct Messaging</td><td>Member-to-member / member-to-companion messaging with admin audit access</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Security Hardening</td><td>Helmet headers, CORS, rate limiting (Nginx + Express), cryptographic OTP, input validation</td><td><span class="pill pill-done">Delivered</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Infrastructure Deliverables</h3>
+    <table>
+      <thead><tr><th>Deliverable</th><th>Description</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Docker Compose Configuration</td><td>5-service stack: postgres, backend, frontend, nginx, certbot with named volumes and bridge network</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Nginx Reverse Proxy</td><td>SSL termination, HTTP→HTTPS redirect, upstream routing, Cloudflare real-IP, security headers, rate limiting zones</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>SSL Certificate Automation</td><td>Certbot container with Let's Encrypt, auto-renewal every 12 hours via ACME HTTP-01</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Cloudflare Configuration</td><td>DNS, CDN, WAF, 15 IP range forwarding configured for real-IP accuracy</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Deploy Script</td><td>Automated deploy.sh — pulls code, rebuilds containers, runs migrations, verifies endpoints</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Environment Configuration</td><td>.env template with all required variables documented. Production .env configured on server.</td><td><span class="pill pill-done">Delivered</span></td></tr>
+      </tbody>
+    </table>
+
+    <h3>Documentation Deliverables</h3>
+    <table>
+      <thead><tr><th>Deliverable</th><th>Description</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Technical Architecture</td><td>17-section HTML document covering all technical aspects, API reference, security, runbook</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Executive Summary</td><td>Platform overview suitable for investors and executive stakeholders</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Business Case</td><td>Market analysis, 3-year financial model, risk register, investment recommendation</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Business Analysis Document</td><td>Stakeholder analysis, requirements, user stories, process flows, acceptance criteria</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Project Delivery &amp; Handover</td><td>This document</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Go-to-Market Strategy</td><td>Launch plan, pricing strategy, marketing channels, KPIs, 90-day roadmap</td><td><span class="pill pill-done">Delivered</span></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- System Access Handover -->
+  <section>
+    <div class="section-title"><span class="section-num">03 &nbsp;</span> System Access &amp; Credentials Handover</div>
+
+    <div class="warning-box">
+      <p><strong>SECURITY NOTICE:</strong> Actual credentials are NOT included in this document. All credentials must be transferred via a secure, encrypted channel (e.g. 1Password shared vault, Bitwarden send, or encrypted email). This section documents the categories and locations of credentials that require handover.</p>
+    </div>
+
+    <div class="credential-box">
+      <div class="cred-label">AWS Lightsail — Production Server</div>
+      <div class="cred-row"><span class="cred-key">Server IP</span><span class="cred-val">[Handover separately]</span></div>
+      <div class="cred-row"><span class="cred-key">SSH Key (PEM)</span><span class="cred-val">[Handover separately — store securely]</span></div>
+      <div class="cred-row"><span class="cred-key">AWS Console</span><span class="cred-val">[AWS root credentials — handover separately]</span></div>
+      <div class="cred-row"><span class="cred-key">Deployment Path</span><span class="cred-val">/var/app/gild3d-app</span></div>
+      <div class="cred-row"><span class="cred-key">Deploy User</span><span class="cred-val">ubuntu (or configured deploy user)</span></div>
+    </div>
+
+    <div class="credential-box">
+      <div class="cred-label">Application — Environment Variables (.env)</div>
+      <div class="cred-row"><span class="cred-key">DATABASE_URL</span><span class="cred-val redacted">[Stored in /var/app/gild3d-app/.env]</span></div>
+      <div class="cred-row"><span class="cred-key">JWT_SECRET</span><span class="cred-val redacted">[Stored in /var/app/gild3d-app/.env]</span></div>
+      <div class="cred-row"><span class="cred-key">NOWPAYMENTS_API_KEY</span><span class="cred-val redacted">[Stored in /var/app/gild3d-app/.env]</span></div>
+      <div class="cred-row"><span class="cred-key">NOWPAYMENTS_IPN_SECRET</span><span class="cred-val redacted">[Stored in /var/app/gild3d-app/.env]</span></div>
+      <div class="cred-row"><span class="cred-key">SMTP credentials</span><span class="cred-val redacted">[Stored in /var/app/gild3d-app/.env]</span></div>
+    </div>
+
+    <div class="credential-box">
+      <div class="cred-label">Third-Party Services</div>
+      <div class="cred-row"><span class="cred-key">Cloudflare Account</span><span class="cred-val">[Transfer ownership of gild3d.com zone]</span></div>
+      <div class="cred-row"><span class="cred-key">NOWPayments Account</span><span class="cred-val">[Transfer account or create new — update .env]</span></div>
+      <div class="cred-row"><span class="cred-key">Domain Registrar</span><span class="cred-val">[Transfer domain registrar access]</span></div>
+      <div class="cred-row"><span class="cred-key">SMTP Provider</span><span class="cred-val">[Transfer or update credentials in .env]</span></div>
+    </div>
+
+    <div class="credential-box">
+      <div class="cred-label">Platform Super Admin Account</div>
+      <div class="cred-row"><span class="cred-key">URL</span><span class="cred-val">https://gild3d.com/admin</span></div>
+      <div class="cred-row"><span class="cred-key">Login URL</span><span class="cred-val">https://gild3d.com/auth/login</span></div>
+      <div class="cred-row"><span class="cred-key">Admin Email</span><span class="cred-val redacted">[Handover separately]</span></div>
+      <div class="cred-row"><span class="cred-key">Admin Password</span><span class="cred-val redacted">[Handover separately — change on first login]</span></div>
+    </div>
+  </section>
+
+  <!-- Handover Checklist -->
+  <section>
+    <div class="section-title"><span class="section-num">04 &nbsp;</span> Handover Checklist</div>
+    <ul class="checklist">
+      <li class="done"><div class="check-box">✓</div><span>Production platform accessible at https://gild3d.com</span></li>
+      <li class="done"><div class="check-box">✓</div><span>SSL certificate active and auto-renewing via Certbot</span></li>
+      <li class="done"><div class="check-box">✓</div><span>All Docker services running and healthy (postgres, backend, frontend, nginx, certbot)</span></li>
+      <li class="done"><div class="check-box">✓</div><span>Database schema deployed with all migrations applied</span></li>
+      <li class="done"><div class="check-box">✓</div><span>Super Admin account created and access confirmed</span></li>
+      <li class="done"><div class="check-box">✓</div><span>NOWPayments integration tested (invoice creation and webhook)</span></li>
+      <li class="done"><div class="check-box">✓</div><span>Cloudflare DNS configured and proxied</span></li>
+      <li class="done"><div class="check-box">✓</div><span>Security headers verified (HSTS, X-Frame-Options, CSP, etc.)</span></li>
+      <li class="done"><div class="check-box">✓</div><span>Rate limiting active on auth and API endpoints</span></li>
+      <li class="done"><div class="check-box">✓</div><span>Full codebase in git repository with deployment history</span></li>
+      <li class="done"><div class="check-box">✓</div><span>All 6 delivery documents prepared and accessible</span></li>
+      <li class="todo"><div class="check-box"></div><span>AWS Lightsail account ownership transferred to client</span></li>
+      <li class="todo"><div class="check-box"></div><span>Cloudflare account ownership transferred to client</span></li>
+      <li class="todo"><div class="check-box"></div><span>Domain registrar access transferred to client</span></li>
+      <li class="todo"><div class="check-box"></div><span>NOWPayments account transferred or new account created by client</span></li>
+      <li class="todo"><div class="check-box"></div><span>All credentials transferred via secure encrypted channel</span></li>
+      <li class="todo"><div class="check-box"></div><span>Client confirms SSH access to production server</span></li>
+      <li class="todo"><div class="check-box"></div><span>Admin password changed from default to client-chosen password</span></li>
+      <li class="todo"><div class="check-box"></div><span>PostgreSQL automated backup configured (cron + S3 or Lightsail snapshots)</span></li>
+      <li class="todo"><div class="check-box"></div><span>NOWPayments IPN URL confirmed set to https://gild3d.com/api/bookings/webhook/nowpayments</span></li>
+      <li class="todo"><div class="check-box"></div><span>Client walkthrough session completed (admin dashboard, deploy process)</span></li>
+    </ul>
+  </section>
+
+  <!-- Known Issues -->
+  <section>
+    <div class="section-title"><span class="section-num">05 &nbsp;</span> Known Issues &amp; Limitations</div>
+    <table>
+      <thead><tr><th>Issue</th><th>Severity</th><th>Description</th><th>Recommendation</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>No password reset flow</td>
+          <td><span class="pill pill-pending">Medium</span></td>
+          <td>Members who forget their password have no self-service recovery. Admin must manually assist.</td>
+          <td>Implement email-based password reset link in Phase 2. Priority before large member base.</td>
+        </tr>
+        <tr>
+          <td>No booking email notifications</td>
+          <td><span class="pill pill-pending">Medium</span></td>
+          <td>Members do not receive email confirmations for bookings or payment confirmations.</td>
+          <td>Add transactional email triggers for booking state changes in Phase 2.</td>
+        </tr>
+        <tr>
+          <td>Companion profiles are admin-only</td>
+          <td><span class="pill pill-future">Low (by design)</span></td>
+          <td>Companions cannot self-manage their profiles. All edits require admin intervention.</td>
+          <td>Phase 2: companion self-service portal with admin approval workflow.</td>
+        </tr>
+        <tr>
+          <td>PostgreSQL backups not automated</td>
+          <td><span class="pill pill-critical">High — Action Required</span></td>
+          <td>Database data is in a Docker volume with no automated backup. A server failure could cause data loss.</td>
+          <td>Configure immediate: AWS Lightsail instance snapshots + PostgreSQL dump via cron to S3.</td>
+        </tr>
+        <tr>
+          <td>Single-region deployment</td>
+          <td><span class="pill pill-pending">Medium</span></td>
+          <td>Platform runs on a single AWS Lightsail instance with no geographic redundancy.</td>
+          <td>Acceptable for Phase 1. At 500+ active members, migrate to ECS + RDS Multi-AZ.</td>
+        </tr>
+        <tr>
+          <td>No native mobile app</td>
+          <td><span class="pill pill-future">Low</span></td>
+          <td>Web-only experience. Mobile-responsive but not native app.</td>
+          <td>Phase 3: React Native apps targeting iOS and Android.</td>
+        </tr>
+        <tr>
+          <td>Messaging is not real-time</td>
+          <td><span class="pill pill-pending">Medium</span></td>
+          <td>Messages are stored and retrievable but do not push in real-time. Users must refresh to see new messages.</td>
+          <td>Phase 2: WebSocket integration (Socket.io) for real-time messaging.</td>
+        </tr>
+        <tr>
+          <td>No GDPR data deletion portal</td>
+          <td><span class="pill pill-pending">Medium</span></td>
+          <td>Data subject access requests and deletion must be handled manually by admin. Required for EU/UK compliance.</td>
+          <td>Phase 2: self-service data export and deletion. Required before operating in EU/UK markets at scale.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="warning-box" style="margin-top:20px;">
+      <p><strong>IMMEDIATE ACTION REQUIRED:</strong> PostgreSQL automated backups must be configured before any live member transactions occur. A database failure without backups represents an unrecoverable data loss scenario. See the Technical Architecture document Operational Runbook for backup configuration commands.</p>
+    </div>
+  </section>
+
+  <!-- Phase 2 Recommendations -->
+  <section>
+    <div class="section-title"><span class="section-num">06 &nbsp;</span> Recommended Phase 2 Scope</div>
+    <p>The following items are recommended for Phase 2 development, prioritised by business impact:</p>
+
+    <div class="roadmap-item"><div class="roadmap-priority rp-high">P1 — Critical</div><div class="roadmap-content"><h4>Database Automated Backups</h4><p>Immediately required before production transactions. Daily PostgreSQL dumps to S3 with 30-day retention.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-high">P1 — High</div><div class="roadmap-content"><h4>Password Reset Flow</h4><p>Email-based self-service password reset. Required for member retention and support load reduction.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-high">P1 — High</div><div class="roadmap-content"><h4>Booking Email Notifications</h4><p>Transactional emails for booking confirmation, payment receipt, cancellation. Significantly improves member trust.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-med">P2 — Medium</div><div class="roadmap-content"><h4>Real-Time Messaging (WebSocket)</h4><p>Socket.io integration for live member-companion messaging. Key differentiator for premium experience.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-med">P2 — Medium</div><div class="roadmap-content"><h4>Companion Availability Calendar</h4><p>Prevent double-booking and improve booking conversion by showing companion availability slots.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-med">P2 — Medium</div><div class="roadmap-content"><h4>Companion Self-Service Portal</h4><p>Allow companions to manage their own profiles (with admin approval). Reduces admin operations load.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-med">P2 — Medium</div><div class="roadmap-content"><h4>GDPR Data Rights Portal</h4><p>Self-service data export and deletion requests. Required for EU/UK market compliance at scale.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-low">P3 — Future</div><div class="roadmap-content"><h4>Native Mobile Applications</h4><p>iOS + Android apps via React Native. Increases engagement and enables push notifications.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-low">P3 — Future</div><div class="roadmap-content"><h4>Review &amp; Rating System</h4><p>Moderated member reviews of companions. Builds trust, surfaces quality and increases conversion.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-low">P3 — Future</div><div class="roadmap-content"><h4>Multi-Region Infrastructure</h4><p>Migrate from Lightsail to ECS + RDS Multi-AZ for high availability at scale (&gt;500 concurrent users).</p></div></div>
+  </section>
+
+  <!-- Warranty & Support -->
+  <section>
+    <div class="section-title"><span class="section-num">07 &nbsp;</span> Warranty &amp; Support Terms</div>
+    <div class="note-box">
+      <p><strong>Post-Delivery Support:</strong> The following support terms apply following project sign-off. Specific terms should be agreed and formalised in a separate support agreement or Statement of Work for Phase 2.</p>
+    </div>
+    <table>
+      <thead><tr><th>Category</th><th>Coverage</th><th>Response Time</th></tr></thead>
+      <tbody>
+        <tr><td>Critical defects (platform down, data loss risk)</td><td>Bugs in delivered Phase 1 code directly causing critical outage</td><td>Same business day</td></tr>
+        <tr><td>High severity defects (feature broken)</td><td>Delivered features not functioning as per acceptance criteria</td><td>2–3 business days</td></tr>
+        <tr><td>Medium defects (degraded functionality)</td><td>Minor deviations from specification in delivered features</td><td>Within 1 week</td></tr>
+        <tr><td>Feature requests / enhancements</td><td>Out of scope for warranty — Phase 2 SOW required</td><td>Phase 2 planning</td></tr>
+        <tr><td>Third-party service changes (NOWPayments, Cloudflare, AWS)</td><td>Out of scope — client responsibility to maintain third-party accounts</td><td>N/A</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Sign-off -->
+  <section>
+    <div class="section-title"><span class="section-num">08 &nbsp;</span> Project Sign-Off</div>
+    <p>By signing below, both parties confirm that Phase 1 deliverables have been reviewed, accepted and handed over as described in this document. The client accepts responsibility for the ongoing operation, security and maintenance of the delivered system from the date of sign-off.</p>
+
+    <div class="signoff-grid">
+      <div class="signoff-box">
+        <h4>Development Team</h4>
+        <div class="signoff-line"></div>
+        <div class="signoff-label">Signature</div>
+        <br>
+        <div class="signoff-line"></div>
+        <div class="signoff-label">Printed Name</div>
+        <br>
+        <div class="signoff-line"></div>
+        <div class="signoff-label">Title</div>
+        <br>
+        <div class="signoff-line"></div>
+        <div class="signoff-label">Date</div>
+      </div>
+      <div class="signoff-box">
+        <h4>Client / Founders</h4>
+        <div class="signoff-line"></div>
+        <div class="signoff-label">Signature</div>
+        <br>
+        <div class="signoff-line"></div>
+        <div class="signoff-label">Printed Name</div>
+        <br>
+        <div class="signoff-line"></div>
+        <div class="signoff-label">Title</div>
+        <br>
+        <div class="signoff-line"></div>
+        <div class="signoff-label">Date</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Document 04 — Project Delivery &amp; Handover &nbsp;|&nbsp; <a href="index.html">← Document Hub</a></span>
+  <span>Gild3d &mdash; Confidential &mdash; April 2026</span>
+</footer>
+
+</body>
+</html>

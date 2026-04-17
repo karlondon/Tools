@@ -13,10 +13,20 @@ const STATUS_COLORS: Record<string, string> = {
   NO_SHOW: 'bg-gray-700 text-gray-400',
 };
 
+// Currencies accepted via Coinbase Commerce checkout
+const ACCEPTED = [
+  { symbol: '₿', label: 'BTC' },
+  { symbol: 'Ł', label: 'LTC' },
+  { symbol: '$', label: 'USDC' },
+  { symbol: 'Ξ', label: 'ETH' },
+  { symbol: '◈', label: 'DAI' },
+];
+
 export default function BookingsPage() {
   const router = useRouter();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [payingId, setPayingId] = useState<string | null>(null);
   const params = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
   const successRef = params?.get('ref');
 
@@ -26,10 +36,14 @@ export default function BookingsPage() {
   }, []);
 
   const handlePay = async (bookingId: string) => {
+    setPayingId(bookingId);
     try {
       const res = await api.post(`/bookings/${bookingId}/payment`);
       window.location.href = res.data.checkoutUrl;
-    } catch { alert('Failed to create payment'); }
+    } catch (err: any) {
+      alert(err.response?.data?.error || 'Failed to create payment. Please try again.');
+      setPayingId(null);
+    }
   };
 
   const handleCancel = async (bookingId: string) => {
@@ -75,9 +89,24 @@ export default function BookingsPage() {
                     {b.hotelName && <p className="text-gray-400 text-sm">🏨 {b.hotelName}{b.hotelCity ? `, ${b.hotelCity}` : ''}</p>}
                     <p className="text-gold-400 text-sm font-semibold mt-1">${b.totalAmount?.toFixed(2)} USD · Ref: #{b.ref?.slice(-8).toUpperCase()}</p>
                   </div>
-                  <div className="flex flex-col gap-2 flex-shrink-0">
+                  <div className="flex flex-col items-end gap-2 flex-shrink-0">
                     {b.status === 'PENDING_PAYMENT' && (
-                      <button onClick={() => handlePay(b.id)} className="btn-gold text-sm py-2 px-3">Pay Now ₿</button>
+                      <>
+                        <button
+                          onClick={() => handlePay(b.id)}
+                          disabled={payingId === b.id}
+                          className="btn-gold text-sm py-2 px-3 disabled:opacity-60">
+                          {payingId === b.id ? 'Redirecting…' : 'Pay Now'}
+                        </button>
+                        <div className="flex gap-1">
+                          {ACCEPTED.map(c => (
+                            <span key={c.label} title={c.label}
+                              className="text-xs px-1.5 py-0.5 rounded bg-dark-700 text-gray-400 font-mono">
+                              {c.symbol}
+                            </span>
+                          ))}
+                        </div>
+                      </>
                     )}
                     {['PENDING_PAYMENT', 'CONFIRMED'].includes(b.status) && (
                       <button onClick={() => handleCancel(b.id)} className="btn-outline text-sm py-2 px-3 text-red-400 border-red-800">Cancel</button>

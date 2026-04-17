@@ -33,6 +33,10 @@ export default function AdminDashboard() {
   const [editForm, setEditForm] = useState<any>({});
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
+  const [addingCompanion, setAddingCompanion] = useState(false);
+  const [addForm, setAddForm] = useState<any>({ inCall: true, outCall: false, isPublished: false });
+  const [addLoading, setAddLoading] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
 
@@ -115,6 +119,34 @@ export default function AdminDashboard() {
       loadCompanions();
     } catch { showToast('Save failed'); }
     finally { setSaving(false); }
+  };
+
+  const addCompanion = async () => {
+    if (!addForm.email || !addForm.password || !addForm.displayName) {
+      showToast('Email, password and display name are required'); return;
+    }
+    setAddLoading(true);
+    try {
+      await adminApi('POST', '/companions', addForm);
+      showToast('Companion created');
+      setAddingCompanion(false);
+      setAddForm({ inCall: true, outCall: false, isPublished: false });
+      loadCompanions();
+    } catch (e: any) {
+      showToast(e?.response?.data?.error || 'Failed to create companion');
+    } finally { setAddLoading(false); }
+  };
+
+  const deleteCompanion = async (userId: string) => {
+    try {
+      await adminApi('DELETE', `/users/${userId}`);
+      showToast('Companion deleted');
+      setConfirmDeleteId(null);
+      loadCompanions();
+    } catch (e: any) {
+      showToast(e?.response?.data?.error || 'Failed to delete companion');
+      setConfirmDeleteId(null);
+    }
   };
 
   const statusColor = (s: string) => ({ CONFIRMED: GREEN, COMPLETED: GREEN, CANCELLED: RED, PENDING_PAYMENT: '#e8a84c', NO_SHOW: RED }[s] || MUTED);
@@ -264,9 +296,60 @@ export default function AdminDashboard() {
         {/* COMPANIONS */}
         {tab === 'companions' && (
           <div>
-            <h2 style={{ color: G, fontFamily: 'Georgia,serif', fontSize: 18, marginBottom: 20 }}>Companion Management</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ color: G, fontFamily: 'Georgia,serif', fontSize: 18, margin: 0 }}>Companion Management</h2>
+              <button onClick={() => { setAddingCompanion(true); setAddForm({ inCall: true, outCall: false, isPublished: false }); }} style={btn(G)}>+ Add Companion</button>
+            </div>
 
-            {/* Edit modal */}
+            {/* Add Companion modal */}
+            {addingCompanion && (
+              <div style={{ position: 'fixed', inset: 0, background: '#000c', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
+                <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 4, padding: 28, width: '100%', maxWidth: 520, maxHeight: '90vh', overflowY: 'auto' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20 }}>
+                    <h3 style={{ color: G, fontFamily: 'Georgia,serif', margin: 0 }}>Add New Companion</h3>
+                    <button onClick={() => setAddingCompanion(false)} style={{ background: 'none', border: 'none', color: MUTED, fontSize: 20, cursor: 'pointer' }}>✕</button>
+                  </div>
+                  <p style={{ color: DIM, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10, borderBottom: `1px solid ${BORDER}`, paddingBottom: 6 }}>Account</p>
+                  {[['email', 'Email Address *', 'email'], ['password', 'Temporary Password *', 'password']].map(([field, label, type]) => (
+                    <div key={field} style={{ marginBottom: 14 }}>
+                      <p style={{ color: DIM, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 5 }}>{label}</p>
+                      <input type={type} value={addForm[field] ?? ''} onChange={e => setAddForm((f: any) => ({ ...f, [field]: e.target.value }))} style={inp} />
+                    </div>
+                  ))}
+                  <p style={{ color: DIM, fontSize: 10, letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: 10, marginTop: 18, borderBottom: `1px solid ${BORDER}`, paddingBottom: 6 }}>Profile</p>
+                  {[
+                    ['displayName', 'Display Name *', 'text'],
+                    ['age', 'Age', 'number'],
+                    ['location', 'Location', 'text'],
+                    ['headline', 'Headline', 'text'],
+                    ['hourlyRate', 'Hourly Rate (USD)', 'number'],
+                  ].map(([field, label, type]) => (
+                    <div key={field} style={{ marginBottom: 14 }}>
+                      <p style={{ color: DIM, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 5 }}>{label}</p>
+                      <input type={type} value={addForm[field] ?? ''} onChange={e => setAddForm((f: any) => ({ ...f, [field]: e.target.value }))} style={inp} />
+                    </div>
+                  ))}
+                  <div style={{ marginBottom: 14 }}>
+                    <p style={{ color: DIM, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 5 }}>Bio</p>
+                    <textarea value={addForm.bio ?? ''} onChange={e => setAddForm((f: any) => ({ ...f, bio: e.target.value }))} rows={3} style={{ ...inp, resize: 'none' }} />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: 20 }}>
+                    {[['inCall', 'In Call'], ['outCall', 'Out Call'], ['isPublished', 'Publish Now']].map(([field, label]) => (
+                      <label key={field} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: MUTED, fontSize: 13 }}>
+                        <input type="checkbox" checked={!!addForm[field]} onChange={e => setAddForm((f: any) => ({ ...f, [field]: e.target.checked }))} />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button onClick={addCompanion} disabled={addLoading} style={{ ...btn(G), flex: 1, padding: 12 }}>{addLoading ? 'Creating…' : 'Create Companion'}</button>
+                    <button onClick={() => setAddingCompanion(false)} style={{ ...btn('transparent'), flex: 1, padding: 12, border: `1px solid ${BORDER}`, color: MUTED }}>Cancel</button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Edit Companion modal */}
             {editingCompanion && (
               <div style={{ position: 'fixed', inset: 0, background: '#000c', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20 }}>
                 <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 4, padding: 28, width: '100%', maxWidth: 500, maxHeight: '90vh', overflowY: 'auto' }}>
@@ -276,6 +359,7 @@ export default function AdminDashboard() {
                   </div>
                   {[
                     ['displayName', 'Display Name', 'text'],
+                    ['age', 'Age', 'number'],
                     ['hourlyRate', 'Hourly Rate (USD)', 'number'],
                     ['minBookingHours', 'Min Booking Hours', 'number'],
                     ['location', 'Location', 'text'],
@@ -286,6 +370,10 @@ export default function AdminDashboard() {
                       <input type={type} value={editForm[field] ?? ''} onChange={e => setEditForm((f: any) => ({ ...f, [field]: e.target.value }))} style={inp} />
                     </div>
                   ))}
+                  <div style={{ marginBottom: 14 }}>
+                    <p style={{ color: DIM, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 5 }}>Bio</p>
+                    <textarea value={editForm.bio ?? ''} onChange={e => setEditForm((f: any) => ({ ...f, bio: e.target.value }))} rows={4} style={{ ...inp, resize: 'none' }} />
+                  </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14 }}>
                     {[['inCall', 'In Call'], ['outCall', 'Out Call'], ['isPublished', 'Published'], ['isVip', 'VIP']].map(([field, label]) => (
                       <label key={field} style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', color: MUTED, fontSize: 13 }}>
@@ -293,10 +381,6 @@ export default function AdminDashboard() {
                         {label}
                       </label>
                     ))}
-                  </div>
-                  <div style={{ marginBottom: 14 }}>
-                    <p style={{ color: DIM, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 5 }}>Bio</p>
-                    <textarea value={editForm.bio ?? ''} onChange={e => setEditForm((f: any) => ({ ...f, bio: e.target.value }))} rows={4} style={{ ...inp, resize: 'none' }} />
                   </div>
                   <div style={{ display: 'flex', gap: 10 }}>
                     <button onClick={saveCompanion} disabled={saving} style={{ ...btn(G), flex: 1, padding: 12 }}>{saving ? 'Saving…' : 'Save Changes'}</button>
@@ -310,7 +394,7 @@ export default function AdminDashboard() {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                   <tr style={{ borderBottom: `1px solid ${BORDER}` }}>
-                    {['Name', 'Email', 'Location', 'Rate/hr', 'In/Out', 'Published', 'VIP', 'Actions'].map(h => (
+                    {['Name', 'Email', 'Age', 'Location', 'Rate/hr', 'In/Out', 'Published', 'VIP', 'Actions'].map(h => (
                       <th key={h} style={{ padding: '10px 14px', textAlign: 'left', color: DIM, fontSize: 10, letterSpacing: '0.12em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{h}</th>
                     ))}
                   </tr>
@@ -320,6 +404,7 @@ export default function AdminDashboard() {
                     <tr key={c.id} style={{ borderBottom: `1px solid ${BORDER}22` }}>
                       <td style={{ padding: '10px 14px', color: G, fontWeight: 600 }}>{c.profile?.displayName || '—'}</td>
                       <td style={{ padding: '10px 14px', fontSize: 12 }}>{c.email}</td>
+                      <td style={{ padding: '10px 14px', color: MUTED, fontSize: 12 }}>{c.profile?.age || '—'}</td>
                       <td style={{ padding: '10px 14px', color: MUTED, fontSize: 12 }}>{c.profile?.location || '—'}</td>
                       <td style={{ padding: '10px 14px', color: GREEN }}>{c.profile?.hourlyRate ? fmtUSD(c.profile.hourlyRate) : '—'}</td>
                       <td style={{ padding: '10px 14px', fontSize: 12 }}>
@@ -330,25 +415,37 @@ export default function AdminDashboard() {
                       <td style={{ padding: '10px 14px' }}><span style={{ color: c.profile?.isPublished ? GREEN : RED }}>{c.profile?.isPublished ? '✓ Live' : '✗ Draft'}</span></td>
                       <td style={{ padding: '10px 14px' }}><span style={{ color: c.profile?.isVip ? G : RED }}>{c.profile?.isVip ? '⭐ VIP' : '—'}</span></td>
                       <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
-                        <button onClick={() => {
-                          setEditingCompanion(c);
-                          setEditForm({
-                            displayName: c.profile?.displayName || '',
-                            hourlyRate: c.profile?.hourlyRate || '',
-                            minBookingHours: c.profile?.minBookingHours || 1,
-                            location: c.profile?.location || '',
-                            headline: c.profile?.headline || '',
-                            bio: c.profile?.bio || '',
-                            inCall: !!c.profile?.inCall,
-                            outCall: !!c.profile?.outCall,
-                            isPublished: !!c.profile?.isPublished,
-                            isVip: !!c.profile?.isVip,
-                          });
-                        }} style={{ ...btn(G), fontSize: 11, padding: '5px 12px' }}>Edit</button>
+                        {confirmDeleteId === c.id ? (
+                          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                            <span style={{ color: RED, fontSize: 11 }}>Sure?</span>
+                            <button onClick={() => deleteCompanion(c.id)} style={{ ...btn(RED), fontSize: 11, padding: '5px 10px' }}>Yes, Delete</button>
+                            <button onClick={() => setConfirmDeleteId(null)} style={{ padding: '5px 10px', background: 'transparent', border: `1px solid ${BORDER}`, color: MUTED, borderRadius: 2, cursor: 'pointer', fontSize: 11 }}>Cancel</button>
+                          </div>
+                        ) : (
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button onClick={() => {
+                              setEditingCompanion(c);
+                              setEditForm({
+                                displayName: c.profile?.displayName || '',
+                                age: c.profile?.age || '',
+                                hourlyRate: c.profile?.hourlyRate || '',
+                                minBookingHours: c.profile?.minBookingHours || 1,
+                                location: c.profile?.location || '',
+                                headline: c.profile?.headline || '',
+                                bio: c.profile?.bio || '',
+                                inCall: !!c.profile?.inCall,
+                                outCall: !!c.profile?.outCall,
+                                isPublished: !!c.profile?.isPublished,
+                                isVip: !!c.profile?.isVip,
+                              });
+                            }} style={{ ...btn(G), fontSize: 11, padding: '5px 12px' }}>Edit</button>
+                            <button onClick={() => setConfirmDeleteId(c.id)} style={{ ...btn(RED), fontSize: 11, padding: '5px 12px' }}>Delete</button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}
-                  {companions.length === 0 && <tr><td colSpan={8} style={{ padding: 32, textAlign: 'center', color: DIM }}>No companions found</td></tr>}
+                  {companions.length === 0 && <tr><td colSpan={9} style={{ padding: 32, textAlign: 'center', color: DIM }}>No companions found — click "+ Add Companion" to create one</td></tr>}
                 </tbody>
               </table>
             </div>

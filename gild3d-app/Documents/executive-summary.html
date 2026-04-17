@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gild3d — Executive Summary</title>
+<style>
+  :root {
+    --gold: #C9A84C; --gold-light: #E8C870; --gold-dark: #8B6914;
+    --bg: #0A0A0A; --surface: #111111; --surface2: #1A1A1A;
+    --border: #2A2A2A; --text: #E8E8E8; --muted: #888;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; }
+  header {
+    background: linear-gradient(135deg, #0A0A0A 0%, #1A1200 50%, #0A0A0A 100%);
+    border-bottom: 1px solid var(--gold-dark); padding: 50px 60px; position: relative;
+  }
+  .doc-label { font-size: 11px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase; margin-bottom: 16px; }
+  h1 { font-size: 40px; font-weight: 300; color: #fff; margin-bottom: 8px; }
+  h1 em { color: var(--gold); font-style: normal; }
+  .doc-meta { display: flex; gap: 30px; margin-top: 24px; flex-wrap: wrap; }
+  .doc-meta span { font-size: 12px; color: var(--muted); letter-spacing: 1px; }
+  .doc-meta span strong { color: #ccc; }
+  .nav-back { position: absolute; top: 24px; right: 40px; }
+  .nav-back a { color: var(--gold); font-size: 13px; text-decoration: none; letter-spacing: 1px; }
+  main { max-width: 960px; margin: 0 auto; padding: 60px 40px; }
+  section { margin-bottom: 52px; }
+  .section-title {
+    font-size: 11px; letter-spacing: 4px; color: var(--gold); text-transform: uppercase;
+    margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 14px;
+  }
+  .section-num { color: var(--gold-dark); }
+  h2 { font-size: 26px; font-weight: 300; color: #fff; margin-bottom: 16px; }
+  h3 { font-size: 17px; color: var(--gold-light); margin-bottom: 10px; font-weight: 400; }
+  p { color: #ccc; line-height: 1.9; margin-bottom: 14px; font-size: 15px; }
+  .lead { font-size: 18px; color: #ddd; line-height: 1.8; margin-bottom: 24px; font-style: italic; border-left: 3px solid var(--gold); padding-left: 20px; }
+  .highlight-box {
+    background: linear-gradient(135deg, #1A1200, #0A0A0A);
+    border: 1px solid var(--gold-dark); border-radius: 10px;
+    padding: 30px; margin: 28px 0;
+  }
+  .highlight-box p { margin: 0; font-size: 16px; color: #ddd; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 28px 0; }
+  .kpi {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 24px; text-align: center;
+  }
+  .kpi-value { font-size: 32px; color: var(--gold); font-weight: 300; margin-bottom: 6px; }
+  .kpi-label { font-size: 12px; color: var(--muted); letter-spacing: 1px; line-height: 1.4; }
+  .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .feature-item {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+    padding: 20px;
+  }
+  .feature-item h4 { color: var(--gold); font-size: 14px; margin-bottom: 8px; font-weight: 400; letter-spacing: 0.5px; }
+  .feature-item p { font-size: 13px; color: #aaa; margin: 0; line-height: 1.6; }
+  .status-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .status-col h3 { margin-bottom: 14px; }
+  ul { list-style: none; padding: 0; }
+  ul li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; color: #ccc; display: flex; align-items: flex-start; gap: 10px; }
+  ul li::before { content: '✓'; color: var(--gold); font-size: 12px; margin-top: 2px; flex-shrink: 0; }
+  ul.future li::before { content: '→'; color: var(--muted); }
+  .tier-table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 20px 0; }
+  .tier-table th { background: var(--surface2); color: var(--gold); padding: 12px 16px; text-align: left; font-weight: 400; letter-spacing: 1px; font-size: 12px; text-transform: uppercase; }
+  .tier-table td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: #ccc; }
+  .tier-table tr:hover td { background: var(--surface); }
+  .pill { display: inline-block; padding: 3px 12px; border-radius: 12px; font-size: 11px; }
+  .pill-gold { background: rgba(201,168,76,0.15); color: var(--gold); border: 1px solid var(--gold-dark); }
+  .pill-green { background: rgba(76,201,76,0.1); color: #6ee; border: 1px solid #2a4a4a; }
+  footer { border-top: 1px solid var(--border); padding: 30px 60px; display: flex; justify-content: space-between; align-items: center; color: var(--muted); font-size: 12px; }
+  footer a { color: var(--gold); text-decoration: none; }
+  @media (max-width: 600px) { .feature-grid, .status-grid { grid-template-columns: 1fr; } header { padding: 30px 20px; } main { padding: 30px 20px; } }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav-back"><a href="index.html">← Document Hub</a></div>
+  <div class="doc-label">Document 01 — Executive Summary</div>
+  <h1><em>Gild3d</em> — Platform Overview</h1>
+  <div class="doc-meta">
+    <span><strong>Version:</strong> 1.0</span>
+    <span><strong>Date:</strong> April 2026</span>
+    <span><strong>Classification:</strong> Confidential</span>
+    <span><strong>Audience:</strong> Executive / Founders / Investors</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Vision -->
+  <section>
+    <div class="section-title"><span class="section-num">01</span> Vision & Platform Purpose</div>
+    <p class="lead">Gild3d is a premium, privacy-first digital platform connecting discerning clients with vetted companion professionals — built on principles of discretion, security and luxury experience.</p>
+    <p>The platform addresses a significant gap in the marketplace: high-net-worth individuals seeking curated, trustworthy companion introductions currently rely on fragmented, insecure or low-quality digital channels. Gild3d provides an end-to-end managed experience — from discovery and booking through to secure payment — under a unified luxury brand.</p>
+    <div class="highlight-box">
+      <p>"Gild3d is not a directory. It is a curated membership ecosystem where every interaction — discovery, booking, payment — is designed to the standard its clientele expects."</p>
+    </div>
+  </section>
+
+  <!-- What Was Built -->
+  <section>
+    <div class="section-title"><span class="section-num">02</span> What Was Delivered</div>
+    <h2>A Production-Ready, Full-Stack Platform</h2>
+    <p>The engagement delivered a complete, cloud-hosted web application. The platform is live, secured and operational — ready for member onboarding and revenue generation.</p>
+
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-value">4</div>
+        <div class="kpi-label">User Roles<br>Member · Companion · Admin · Super Admin</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value">4</div>
+        <div class="kpi-label">Membership Tiers<br>Free · Silver · Gold · Platinum</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value">40+</div>
+        <div class="kpi-label">API Endpoints<br>Auth · Profiles · Bookings · Payments · Admin</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value">100%</div>
+        <div class="kpi-label">Crypto Payments<br>Via NOWPayments Integration</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value">SSL</div>
+        <div class="kpi-label">Auto-renewing<br>Let's Encrypt via Certbot</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value">AWS</div>
+        <div class="kpi-label">Cloud Hosted<br>Lightsail + Cloudflare CDN</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Key Capabilities -->
+  <section>
+    <div class="section-title"><span class="section-num">03</span> Key Platform Capabilities</div>
+
+    <div class="feature-grid">
+      <div class="feature-item">
+        <h4>Member Onboarding & Authentication</h4>
+        <p>Email registration with OTP verification, JWT session management, role-based access. Secure password hashing (bcrypt). Rate-limited login protection.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Companion Profiles</h4>
+        <p>Rich media profiles with photo galleries, private media vault, availability settings, location, rates and service descriptions. Admin-controlled publishing.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Booking System</h4>
+        <p>Full booking lifecycle — request, payment, confirmation, cancellation. Supports in-call and out-call types. Hotel/location details captured securely. Minimum hour enforcement.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Cryptocurrency Payments</h4>
+        <p>NOWPayments integration for privacy-preserving crypto transactions. HMAC-SHA512 webhook verification. Supports booking payments and membership tier upgrades.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Admin Dashboard</h4>
+        <h4>Admin Control Panel</h4>
+        <p>Super Admin panel for companion management (add, edit, delete), member management, booking audit, message audit, platform analytics and revenue reporting.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Security Architecture</h4>
+        <p>Helmet security headers, CORS protection, rate limiting at Nginx and Express layers, Cloudflare real-IP forwarding, file upload validation and cryptographic OTP generation.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Membership Tiers</h4>
+        <p>Four-tier model (Free, Silver, Gold, Platinum) with crypto payment upgrade flow. Tier-gated feature access for exclusive content and companion interactions.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Messaging</h4>
+        <p>Direct messaging system between members and companions. Sent/received message tracking with audit capability available to platform administrators.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Membership Tiers -->
+  <section>
+    <div class="section-title"><span class="section-num">04</span> Membership Model</div>
+    <table class="tier-table">
+      <thead>
+        <tr><th>Tier</th><th>Access Level</th><th>Target Member</th><th>Revenue Type</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pill pill-gold">FREE</span></td>
+          <td>Browse public profiles, limited contact</td>
+          <td>Prospective members, trial users</td>
+          <td>Conversion funnel</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-gold">SILVER</span></td>
+          <td>Full profile browsing, messaging access</td>
+          <td>Occasional clients</td>
+          <td>Monthly subscription</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-gold">GOLD</span></td>
+          <td>Priority booking, extended media access</td>
+          <td>Regular clients</td>
+          <td>Monthly subscription</td>
+        </tr>
+        <tr>
+          <td><span class="pill pill-gold">PLATINUM</span></td>
+          <td>Full platform access, VIP companion access, private media</td>
+          <td>High-value, frequent clients</td>
+          <td>Monthly subscription + platform fee</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- Technology -->
+  <section>
+    <div class="section-title"><span class="section-num">05</span> Technology at a Glance</div>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <h4>Frontend</h4>
+        <p>Next.js 14 (App Router), React 18, TypeScript. Server-side rendering for SEO and performance. Responsive design.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Backend</h4>
+        <p>Node.js + Express + TypeScript REST API. Prisma ORM with PostgreSQL 15. JWT authentication with secure HttpOnly cookies.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Infrastructure</h4>
+        <p>Docker Compose on AWS Lightsail. Nginx reverse proxy with SSL termination. Cloudflare WAF + CDN layer. Auto-renewing Let's Encrypt certificates.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Security</h4>
+        <p>OWASP Top 10 coverage. Helmet headers, rate limiting, input validation, file type enforcement, CORS protection, cryptographic token generation.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Delivered vs Future -->
+  <section>
+    <div class="section-title"><span class="section-num">06</span> Project Status</div>
+    <div class="status-grid">
+      <div class="status-col">
+        <h3>Delivered — Phase 1</h3>
+        <ul>
+          <li>Full authentication system with OTP email verification</li>
+          <li>Companion profile management (admin-controlled)</li>
+          <li>Photo and private media upload system</li>
+          <li>Booking lifecycle (create, pay, confirm, cancel)</li>
+          <li>NOWPayments crypto integration</li>
+          <li>Membership tier system with payment upgrade</li>
+          <li>Admin dashboard with full CRUD</li>
+          <li>Direct messaging between users</li>
+          <li>Security hardening (all layers)</li>
+          <li>Production deployment on AWS Lightsail</li>
+          <li>Cloudflare CDN + real-IP configuration</li>
+          <li>Automated SSL certificate management</li>
+        </ul>
+      </div>
+      <div class="status-col">
+        <h3>Recommended — Phase 2</h3>
+        <ul class="future">
+          <li>Real-time messaging (WebSocket / Socket.io)</li>
+          <li>Native mobile applications (iOS + Android)</li>
+          <li>Companion video profiles and verification</li>
+          <li>Advanced search with filtering and location radius</li>
+          <li>Automated review and rating system</li>
+          <li>Automated email marketing and re-engagement flows</li>
+          <li>Analytics dashboard with revenue reporting</li>
+          <li>Referral and loyalty programme</li>
+          <li>Multi-currency and fiat payment options</li>
+          <li>Companion earnings and payout portal</li>
+          <li>GDPR data export and deletion portal</li>
+          <li>Multi-region infrastructure scaling</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Strategic Value -->
+  <section>
+    <div class="section-title"><span class="section-num">07</span> Strategic Value & Differentiators</div>
+    <p>Gild3d is positioned at the intersection of three macro trends: the normalisation of premium online service platforms, the growing adoption of cryptocurrency for privacy-sensitive transactions, and rising consumer expectations for luxury digital experiences.</p>
+    <p>The platform's <strong style="color:var(--gold)">key differentiators</strong> versus existing alternatives are:</p>
+    <div class="feature-grid">
+      <div class="feature-item">
+        <h4>Privacy by Design</h4>
+        <p>Crypto-only payments, no card data stored, minimal data collection, secure messaging — built for clients who value absolute discretion.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Luxury Brand Positioning</h4>
+        <p>Premium UX, curated companion profiles, tier-based exclusivity — differentiated from commodity directory services by quality and brand trust.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Admin-Controlled Quality</h4>
+        <p>Every companion profile is admin-approved and published. No self-service listings. Quality control baked into the platform architecture.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Full-Stack Ownership</h4>
+        <p>Client owns the complete codebase, infrastructure and data. No dependency on third-party SaaS platforms for core functionality.</p>
+      </div>
+    </div>
+    <div class="highlight-box" style="margin-top:24px;">
+      <p><strong style="color:var(--gold)">Investment Readiness:</strong> The platform is production-ready and revenue-generating from day one of member onboarding. Phase 1 investment is in infrastructure and development; ongoing costs are primarily hosting and marketing. The business model is scalable with near-zero marginal cost per additional member.</p>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <span>Document 01 — Executive Summary &nbsp;|&nbsp; <a href="index.html">← Document Hub</a></span>
+  <span>Gild3d &mdash; Confidential &mdash; April 2026</span>
+</footer>
+
+</body>
+</html>
