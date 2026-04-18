@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import nodemailer from 'nodemailer';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
 
 // Persisted in the uploads volume so it survives backend restarts
 const STATE_FILE = path.join('/app/uploads', '.maintenance.json');
@@ -35,7 +36,20 @@ const writeState = (state: MaintenanceState): void => {
 };
 
 const checkKey = (req: Request, res: Response): boolean => {
-  if (req.headers['x-maintenance-key'] !== process.env.MAINTENANCE_SECRET) {
+  const provided = req.headers['x-maintenance-key'] as string | undefined;
+  const secret = process.env.MAINTENANCE_SECRET;
+  if (!provided || !secret) {
+    res.status(403).json({ error: 'Forbidden' });
+    return false;
+  }
+  try {
+    const a = Buffer.from(provided);
+    const b = Buffer.from(secret);
+    if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) {
+      res.status(403).json({ error: 'Forbidden' });
+      return false;
+    }
+  } catch {
     res.status(403).json({ error: 'Forbidden' });
     return false;
   }
@@ -48,10 +62,15 @@ export const getMaintenanceStatus = (_req: Request, res: Response) => {
 
 export const setMaintenanceStatus = (req: Request, res: Response) => {
   if (!checkKey(req, res)) return;
+  const body = req.body as Partial<MaintenanceState>;
+  const current = readState();
   const updated: MaintenanceState = {
-    ...DEFAULT_STATE,
-    ...readState(),
-    ...req.body,
+    active: typeof body.active === 'boolean' ? body.active : current.active,
+    message: typeof body.message === 'string' ? body.message.slice(0, 500) : current.message,
+    type: ['info', 'warning', 'error'].includes(body.type as string)
+      ? (body.type as MaintenanceState['type'])
+      : current.type,
+    endsAt: typeof body.endsAt === 'string' || body.endsAt === null ? body.endsAt : current.endsAt,
     updatedAt: new Date().toISOString(),
   };
   writeState(updated);

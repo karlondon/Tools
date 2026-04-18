@@ -100,12 +100,17 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) { res.status(404).json({ error: 'User not found' }); return; }
     if (user.emailVerified) { res.json({ message: 'Email already verified' }); return; }
-    if (!user.verificationCode || user.verificationCode !== code) {
-      res.status(400).json({ error: 'Invalid verification code' });
-      return;
-    }
     if (!user.verificationExpiry || user.verificationExpiry < new Date()) {
       res.status(400).json({ error: 'Verification code has expired. Please request a new one.' });
+      return;
+    }
+    if (!user.verificationCode || user.verificationCode !== code) {
+      // Invalidate the code on any failed attempt — attacker must trigger a resend to try again
+      await prisma.user.update({
+        where: { id: userId },
+        data: { verificationCode: null, verificationExpiry: null },
+      });
+      res.status(400).json({ error: 'Invalid verification code. Please request a new one.' });
       return;
     }
     await prisma.user.update({

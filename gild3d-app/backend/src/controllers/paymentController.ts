@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
+import crypto from 'crypto';
 
 const prisma = new PrismaClient();
 
@@ -84,6 +85,24 @@ export const createInvoice = async (req: Request, res: Response) => {
 
 export const handleWebhook = async (req: Request, res: Response) => {
   try {
+    // Reject requests that lack a valid Coinbase Commerce HMAC-SHA256 signature
+    if (COINBASE_WEBHOOK_SECRET) {
+      const signature = req.headers['x-cc-webhook-signature'] as string | undefined;
+      if (!signature) {
+        return res.status(401).json({ error: 'Missing webhook signature' });
+      }
+      const rawBody: Buffer = (req as any).rawBody;
+      const expected = crypto
+        .createHmac('sha256', COINBASE_WEBHOOK_SECRET)
+        .update(rawBody)
+        .digest('hex');
+      const sigBuf = Buffer.from(signature);
+      const expBuf = Buffer.from(expected);
+      if (sigBuf.length !== expBuf.length || !crypto.timingSafeEqual(sigBuf, expBuf)) {
+        return res.status(401).json({ error: 'Invalid webhook signature' });
+      }
+    }
+
     const event = req.body;
     const eventType = event?.event?.type;
 

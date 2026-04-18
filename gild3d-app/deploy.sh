@@ -32,6 +32,8 @@ $SCP gild3d-app/backend/src/controllers/paymentController.ts \
   $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/paymentController.ts
 $SCP gild3d-app/backend/src/controllers/authController.ts \
   $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/authController.ts
+$SCP gild3d-app/backend/src/controllers/userController.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/userController.ts
 $SCP gild3d-app/backend/src/controllers/adminController.ts \
   $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/adminController.ts
 $SCP gild3d-app/backend/src/controllers/maintenanceController.ts \
@@ -126,8 +128,10 @@ echo ''
 echo '--- Auth brute-force limiter (6 rapid login attempts, expect 429 on last) ---'
 for i in 1 2 3 4 5 6; do curl -s -o /dev/null -w \"Login attempt \$i -> HTTP %{http_code}\n\" -X POST -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"wrong\"}' http://localhost:4000/api/auth/login; done
 echo ''
-echo '--- Webhook no-signature (expect 401) ---'
-curl -s -o /dev/null -w 'POST /api/bookings/webhook/nowpayments (no sig) -> HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -d '{\"payment_status\":\"finished\"}' http://localhost:4000/api/bookings/webhook/nowpayments
+echo '--- NOWPayments webhook no-signature (expect 401) ---'
+curl -sk -o /dev/null -w 'POST /api/bookings/webhook/nowpayments (no sig) -> HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' --data-raw '{"payment_status":"finished"}' https://localhost/api/bookings/webhook/nowpayments
+echo '--- Coinbase webhook no-signature (expect 401) ---'
+curl -sk -o /dev/null -w 'POST /api/payments/webhook (no sig) -> HTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' --data-raw '{"event":{"type":"charge:confirmed"}}' https://localhost/api/payments/webhook
 "
 
 echo ""
@@ -148,6 +152,13 @@ echo "  - Maintenance banner: polls /api/maintenance/status every 60s"
 echo "  - Maintenance API: GET/POST /api/maintenance/status + POST /alert"
 echo "  - Cron scripts: ssl-check, weekly-update, db-backup, health-check,"
 echo "                  disk-monitor, log-cleanup (install with install-crons.sh)"
+echo "  SECURITY PATCHES:"
+echo "  - VULN-01: Coinbase webhook now requires valid HMAC-SHA256 signature"
+echo "  - VULN-02: /api/users/me routes fixed (req.userId field path was wrong)"
+echo "  - VULN-03: privateMedia gated behind auth + GOLD/PLATINUM tier"
+echo "  - VULN-04: Companions only see CONFIRMED/COMPLETED bookings; member emails removed"
+echo "  - VULN-05: Maintenance key uses timingSafeEqual; body keys whitelisted"
+echo "  - VULN-06: verify-email rate-limited (10/15min); OTP invalidated on bad attempt"
 echo ""
 echo "  POST-DEPLOY (first time only):"
 echo "  1. Ensure .env contains MAINTENANCE_SECRET (already set to a generated value)"

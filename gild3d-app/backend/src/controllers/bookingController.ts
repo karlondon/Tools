@@ -163,8 +163,8 @@ export const getMyBookings = async (req: AuthRequest, res: Response): Promise<vo
     let bookings;
     if (user?.memberType === 'COMPANION' && user.profile) {
       bookings = await prisma.booking.findMany({
-        where: { profileId: user.profile.id },
-        include: { member: { select: { email: true } }, payment: true },
+        where: { profileId: user.profile.id, status: { in: ['CONFIRMED', 'COMPLETED'] } },
+        include: { payment: true },
         orderBy: { date: 'asc' },
       });
     } else {

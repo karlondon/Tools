@@ -48,8 +48,9 @@ export const getProfile = async (req: Request, res: Response) => {
     });
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
 
+    const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(authReq.memberType || '');
+
     if (profile.isVip) {
-      const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(authReq.memberType || '');
       const isPlatinum = authReq.membershipTier === 'PLATINUM';
       if (!isAdmin && !isPlatinum) {
         return res.json({
@@ -64,7 +65,17 @@ export const getProfile = async (req: Request, res: Response) => {
       }
     }
 
-    return res.json(profile);
+    // Private media requires authentication + GOLD/PLATINUM tier (or admin or own profile)
+    const canViewPrivateMedia =
+      !!authReq.userId &&
+      (isAdmin ||
+        ['GOLD', 'PLATINUM'].includes(authReq.membershipTier || '') ||
+        authReq.userId === userId);
+
+    return res.json({
+      ...profile,
+      privateMedia: canViewPrivateMedia ? profile.privateMedia : [],
+    });
   } catch (err: any) {
     return res.status(500).json({ error: 'Server error' });
   }

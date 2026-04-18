@@ -48,12 +48,19 @@ services:
       # Crypto payments via NOWPayments
       NOWPAYMENTS_API_KEY: ${NOWPAYMENTS_API_KEY:-}
       NOWPAYMENTS_IPN_SECRET: ${NOWPAYMENTS_IPN_SECRET:-}
+      # Coinbase Commerce (legacy — kept to block unsigned webhook requests)
+      COINBASE_COMMERCE_API_KEY: ${COINBASE_COMMERCE_API_KEY:-}
+      COINBASE_WEBHOOK_SECRET: ${COINBASE_WEBHOOK_SECRET:-}
       # Email (optional — for notifications)
       SMTP_HOST: ${SMTP_HOST:-}
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM: ${SMTP_FROM:-noreply@gild3d.com}
       FROM_EMAIL: ${FROM_EMAIL:-noreply@gild3d.com}
+      # Maintenance & admin
+      MAINTENANCE_SECRET: ${MAINTENANCE_SECRET:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-}
     volumes:
       - uploads_data:/app/uploads
     depends_on:
