@@ -52,3 +52,18 @@ export const requireSuperAdmin = (req: AuthRequest, res: Response, next: NextFun
   }
   next();
 };
+
+export const optionalAuthenticate = (req: AuthRequest, _res: Response, next: NextFunction): void => {
+  const authHeader = req.headers.authorization;
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      const decoded = jwt.verify(authHeader.split(' ')[1], process.env.JWT_SECRET as string) as {
+        userId: string; memberType: string; membershipTier: string;
+      };
+      req.userId = decoded.userId;
+      req.memberType = decoded.memberType;
+      req.membershipTier = decoded.membershipTier;
+    } catch {}
+  }
+  next();
+};

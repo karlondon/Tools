@@ -2,17 +2,34 @@
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { removeToken, isAuthenticated, isSuperAdmin } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function Navbar() {
   const [authed, setAuthed] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [open, setOpen] = useState(false);
+  const [brandWord, setBrandWord] = useState('Gilded');
+  const [brandFading, setBrandFading] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     setAuthed(isAuthenticated());
     setIsAdmin(isSuperAdmin());
+  }, [pathname]);
+
+  useEffect(() => {
+    const words = ['Gilded', 'Gild3d'];
+    let idx = 0;
+    const interval = setInterval(() => {
+      setBrandFading(true);
+      setTimeout(() => {
+        idx = (idx + 1) % words.length;
+        setBrandWord(words[idx]);
+        setBrandFading(false);
+      }, 400);
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const logout = () => { removeToken(); setAuthed(false); setIsAdmin(false); router.push('/'); };
@@ -34,7 +51,8 @@ export default function Navbar() {
           <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
             <span style={{ color: '#c9a84c', fontSize: '22px', textShadow: '0 0 20px #c9a84c55' }}>✦</span>
             <span style={{ fontFamily: 'Georgia, serif', fontSize: '17px', fontWeight: 700, color: '#fff', letterSpacing: '0.05em' }}>
-              Gilded <span style={{ color: '#c9a84c' }}>Companions</span>
+              <span style={{ display: 'inline-block', minWidth: '52px', opacity: brandFading ? 0 : 1, transition: 'opacity 0.4s ease' }}>{brandWord}</span>
+              {' '}<span style={{ color: '#c9a84c' }}>Companions</span>
             </span>
           </Link>
 

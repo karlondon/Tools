@@ -2,20 +2,10 @@
 # Storage Transfer Service Module - AWS S3 to GCP Cloud Storage
 ###############################################################################
 
-# Enable the Storage Transfer API
-resource "google_project_service" "storagetransfer" {
-  project = var.project_id
-  service = "storagetransfer.googleapis.com"
-
-  disable_dependent_services = false
-  disable_on_destroy         = false
-}
-
-# Data source to get the STS service agent email
+# Data source to get the STS service agent email.
+# storagetransfer.googleapis.com is enabled by the root module before this module runs.
 data "google_storage_transfer_project_service_account" "default" {
   project = var.project_id
-
-  depends_on = [google_project_service.storagetransfer]
 }
 
 # Storage Transfer Job - Scheduled pull from AWS S3 to GCS
@@ -84,7 +74,6 @@ resource "google_storage_transfer_job" "s3_to_gcs" {
     log_action_states                = ["SUCCEEDED", "FAILED"]
   }
 
-  depends_on = [google_project_service.storagetransfer]
 }
 
 # Log sink to capture transfer job logs in Cloud Logging

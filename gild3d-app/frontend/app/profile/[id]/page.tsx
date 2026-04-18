@@ -169,6 +169,47 @@ export default function ProfilePage({ params }: { params: { id: string } }) {
   if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:BG}}><div style={{color:G,fontSize:14}}>Loading…</div></div>;
   if (!profile) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',background:BG}}><div style={{color:MUTED,textAlign:'center'}}><div style={{fontSize:40,marginBottom:12}}>👤</div><p>Profile not found</p></div></div>;
 
+  if (profile.vipLocked) {
+    const heroPhoto = profile.photos?.find((p:any)=>p.isPrimary)||profile.photos?.[0];
+    return (
+      <div style={{minHeight:'100vh',background:BG,color:TEXT}}>
+        <div style={{position:'relative',width:'100%',height:340,overflow:'hidden',background:'#0a0912'}}>
+          {heroPhoto
+            ? <img src={heroPhoto.url} alt="VIP" style={{width:'100%',height:'100%',objectFit:'cover',filter:'blur(8px) brightness(0.25)'}}/>
+            : <div style={{width:'100%',height:'100%',background:'linear-gradient(135deg,#1a1628,#0d0d14)'}}/>
+          }
+          <div style={{position:'absolute',inset:0,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',gap:14}}>
+            <div style={{padding:'4px 16px',background:'#c9a84c22',border:'1px solid #c9a84c88',borderRadius:20,color:G,fontSize:12,letterSpacing:'3px',textTransform:'uppercase'}}>✦ VIP Exclusive</div>
+            <div style={{fontSize:56}}>🔒</div>
+            <h1 style={{fontFamily:'Georgia,serif',color:'#fff',fontSize:26,fontWeight:300,margin:0,textAlign:'center'}}>
+              This companion is <span style={{color:G}}>PLATINUM</span> exclusive
+            </h1>
+            <p style={{color:MUTED,fontSize:14,margin:0,textAlign:'center',maxWidth:380}}>
+              Upgrade to PLATINUM membership to unlock this profile, view full details and make a booking.
+            </p>
+          </div>
+        </div>
+        <div style={{maxWidth:480,margin:'48px auto',padding:'0 24px',textAlign:'center'}}>
+          <div style={{padding:28,background:CARD,border:`1px solid ${BORDER}`,borderRadius:4,marginBottom:20}}>
+            <p style={{color:G,fontSize:11,letterSpacing:'3px',textTransform:'uppercase',marginBottom:16}}>What you unlock</p>
+            {[['Full companion profile & bio','📋'],['Complete photo & private media gallery','🖼️'],['Direct messaging','✉️'],['Booking & appointment system','📅'],['Starting from $2,000/hr','💎']].map(([label,icon])=>(
+              <div key={label} style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:`1px solid ${BORDER}`}}>
+                <span style={{fontSize:18}}>{icon}</span>
+                <span style={{color:TEXT,fontSize:13}}>{label}</span>
+              </div>
+            ))}
+          </div>
+          <Link href="/upgrade" style={{display:'block',padding:'16px 0',background:`linear-gradient(135deg,${G},#e8cc7a)`,color:BG,fontWeight:700,fontSize:13,letterSpacing:'0.2em',textTransform:'uppercase',textDecoration:'none',borderRadius:2,marginBottom:12}}>
+            Upgrade to PLATINUM
+          </Link>
+          <Link href="/browse" style={{display:'block',padding:'14px 0',border:`1px solid ${BORDER}`,color:MUTED,fontSize:12,letterSpacing:'0.15em',textTransform:'uppercase',textDecoration:'none',borderRadius:2}}>
+            ← Back to Browse
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
   const primaryPhoto = profile.photos?.find((p:any)=>p.isPrimary)||profile.photos?.[0];
   const publicPhotos = (profile.photos||[]).slice(0,10);
   const publicVideos: any[] = [];

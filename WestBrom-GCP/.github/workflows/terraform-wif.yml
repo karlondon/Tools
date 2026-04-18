@@ -1,0 +1,285 @@
+###############################################################################
+# GitHub Actions - WestBrom External Backup GCP (Workload Identity Federation)
+#
+# Uses the existing GCP WIF pool configured for this GitHub Enterprise org:
+#   Pool:     github-actions-pool (projects/847785013084)
+#   Provider: github-provider (OIDC -> token.actions.githubusercontent.com)
+#   SA:       github-actions-sa@wb-servicehub-prd-001.iam.gserviceaccount.com
+#
+# Required GitHub Environment variables (set per environment in repo settings):
+#   vars.GCP_WORKLOAD_IDENTITY_PROVIDER  - Full WIF provider resource path
+#   vars.GCP_WF_SA_EMAIL                 - GitHub Actions service account email
+#   vars.GCP_PROJECT_ID                  - Target GCP project ID for this env
+#
+# GitHub Environments required:
+#   westbrom-gcp-nonprod  - auto-deploys on push to main
+#   westbrom-gcp-prod     - requires manual approval gate (configure in repo settings)
+#
+# PENDING PROJECT TEAM CONFIRMATION:
+#   - WIF SA requires roles on each WestBrom backup project (nonprod + prod):
+#       roles/viewer, roles/storage.admin, roles/cloudkms.admin,
+#       roles/pubsub.admin, roles/logging.admin, roles/storagetransfer.admin,
+#       roles/iam.serviceAccountAdmin, roles/monitoring.admin
+#   - Terraform state buckets must be pre-created:
+#       westbrom-terraform-state-nonprod, westbrom-terraform-state-prod
+###############################################################################
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'WestBrom-GCP/terraform/**'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'WestBrom-GCP/terraform/**'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'nonprod'
+        type: choice
+        options:
+          - nonprod
+          - prod
+      action:
+        description: 'Terraform action'
+        required: true
+        default: 'plan'
+        type: choice
+        options:
+          - plan
+          - apply
+
+permissions:
+  contents: read
+  id-token: write       # Required for OIDC token request to GCP WIF
+  pull-requests: write  # Required to post plan output on PRs
+
+env:
+  TERRAFORM_VERSION: "1.8.0"
+  WORKING_DIR: "WestBrom-GCP/terraform"
+
+###############################################################################
+# PR Plan - validates and plans on pull requests (nonprod only)
+###############################################################################
+jobs:
+  plan-nonprod:
+    name: "Plan (nonprod)"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'nonprod')
+    environment: westbrom-gcp-nonprod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud (WIF)
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_WF_SA_EMAIL }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init (nonprod)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="environments/nonprod/backend.conf" \
+            -reconfigure
+
+      - name: Terraform Validate
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform validate
+
+      - name: Terraform Plan (nonprod)
+        id: plan
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform plan \
+            -var-file="environments/nonprod/terraform.tfvars" \
+            -out=nonprod.tfplan \
+            -input=false \
+            -no-color 2>&1 | tee plan-output.txt
+          echo "exit_code=${PIPESTATUS[0]}" >> $GITHUB_OUTPUT
+
+      - name: Post Plan to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const plan = fs.readFileSync('${{ env.WORKING_DIR }}/plan-output.txt', 'utf8');
+            const truncated = plan.length > 60000 ? plan.substring(0, 60000) + '\n...(truncated)' : plan;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Terraform Plan — \`nonprod\`\n\`\`\`terraform\n${truncated}\n\`\`\``
+            });
+
+      - name: Upload Plan Artifact
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-nonprod
+          path: ${{ env.WORKING_DIR }}/nonprod.tfplan
+          retention-days: 1
+
+###############################################################################
+# Apply Non-Prod - auto on push to main
+###############################################################################
+  apply-nonprod:
+    name: "Apply (nonprod)"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    environment: westbrom-gcp-nonprod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_WF_SA_EMAIL }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init (nonprod)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="environments/nonprod/backend.conf" \
+            -reconfigure
+
+      - name: Terraform Apply (nonprod)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform apply \
+            -var-file="environments/nonprod/terraform.tfvars" \
+            -auto-approve \
+            -input=false
+
+      - name: Terraform Outputs
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform output -json
+
+###############################################################################
+# Plan Prod - manual dispatch only
+###############################################################################
+  plan-prod:
+    name: "Plan (prod)"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod'
+    environment: westbrom-gcp-prod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_WF_SA_EMAIL }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Terraform Init (prod)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="environments/prod/backend.conf" \
+            -reconfigure
+
+      - name: Terraform Plan (prod)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform plan \
+            -var-file="environments/prod/terraform.tfvars" \
+            -out=prod.tfplan \
+            -input=false
+
+      - name: Upload Plan Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: terraform-plan-prod
+          path: ${{ env.WORKING_DIR }}/prod.tfplan
+          retention-days: 1
+
+###############################################################################
+# Apply Prod - manual dispatch + approval gate only
+###############################################################################
+  apply-prod:
+    name: "Apply (prod)"
+    runs-on: ubuntu-latest
+    needs: plan-prod
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod' && github.event.inputs.action == 'apply'
+    environment: westbrom-gcp-prod
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_WF_SA_EMAIL }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ env.TERRAFORM_VERSION }}
+
+      - name: Download Plan Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: terraform-plan-prod
+          path: ${{ env.WORKING_DIR }}
+
+      - name: Terraform Init (prod)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform init \
+            -backend-config="environments/prod/backend.conf" \
+            -reconfigure
+
+      - name: Terraform Apply (prod)
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          terraform apply \
+            -input=false \
+            prod.tfplan
+
+      - name: Terraform Outputs
+        working-directory: ${{ env.WORKING_DIR }}
+        run: terraform output -json

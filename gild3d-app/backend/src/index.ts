@@ -10,6 +10,7 @@ import messageRoutes from './routes/messages';
 import paymentRoutes from './routes/payments';
 import bookingRoutes from './routes/bookings';
 import adminRoutes from './routes/admin';
+import maintenanceRoutes from './routes/maintenance';
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -62,6 +63,7 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/maintenance', maintenanceRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
 

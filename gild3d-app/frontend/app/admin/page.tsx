@@ -109,6 +109,22 @@ export default function AdminDashboard() {
     loadUsers();
   };
 
+  const setTier = async (userId: string, membershipTier: string) => {
+    try {
+      await adminApi('PATCH', `/users/${userId}/tier`, { membershipTier });
+      showToast(`Tier updated to ${membershipTier}`);
+      loadUsers();
+    } catch { showToast('Failed to update tier'); }
+  };
+
+  const toggleVip = async (userId: string, isVip: boolean) => {
+    try {
+      await adminApi('PATCH', `/companions/${userId}/vip`, { isVip });
+      showToast(isVip ? '⭐ VIP status granted' : 'VIP status removed');
+      loadCompanions();
+    } catch { showToast('Failed to update VIP status'); }
+  };
+
   const saveCompanion = async () => {
     if (!editingCompanion) return;
     setSaving(true);
@@ -274,7 +290,20 @@ export default function AdminDashboard() {
                       <td style={{ padding: '10px 14px' }}><span style={{ padding: '2px 8px', background: u.memberType === 'COMPANION' ? `${G}22` : `${BLUE}22`, color: u.memberType === 'COMPANION' ? G : BLUE, borderRadius: 2, fontSize: 11 }}>{u.memberType}</span></td>
                       <td style={{ padding: '10px 14px', color: G }}>{u.profile?.displayName || '—'}</td>
                       <td style={{ padding: '10px 14px', color: MUTED, fontSize: 12 }}>{u.profile?.location || '—'}</td>
-                      <td style={{ padding: '10px 14px', fontSize: 12 }}>{u.membershipTier}</td>
+                      <td style={{ padding: '6px 14px' }}>
+                        {u.memberType === 'MEMBER' ? (
+                          <select
+                            value={u.membershipTier}
+                            onChange={e => setTier(u.id, e.target.value)}
+                            style={{ background: '#1a1200', border: `1px solid ${BORDER}`, color: u.membershipTier === 'PLATINUM' ? G : TEXT, borderRadius: 2, padding: '4px 8px', fontSize: 12, cursor: 'pointer' }}>
+                            {['FREE', 'SILVER', 'GOLD', 'PLATINUM'].map(t => (
+                              <option key={t} value={t}>{t}</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <span style={{ fontSize: 12, color: MUTED }}>{u.membershipTier}</span>
+                        )}
+                      </td>
                       <td style={{ padding: '10px 14px' }}><span style={{ color: u.emailVerified ? GREEN : RED, fontSize: 12 }}>{u.emailVerified ? '✓' : '✗'}</span></td>
                       <td style={{ padding: '10px 14px' }}><span style={{ color: u.isActive ? GREEN : RED, fontSize: 12 }}>{u.isActive ? '✓' : '✗'}</span></td>
                       <td style={{ padding: '10px 14px', color: MUTED, fontSize: 11, whiteSpace: 'nowrap' }}>{fmtDate(u.createdAt)}</td>
@@ -413,7 +442,14 @@ export default function AdminDashboard() {
                         {c.profile?.outCall ? <span style={{ color: BLUE }}>Out</span> : <span style={{ color: RED }}>—</span>}
                       </td>
                       <td style={{ padding: '10px 14px' }}><span style={{ color: c.profile?.isPublished ? GREEN : RED }}>{c.profile?.isPublished ? '✓ Live' : '✗ Draft'}</span></td>
-                      <td style={{ padding: '10px 14px' }}><span style={{ color: c.profile?.isVip ? G : RED }}>{c.profile?.isVip ? '⭐ VIP' : '—'}</span></td>
+                      <td style={{ padding: '10px 14px' }}>
+                        <button
+                          onClick={() => toggleVip(c.id, !c.profile?.isVip)}
+                          title={c.profile?.isVip ? 'Click to remove VIP status' : 'Click to grant VIP status'}
+                          style={{ ...btn(c.profile?.isVip ? G : 'transparent'), fontSize: 11, padding: '4px 10px', border: `1px solid ${c.profile?.isVip ? G : BORDER}`, color: c.profile?.isVip ? BG : DIM }}>
+                          {c.profile?.isVip ? '⭐ VIP' : '— VIP'}
+                        </button>
+                      </td>
                       <td style={{ padding: '10px 14px', whiteSpace: 'nowrap' }}>
                         {confirmDeleteId === c.id ? (
                           <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>

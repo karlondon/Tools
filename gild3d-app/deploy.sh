@@ -34,12 +34,22 @@ $SCP gild3d-app/backend/src/controllers/authController.ts \
   $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/authController.ts
 $SCP gild3d-app/backend/src/controllers/adminController.ts \
   $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/adminController.ts
+$SCP gild3d-app/backend/src/controllers/maintenanceController.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/controllers/maintenanceController.ts
 $SCP gild3d-app/backend/src/routes/auth.ts \
   $HOST:/home/ubuntu/gild3d-app/backend/src/routes/auth.ts
+$SCP gild3d-app/backend/src/routes/admin.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/routes/admin.ts
 $SCP gild3d-app/backend/src/routes/bookings.ts \
   $HOST:/home/ubuntu/gild3d-app/backend/src/routes/bookings.ts
+$SCP gild3d-app/backend/src/routes/profiles.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/routes/profiles.ts
+$SCP gild3d-app/backend/src/routes/maintenance.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/routes/maintenance.ts
 $SCP gild3d-app/backend/src/middleware/upload.ts \
   $HOST:/home/ubuntu/gild3d-app/backend/src/middleware/upload.ts
+$SCP gild3d-app/backend/src/middleware/auth.ts \
+  $HOST:/home/ubuntu/gild3d-app/backend/src/middleware/auth.ts
 echo "  Backend files uploaded"
 
 echo ""
@@ -50,9 +60,37 @@ $SCP "gild3d-app/frontend/app/bookings/page.tsx" \
   "$HOST:/home/ubuntu/gild3d-app/frontend/app/bookings/page.tsx"
 $SCP "gild3d-app/frontend/app/admin/page.tsx" \
   "$HOST:/home/ubuntu/gild3d-app/frontend/app/admin/page.tsx"
+$SCP gild3d-app/frontend/components/Navbar.tsx \
+  $HOST:/home/ubuntu/gild3d-app/frontend/components/Navbar.tsx
+$SCP gild3d-app/frontend/components/MaintenanceBanner.tsx \
+  $HOST:/home/ubuntu/gild3d-app/frontend/components/MaintenanceBanner.tsx
+$SCP gild3d-app/frontend/app/browse/page.tsx \
+  $HOST:/home/ubuntu/gild3d-app/frontend/app/browse/page.tsx
+$SCP gild3d-app/frontend/app/layout.tsx \
+  $HOST:/home/ubuntu/gild3d-app/frontend/app/layout.tsx
 $SCP gild3d-app/nginx/nginx.conf \
   $HOST:/home/ubuntu/gild3d-app/nginx/nginx.conf
 echo "  Frontend + nginx files uploaded"
+
+echo ""
+echo "[2b/6] Uploading maintenance scripts..."
+$SSH $HOST "mkdir -p /home/ubuntu/gild3d-app/scripts"
+$SCP gild3d-app/scripts/utils.sh            $HOST:/home/ubuntu/gild3d-app/scripts/utils.sh
+$SCP gild3d-app/scripts/ssl-check.sh        $HOST:/home/ubuntu/gild3d-app/scripts/ssl-check.sh
+$SCP gild3d-app/scripts/weekly-update.sh    $HOST:/home/ubuntu/gild3d-app/scripts/weekly-update.sh
+$SCP gild3d-app/scripts/clear-maintenance-banner.sh \
+  $HOST:/home/ubuntu/gild3d-app/scripts/clear-maintenance-banner.sh
+$SCP gild3d-app/scripts/db-backup.sh        $HOST:/home/ubuntu/gild3d-app/scripts/db-backup.sh
+$SCP gild3d-app/scripts/health-check.sh     $HOST:/home/ubuntu/gild3d-app/scripts/health-check.sh
+$SCP gild3d-app/scripts/disk-monitor.sh     $HOST:/home/ubuntu/gild3d-app/scripts/disk-monitor.sh
+$SCP gild3d-app/scripts/log-cleanup.sh      $HOST:/home/ubuntu/gild3d-app/scripts/log-cleanup.sh
+$SCP gild3d-app/scripts/install-crons.sh    $HOST:/home/ubuntu/gild3d-app/scripts/install-crons.sh
+echo "  Maintenance scripts uploaded"
+
+echo ""
+echo "[2c/6] Activating cron jobs on server..."
+$SSH $HOST "sudo bash /home/ubuntu/gild3d-app/scripts/install-crons.sh"
+echo "  Cron jobs installed/updated"
 
 echo ""
 echo "[4/6] Rebuilding backend (installs new packages: helmet, express-rate-limit)..."
@@ -103,4 +141,16 @@ echo "  - IPN signature verification with NOWPAYMENTS_IPN_SECRET"
 echo "  - Profile fixes: req.userId, privateMedia, Verified badge"
 echo "  - Bookings page: Pay Now redirects to NOWPayments hosted checkout"
 echo "  - Admin: Companion CRUD — Add, Edit (with age), Delete with confirmation"
+echo "  - Navbar: brand animation (Gilded ↔ Gild3d), auth fix on route change"
+echo "  - Admin VIP toggle: one-click VIP button in Companions table (PATCH /admin/companions/:id/vip)"
+echo "  - VIP companion gating: isVip flag + PLATINUM membership required"
+echo "  - Maintenance banner: polls /api/maintenance/status every 60s"
+echo "  - Maintenance API: GET/POST /api/maintenance/status + POST /alert"
+echo "  - Cron scripts: ssl-check, weekly-update, db-backup, health-check,"
+echo "                  disk-monitor, log-cleanup (install with install-crons.sh)"
+echo ""
+echo "  POST-DEPLOY (first time only):"
+echo "  1. Ensure .env contains MAINTENANCE_SECRET (already set to a generated value)"
+echo "  2. Ensure .env contains ADMIN_EMAIL (set to wordpress.myblognow.uk@gmail.com)"
+echo "  NOTE: Cron jobs are activated automatically during every deploy."
 echo "========================================"

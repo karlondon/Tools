@@ -35,7 +35,7 @@ resource "google_storage_bucket" "backup" {
   # Lifecycle rule to transition older backups to cheaper storage
   lifecycle_rule {
     condition {
-      age = 30
+      age = var.nearline_transition_age_days
     }
     action {
       type          = "SetStorageClass"

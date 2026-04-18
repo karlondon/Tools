@@ -108,7 +108,7 @@
   <div class="doc-label">Document 04 — Project Delivery &amp; Handover</div>
   <h1><em>Gild3d</em> — Project Delivery &amp; Handover</h1>
   <div class="doc-meta">
-    <span><strong>Version:</strong> 1.0</span>
+    <span><strong>Version:</strong> 1.1</span>
     <span><strong>Date:</strong> April 2026</span>
     <span><strong>Phase:</strong> Phase 1 — Complete</span>
     <span><strong>Classification:</strong> Confidential</span>
@@ -161,6 +161,10 @@
         <tr><td>File Upload System</td><td>Secure photo upload with MIME + extension validation, random filename generation, 20MB limit</td><td><span class="pill pill-done">Delivered</span></td></tr>
         <tr><td>Direct Messaging</td><td>Member-to-member / member-to-companion messaging with admin audit access</td><td><span class="pill pill-done">Delivered</span></td></tr>
         <tr><td>Security Hardening</td><td>Helmet headers, CORS, rate limiting (Nginx + Express), cryptographic OTP, input validation</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>VIP Companion Gating</td><td>Admin-controlled isVip flag on companion profiles. VIP companions visible to PLATINUM members only; locked cards and upgrade wall for lower tiers. Booking blocked with 403 for non-PLATINUM members.</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Admin VIP Toggle</td><td>One-click VIP grant / revoke button in Companions table (Admin Dashboard). Dedicated PATCH /admin/companions/:userId/vip endpoint. Instant toast confirmation.</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Maintenance Banner API</td><td>GET/POST /api/maintenance/status and POST /api/maintenance/alert endpoints. State persisted to uploads volume (survives container restarts). Protected by MAINTENANCE_SECRET header. Frontend polls every 60 seconds with colour-coded banner (info / warning / error).</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Navbar Brand Animation</td><td>CSS opacity fade cycling "Gilded" ↔ "Gild3d" every 3 seconds, reinforcing domain brand. Auth state fix on client-side navigation (usePathname dependency).</td><td><span class="pill pill-done">Delivered</span></td></tr>
       </tbody>
     </table>
 
@@ -173,7 +177,8 @@
         <tr><td>SSL Certificate Automation</td><td>Certbot container with Let's Encrypt, auto-renewal every 12 hours via ACME HTTP-01</td><td><span class="pill pill-done">Delivered</span></td></tr>
         <tr><td>Cloudflare Configuration</td><td>DNS, CDN, WAF, 15 IP range forwarding configured for real-IP accuracy</td><td><span class="pill pill-done">Delivered</span></td></tr>
         <tr><td>Deploy Script</td><td>Automated deploy.sh — pulls code, rebuilds containers, runs migrations, verifies endpoints</td><td><span class="pill pill-done">Delivered</span></td></tr>
-        <tr><td>Environment Configuration</td><td>.env template with all required variables documented. Production .env configured on server.</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Environment Configuration</td><td>.env template with all required variables documented. Production .env configured on server. Includes MAINTENANCE_SECRET and ADMIN_EMAIL for automation scripts.</td><td><span class="pill pill-done">Delivered</span></td></tr>
+        <tr><td>Automated Maintenance Suite</td><td>7 scheduled cron scripts deployed to /home/ubuntu/gild3d-app/scripts/ and activated via install-crons.sh: ssl-check.sh (daily 23:00), weekly-update.sh (Sun 22:45), clear-maintenance-banner.sh (Mon 01:00), db-backup.sh (daily 02:00 — 14-day retention), health-check.sh (every 5 min with auto-recovery), disk-monitor.sh (every 6 hr, alerts at 80%/90%), log-cleanup.sh (Sun 03:00). Shared utils.sh provides common logging, alerting and banner functions.</td><td><span class="pill pill-done">Delivered</span></td></tr>
       </tbody>
     </table>
 
@@ -256,7 +261,7 @@
       <li class="todo"><div class="check-box"></div><span>All credentials transferred via secure encrypted channel</span></li>
       <li class="todo"><div class="check-box"></div><span>Client confirms SSH access to production server</span></li>
       <li class="todo"><div class="check-box"></div><span>Admin password changed from default to client-chosen password</span></li>
-      <li class="todo"><div class="check-box"></div><span>PostgreSQL automated backup configured (cron + S3 or Lightsail snapshots)</span></li>
+      <li class="done"><div class="check-box">✓</div><span>PostgreSQL automated backup configured — daily cron to local server (14-day retention). Off-server S3 sync recommended as Phase 2 enhancement.</span></li>
       <li class="todo"><div class="check-box"></div><span>NOWPayments IPN URL confirmed set to https://gild3d.com/api/bookings/webhook/nowpayments</span></li>
       <li class="todo"><div class="check-box"></div><span>Client walkthrough session completed (admin dashboard, deploy process)</span></li>
     </ul>
@@ -287,10 +292,10 @@
           <td>Phase 2: companion self-service portal with admin approval workflow.</td>
         </tr>
         <tr>
-          <td>PostgreSQL backups not automated</td>
-          <td><span class="pill pill-critical">High — Action Required</span></td>
-          <td>Database data is in a Docker volume with no automated backup. A server failure could cause data loss.</td>
-          <td>Configure immediate: AWS Lightsail instance snapshots + PostgreSQL dump via cron to S3.</td>
+          <td>PostgreSQL backups — local only</td>
+          <td><span class="pill pill-done">Resolved</span></td>
+          <td>Daily automated backups now implemented via db-backup.sh cron (02:00 daily). Dumps compressed with gzip to /home/ubuntu/gild3d-backups/ with 14-day retention. Failure triggers email alert to admin.</td>
+          <td>Recommended enhancement: additionally sync backup files to AWS S3 or Lightsail object storage for off-server redundancy. Current local backups protect against data corruption; off-server sync protects against instance loss.</td>
         </tr>
         <tr>
           <td>Single-region deployment</td>
@@ -319,8 +324,8 @@
       </tbody>
     </table>
 
-    <div class="warning-box" style="margin-top:20px;">
-      <p><strong>IMMEDIATE ACTION REQUIRED:</strong> PostgreSQL automated backups must be configured before any live member transactions occur. A database failure without backups represents an unrecoverable data loss scenario. See the Technical Architecture document Operational Runbook for backup configuration commands.</p>
+    <div class="note-box" style="margin-top:20px;">
+      <p><strong>Note — Backup Status:</strong> Daily automated PostgreSQL backups are now active (db-backup.sh, 02:00 cron, 14-day local retention). The previously critical gap is resolved. Recommended next step: configure S3 sync for off-server redundancy using <code>aws s3 cp /home/ubuntu/gild3d-backups/ s3://your-bucket/gild3d-backups/ --recursive</code> appended to the daily backup cron.</p>
     </div>
   </section>
 
@@ -329,7 +334,7 @@
     <div class="section-title"><span class="section-num">06 &nbsp;</span> Recommended Phase 2 Scope</div>
     <p>The following items are recommended for Phase 2 development, prioritised by business impact:</p>
 
-    <div class="roadmap-item"><div class="roadmap-priority rp-high">P1 — Critical</div><div class="roadmap-content"><h4>Database Automated Backups</h4><p>Immediately required before production transactions. Daily PostgreSQL dumps to S3 with 30-day retention.</p></div></div>
+    <div class="roadmap-item"><div class="roadmap-priority rp-med">P2 — Medium</div><div class="roadmap-content"><h4>Off-Server Database Backup Sync</h4><p>Local daily backups are now automated (delivered). Enhancement: sync dump files to AWS S3 or Lightsail object storage for off-instance redundancy, protecting against full instance loss scenarios.</p></div></div>
     <div class="roadmap-item"><div class="roadmap-priority rp-high">P1 — High</div><div class="roadmap-content"><h4>Password Reset Flow</h4><p>Email-based self-service password reset. Required for member retention and support load reduction.</p></div></div>
     <div class="roadmap-item"><div class="roadmap-priority rp-high">P1 — High</div><div class="roadmap-content"><h4>Booking Email Notifications</h4><p>Transactional emails for booking confirmation, payment receipt, cancellation. Significantly improves member trust.</p></div></div>
     <div class="roadmap-item"><div class="roadmap-priority rp-med">P2 — Medium</div><div class="roadmap-content"><h4>Real-Time Messaging (WebSocket)</h4><p>Socket.io integration for live member-companion messaging. Key differentiator for premium experience.</p></div></div>

@@ -74,6 +74,12 @@ variable "lifecycle_delete_age_days" {
   default     = 90
 }
 
+variable "nearline_transition_age_days" {
+  description = "Number of days after which objects are transitioned to NEARLINE storage class"
+  type        = number
+  default     = 30
+}
+
 variable "bucket_lock_enabled" {
   description = "Whether to lock the retention policy on the bucket (prevents deletion)"
   type        = bool
@@ -91,7 +97,6 @@ variable "aws_s3_bucket_name" {
 variable "aws_iam_role_arn" {
   description = "AWS IAM Role ARN for GCP Storage Transfer Service to assume"
   type        = string
-  default     = "arn:aws:iam::937245949235:role/dev-gcp-transfer-poc"
 }
 
 variable "aws_s3_path" {
@@ -103,6 +108,29 @@ variable "aws_s3_path" {
 # --------------------------------------------------------------------------
 # Transfer Job Schedule
 # --------------------------------------------------------------------------
+variable "schedule_start_year" {
+  description = "Year to start the transfer schedule (YYYY)"
+  type        = number
+}
+
+variable "schedule_start_month" {
+  description = "Month to start the transfer schedule (1-12)"
+  type        = number
+  validation {
+    condition     = var.schedule_start_month >= 1 && var.schedule_start_month <= 12
+    error_message = "Month must be between 1 and 12."
+  }
+}
+
+variable "schedule_start_day" {
+  description = "Day to start the transfer schedule (1-31)"
+  type        = number
+  validation {
+    condition     = var.schedule_start_day >= 1 && var.schedule_start_day <= 31
+    error_message = "Day must be between 1 and 31."
+  }
+}
+
 variable "transfer_schedule_start_hour" {
   description = "Hour (UTC) to start the transfer job (0-23). Should be after AWS backup completes."
   type        = number

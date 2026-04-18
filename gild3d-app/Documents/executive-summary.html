@@ -81,7 +81,7 @@
   <div class="doc-label">Document 01 — Executive Summary</div>
   <h1><em>Gild3d</em> — Platform Overview</h1>
   <div class="doc-meta">
-    <span><strong>Version:</strong> 1.0</span>
+    <span><strong>Version:</strong> 1.1</span>
     <span><strong>Date:</strong> April 2026</span>
     <span><strong>Classification:</strong> Confidential</span>
     <span><strong>Audience:</strong> Executive / Founders / Investors</span>
@@ -131,6 +131,14 @@
         <div class="kpi-value">AWS</div>
         <div class="kpi-label">Cloud Hosted<br>Lightsail + Cloudflare CDN</div>
       </div>
+      <div class="kpi">
+        <div class="kpi-value">7</div>
+        <div class="kpi-label">Automated Cron Tasks<br>SSL · Backups · Updates · Health</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-value">VIP</div>
+        <div class="kpi-label">Exclusive Companion Tier<br>PLATINUM members only</div>
+      </div>
     </div>
   </section>
 
@@ -171,6 +179,14 @@
       <div class="feature-item">
         <h4>Messaging</h4>
         <p>Direct messaging system between members and companions. Sent/received message tracking with audit capability available to platform administrators.</p>
+      </div>
+      <div class="feature-item">
+        <h4>VIP Exclusive Companion Tier</h4>
+        <p>Admin-designated VIP companions visible and bookable only by PLATINUM members. Browse shows locked cards for lower tiers; profile pages display an upgrade wall. Admin can grant or revoke VIP status with one click.</p>
+      </div>
+      <div class="feature-item">
+        <h4>Automated Platform Maintenance</h4>
+        <p>Seven scheduled cron tasks running unattended: SSL certificate renewal, weekly server updates, daily PostgreSQL backups (14-day retention), container health monitoring with auto-recovery, disk space alerting, log rotation, and Docker cache cleanup. All failures trigger email alerts and site banners automatically.</p>
       </div>
     </div>
   </section>
@@ -252,7 +268,15 @@
           <li>Security hardening (all layers)</li>
           <li>Production deployment on AWS Lightsail</li>
           <li>Cloudflare CDN + real-IP configuration</li>
-          <li>Automated SSL certificate management</li>
+          <li>Automated SSL certificate renewal (5-day pre-expiry)</li>
+          <li>VIP companion tier with PLATINUM-only access gating</li>
+          <li>Admin one-click VIP grant / revoke on companions</li>
+          <li>Daily automated PostgreSQL backups (14-day retention)</li>
+          <li>Container health monitoring and auto-recovery (every 5 min)</li>
+          <li>Weekly unattended server update with maintenance banner</li>
+          <li>Disk space monitoring and alerting</li>
+          <li>Maintenance banner system with API (real-time user notifications)</li>
+          <li>Branded navbar animation (Gilded ↔ Gild3d)</li>
         </ul>
       </div>
       <div class="status-col">

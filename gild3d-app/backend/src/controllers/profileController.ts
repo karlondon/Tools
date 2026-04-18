@@ -1,12 +1,13 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
+import { AuthRequest } from '../middleware/auth';
 
 const prisma = new PrismaClient();
 
 export const getProfiles = async (req: Request, res: Response) => {
   try {
     const { location, minAge, maxAge, inCall, outCall, minRate, maxRate, sort } = req.query as any;
-    const where: any = { user: { isActive: true } };
+    const where: any = { isPublished: true, user: { isActive: true } };
     if (location) where.location = { contains: location, mode: 'insensitive' };
     if (minAge) where.age = { ...where.age, gte: parseInt(minAge) };
     if (maxAge) where.age = { ...where.age, lte: parseInt(maxAge) };
@@ -35,6 +36,8 @@ export const getProfiles = async (req: Request, res: Response) => {
 export const getProfile = async (req: Request, res: Response) => {
   try {
     const { userId } = req.params;
+    const authReq = req as AuthRequest;
+
     const profile = await prisma.profile.findUnique({
       where: { userId },
       include: {
@@ -44,6 +47,23 @@ export const getProfile = async (req: Request, res: Response) => {
       },
     });
     if (!profile) return res.status(404).json({ error: 'Profile not found' });
+
+    if (profile.isVip) {
+      const isAdmin = ['ADMIN', 'SUPER_ADMIN'].includes(authReq.memberType || '');
+      const isPlatinum = authReq.membershipTier === 'PLATINUM';
+      if (!isAdmin && !isPlatinum) {
+        return res.json({
+          ...profile,
+          vipLocked: true,
+          privateMedia: [],
+          bio: null,
+          services: null,
+          languages: null,
+          lookingFor: null,
+        });
+      }
+    }
+
     return res.json(profile);
   } catch (err: any) {
     return res.status(500).json({ error: 'Server error' });

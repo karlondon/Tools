@@ -31,6 +31,10 @@ aws_iam_role_arn   = "arn:aws:iam::937245949235:role/dev-gcp-transfer-poc"    # 
 aws_s3_path        = ""
 
 # Transfer Schedule (UTC) - runs daily at 04:00 UTC (after nightly backup completes)
+# State bucket pre-creation: westbrom-terraform-state-nonprod (must exist before terraform init)
+schedule_start_year               = 2026     # UPDATE: Set to desired schedule start date
+schedule_start_month              = 5
+schedule_start_day                = 1
 transfer_schedule_start_hour      = 4
 transfer_schedule_start_minute    = 0
 transfer_schedule_repeat_interval = "86400s" # Daily

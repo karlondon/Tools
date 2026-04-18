@@ -72,6 +72,20 @@ export const setCompanionPublished = async (req: AuthRequest, res: Response): Pr
   }
 };
 
+export const setCompanionVip = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { isVip } = req.body;
+    const user = await prisma.user.findUnique({ where: { id: userId }, include: { profile: true } });
+    if (!user || user.memberType !== 'COMPANION') { res.status(404).json({ error: 'Companion not found' }); return; }
+    if (!user.profile) { res.status(400).json({ error: 'Companion has no profile' }); return; }
+    await prisma.profile.update({ where: { id: user.profile.id }, data: { isVip: Boolean(isVip) } });
+    res.json({ message: `VIP status ${isVip ? 'granted' : 'removed'}`, isVip: Boolean(isVip) });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to update VIP status' });
+  }
+};
+
 export const listMembers = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { status } = req.query;
@@ -99,6 +113,24 @@ export const listMembers = async (req: AuthRequest, res: Response): Promise<void
     res.json(members);
   } catch (err: any) {
     res.status(500).json({ error: 'Failed to list members' });
+  }
+};
+
+export const setUserTier = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { userId } = req.params;
+    const { membershipTier } = req.body;
+    const valid = ['FREE', 'SILVER', 'GOLD', 'PLATINUM'];
+    if (!valid.includes(membershipTier)) {
+      res.status(400).json({ error: `Invalid tier. Must be one of: ${valid.join(', ')}` }); return;
+    }
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) { res.status(404).json({ error: 'User not found' }); return; }
+    if (user.memberType !== 'MEMBER') { res.status(400).json({ error: 'Tier can only be set on MEMBER accounts' }); return; }
+    await prisma.user.update({ where: { id: userId }, data: { membershipTier } });
+    res.json({ message: `Membership tier updated to ${membershipTier}`, userId, membershipTier });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to update membership tier' });
   }
 };
 

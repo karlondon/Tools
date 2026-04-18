@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from 'react-hot-toast';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import MaintenanceBanner from '@/components/MaintenanceBanner';
 
 export const metadata: Metadata = {
   title: 'Gilded Companions – Where Luxury Meets Connection',
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-screen flex flex-col bg-dark-900 text-white">
+        <MaintenanceBanner />
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />

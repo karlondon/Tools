@@ -60,6 +60,12 @@ export const createBooking = async (req: AuthRequest, res: Response): Promise<vo
     const profile = await prisma.profile.findUnique({ where: { id: profileId } });
     if (!profile) { res.status(404).json({ error: 'Profile not found' }); return; }
     if (!profile.hourlyRate) { res.status(400).json({ error: 'This companion has not set their rates' }); return; }
+    if (profile.isVip) {
+      const member = await prisma.user.findUnique({ where: { id: req.userId as string } });
+      if (member?.membershipTier !== 'PLATINUM') {
+        res.status(403).json({ error: 'PLATINUM membership required to book VIP companions', upgrade: true }); return;
+      }
+    }
     if (type === 'INCALL' && !profile.inCall) { res.status(400).json({ error: 'This companion does not offer InCall' }); return; }
     if (type === 'OUTCALL' && !profile.outCall) { res.status(400).json({ error: 'This companion does not offer OutCall' }); return; }
 

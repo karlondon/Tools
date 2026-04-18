@@ -51,6 +51,12 @@ variable "bucket_lock_enabled" {
   default     = false
 }
 
+variable "nearline_transition_age_days" {
+  description = "Number of days after which objects are transitioned to NEARLINE storage class"
+  type        = number
+  default     = 30
+}
+
 variable "transfer_service_account_email" {
   description = "Email of the transfer service account"
   type        = string

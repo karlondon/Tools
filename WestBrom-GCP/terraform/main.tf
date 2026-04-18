@@ -102,6 +102,7 @@ module "storage" {
   kms_crypto_key_id              = module.kms.crypto_key_id
   retention_period_days          = var.retention_period_days
   lifecycle_delete_age_days      = var.lifecycle_delete_age_days
+  nearline_transition_age_days   = var.nearline_transition_age_days
   bucket_lock_enabled            = var.bucket_lock_enabled
   transfer_service_account_email = google_service_account.transfer.email
   labels                         = var.labels
@@ -141,10 +142,29 @@ module "transfer" {
   aws_iam_role_arn                  = var.aws_iam_role_arn
   aws_s3_path                       = var.aws_s3_path
   destination_bucket_name           = module.storage.backup_bucket_name
+  schedule_start_year               = var.schedule_start_year
+  schedule_start_month              = var.schedule_start_month
+  schedule_start_day                = var.schedule_start_day
   transfer_schedule_start_hour      = var.transfer_schedule_start_hour
   transfer_schedule_start_minute    = var.transfer_schedule_start_minute
   transfer_schedule_repeat_interval = var.transfer_schedule_repeat_interval
   notification_topic_id             = module.pubsub.notification_topic_id
 
   depends_on = [module.storage, module.pubsub, module.kms]
+}
+
+# --------------------------------------------------------------------------
+# GAP-8 Fix: STS System Service Agent Pub/Sub Publisher
+# --------------------------------------------------------------------------
+# The google_storage_transfer_job publishes notifications via the STS system
+# service agent (service-<project_number>@storage-transfer-service.iam.gserviceaccount.com),
+# NOT the custom transfer SA. Without this binding, transfer notifications
+# (SUCCESS/FAILED/ABORTED) will silently fail at runtime.
+resource "google_pubsub_topic_iam_member" "sts_agent_publisher" {
+  project = var.project_id
+  topic   = module.pubsub.notification_topic_id
+  role    = "roles/pubsub.publisher"
+  member  = "serviceAccount:${module.transfer.sts_service_agent_email}"
+
+  depends_on = [module.pubsub, module.transfer]
 }
