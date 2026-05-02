@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CMS Cloud Hosting – New Account Provisioning SOP</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    color: #333;
+    margin: 0;
+    padding: 20px 40px;
+    background: #fff;
+  }
+  h1 {
+    color: #006400;
+    font-size: 22px;
+    border-bottom: 3px solid #006400;
+    padding-bottom: 8px;
+  }
+  h2 {
+    color: #004d00;
+    font-size: 17px;
+    margin-top: 32px;
+    border-left: 5px solid #006400;
+    padding-left: 10px;
+  }
+  h3 {
+    color: #005700;
+    font-size: 15px;
+    margin-top: 20px;
+  }
+  .meta {
+    background: #f0f7f0;
+    border: 1px solid #b2d8b2;
+    border-radius: 6px;
+    padding: 12px 18px;
+    margin-bottom: 24px;
+    font-size: 13px;
+  }
+  .meta table { border-collapse: collapse; width: 100%; }
+  .meta td { padding: 3px 10px; vertical-align: top; }
+  .meta td:first-child { font-weight: bold; color: #004d00; width: 160px; }
+
+  /* Flowchart styles */
+  .flowchart {
+    width: 100%;
+    max-width: 860px;
+    margin: 24px auto;
+  }
+  .flow-step {
+    display: flex;
+    align-items: stretch;
+    margin-bottom: 0;
+  }
+  .flow-left {
+    width: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .flow-num {
+    width: 36px;
+    height: 36px;
+    background: #006400;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    flex-shrink: 0;
+    z-index: 1;
+  }
+  .flow-line {
+    width: 2px;
+    background: #006400;
+    flex: 1;
+    margin-top: 0;
+  }
+  .flow-body {
+    flex: 1;
+    margin-left: 12px;
+    padding-bottom: 24px;
+  }
+  .flow-box {
+    background: #e8f5e9;
+    border: 1px solid #81c784;
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-top: 0;
+  }
+  .flow-box.decision {
+    background: #fff8e1;
+    border-color: #ffb300;
+  }
+  .flow-box.action {
+    background: #e3f2fd;
+    border-color: #1976d2;
+  }
+  .flow-box.end {
+    background: #fce4ec;
+    border-color: #c62828;
+  }
+  .flow-title {
+    font-weight: bold;
+    font-size: 14px;
+    color: #1a1a1a;
+    margin-bottom: 4px;
+  }
+  .flow-desc {
+    font-size: 13px;
+    color: #444;
+    margin: 0;
+  }
+  .arrow-down {
+    text-align: center;
+    font-size: 20px;
+    color: #006400;
+    margin: 0 0 0 62px;
+    line-height: 1;
+  }
+  .decision-branch {
+    display: flex;
+    gap: 16px;
+    margin-top: 8px;
+  }
+  .branch {
+    flex: 1;
+    background: #fff8e1;
+    border: 1px dashed #ffb300;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  .branch strong { display: block; margin-bottom: 4px; color: #e65100; }
+
+  /* Tips & Notes */
+  .tip-box {
+    background: #fffde7;
+    border-left: 5px solid #f9a825;
+    padding: 10px 16px;
+    margin: 10px 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 13px;
+  }
+  .tip-box.note {
+    background: #e8f5e9;
+    border-left-color: #388e3c;
+  }
+  .tip-box.warning {
+    background: #fce4ec;
+    border-left-color: #c62828;
+  }
+  .tip-box strong {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 13px;
+  }
+  table.detail-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table.detail-table th {
+    background: #006400;
+    color: #fff;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  table.detail-table td {
+    padding: 7px 12px;
+    border-bottom: 1px solid #ddd;
+    vertical-align: top;
+  }
+  table.detail-table tr:nth-child(even) td { background: #f9f9f9; }
+  ul, ol { margin: 6px 0 6px 20px; padding: 0; }
+  li { margin-bottom: 4px; }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-right: 4px;
+  }
+  .tag.gcp { background: #e3f2fd; color: #1565c0; }
+  .tag.aws { background: #fff3e0; color: #e65100; }
+  .tag.azure { background: #ede7f6; color: #4527a0; }
+  .tag.all { background: #e8f5e9; color: #1b5e20; }
+  .contacts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 12px 0;
+  }
+  .contact-card {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    min-width: 180px;
+  }
+  .contact-card .name { font-weight: bold; color: #004d00; }
+  .contact-card .role { color: #666; font-size: 12px; }
+  .section-note {
+    font-size: 12px;
+    color: #777;
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+  .toc {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 12px 20px;
+    margin-bottom: 28px;
+    font-size: 13px;
+  }
+  .toc h3 { margin: 0 0 8px 0; color: #333; font-size: 14px; }
+  .toc ol { margin: 0; padding-left: 18px; }
+  .toc li { margin-bottom: 3px; }
+  .toc a { color: #006400; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<h1>☁️ CMS Cloud Hosting – New Account Provisioning</h1>
+<h2 style="border:none; padding:0; margin-top:0; color:#555; font-size:15px; font-weight:normal;">Standard Operating Procedure (SOP)</h2>
+
+<div class="meta">
+  <table>
+    <tr><td>Document Type</td><td>Standard Operating Procedure (SOP)</td></tr>
+    <tr><td>Team</td><td>CMS Cloud Managed Services</td></tr>
+    <tr><td>Applies To</td><td><span class="tag gcp">GCP</span> <span class="tag aws">AWS</span> <span class="tag azure">Azure</span></td></tr>
+    <tr><td>Date Created</td><td>30 April 2026</td></tr>
+    <tr><td>Based On</td><td>CMS Cloud Hosting Process Workflow Overview – Team Call (30/04/2026)</td></tr>
+    <tr><td>Status</td><td>✅ Active</td></tr>
+  </table>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h3>📋 Contents</h3>
+  <ol>
+    <li><a href="#overview">Overview & Scope</a></li>
+    <li><a href="#org-types">GCP Organisation Types</a></li>
+    <li><a href="#account-types">Account / Environment Types</a></li>
+    <li><a href="#process-flow">End-to-End Process Flow</a></li>
+    <li><a href="#portal">OpenCloud Insights Portal – Client Inquiry Process</a></li>
+    <li><a href="#form-fields">ServiceNow Cloud Account Request Form – Field Reference</a></li>
+    <li><a href="#kb-steps">Step-by-Step: Raising the Request (KB0010108)</a></li>
+    <li><a href="#tips-notes">Tips, Notes &amp; Gotchas</a></li>
+    <li><a href="#pricing">Pricing Guidance</a></li>
+    <li><a href="#contacts">Key Contacts &amp; Escalation</a></li>
+  </ol>
+</div>
+
+<!-- SECTION 1 -->
+<h2 id="overview">1. Overview &amp; Scope</h2>
+<p>This SOP describes the end-to-end process for receiving, validating, and fulfilling new Cloud Hosting account provisioning requests managed by the CMS team. It covers all three cloud providers (GCP, AWS, Azure) and applies to all Service Operations staff handling cloud provisioning tickets.</p>
+
+<div class="tip-box note">
+  <strong>📌 Before You Begin</strong>
+  Always direct the requester to the <strong>Cloud Hosting site</strong> first. It contains account type descriptions, the inquiry checklist, compliance process links, and the pricing model. This single action prevents the majority of back-and-forth on tickets.
+</div>
+
+<!-- SECTION 2 -->
+<h2 id="org-types">2. GCP Organisation Types</h2>
+<p>GCP has two distinct organisation environments. Determining the correct one is a critical early step.</p>
+
+<table class="detail-table">
+  <tr>
+    <th>Organisation</th>
+    <th>Description</th>
+    <th>Who Manages It</th>
+    <th>When to Use</th>
+  </tr>
+  <tr>
+    <td><strong>NSE Org / Internal Org</strong></td>
+    <td>Internal Deloitte organisation (also referred to as NSE Org or Internal Org). Tickets assigned here go straight to the Platforms team – CMS cannot action them directly.</td>
+    <td>Platforms Team</td>
+    <td>Deloitte-only use; no client access to the environment; Deloitte-managed data (even if confidential/IP); internal assets or products being built to sell.</td>
+  </tr>
+  <tr>
+    <td><strong>Resell Org (External)</strong></td>
+    <td>External organisation where CMS runs the pipeline to provision accounts.</td>
+    <td>CMS (via pipeline)</td>
+    <td>Client will log in or access the environment; client manages any part of the data; any data classified as client-owned regardless of environment type.</td>
+  </tr>
+</table>
+
+<div class="tip-box">
+  <strong>💡 Rule of Thumb – NSE/Internal Org vs Resell (GCP)</strong>
+  <ul>
+    <li>If <strong>only Deloitte</strong> manages and accesses the environment → <strong>NSE / Internal Org</strong></li>
+    <li>If <strong>the client will access</strong> the environment (even read-only, via web/app/mobile) → <strong>Resell Org</strong></li>
+    <li>If unsure, reach out to Rivin Jose Elavathingal or the Platform team for data classification guidance.</li>
+  </ul>
+</div>
+
+<div class="tip-box note">
+  <strong>📌 Azure &amp; AWS Note</strong>
+  Azure provisioning is always internal/MSE-side – the Platforms team handles it. AWS has similar internal/external concepts; confirm with the team lead if unsure.
+</div>
+
+<!-- SECTION 3 -->
+<h2 id="account-types">3. Account / Environment Types</h2>
+
+<table class="detail-table">
+  <tr>
+    <th>Type</th>
+    <th>Description</th>
+    <th>PII / Client Data Allowed?</th>
+    <th>GTOM Required?</th>
+  </tr>
+  <tr>
+    <td><strong>Sandbox</strong></td>
+    <td>Exploratory, experimental environment</td>
+    <td>No</td>
+    <td>No</td>
+  </tr>
+  <tr>
+    <td><strong>Non-Production</strong></td>
+    <td>Development, testing, staging environments</td>
+    <td>No – dummy/public data only</td>
+    <td>Recommended to start</td>
+  </tr>
+  <tr>
+    <td><strong>Production</strong></td>
+    <td>Live environment with real or client data</td>
+    <td>Yes – but <em>must</em> be Production account</td>
+    <td><strong>Yes – mandatory, can take months</strong></td>
+  </tr>
+</table>
+
+<div class="tip-box warning">
+  <strong>⚠️ Critical Rule</strong>
+  If the account will contain any <strong>Personally Identifiable Information (PII)</strong> or real client data, it <strong>must</strong> be provisioned as a <strong>Production</strong> account. A non-prod account must never hold PII. If the requester hasn't started GTOM, advise them to do so immediately – GTOM for Production can take several months.
+</div>
+
+<!-- SECTION 4 -->
+<h2 id="process-flow">4. End-to-End Process Flow</h2>
+<p class="section-note">Each numbered step below corresponds to a stage in the provisioning lifecycle.</p>
+
+<div class="flowchart">
+
+  <!-- STEP 1 -->
+  <div class="flow-step">
+    <div class="flow-left">
+      <div class="flow-num">1</div>
+      <div class="flow-line"></div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-box">
+        <div class="flow-title">📥 Ticket Received – Initial Inquiry</div>
+        <p class="flow-desc">A new cloud hosting request arrives via the <strong>Opportunities channel in ServiceNow</strong>. The requester has used the "Inquire Now" button on the Cloud Hosting site and submitted basic information: project name, description, project type, readiness level, compliance status, business function, cloud provider, and environment type.</p>
+      </div>
+      <div class="tip-box" style="margin-top:8px;">
+        <strong>📌 Note on the Current ServiceNow Form Limitations</strong>
+        The current form only captures a single dropdown for "Deloitte Compliance" (Started / Not Started). It does not ask for GTOM, InfoSec, or NSE Catalyst status individually. The Platform team is working on improving this form. Always triage carefully.
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="flow-step">
+    <div class="flow-left">
+      <div class="flow-num">2</div>
+      <div class="flow-line"></div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-box action">
+        <div class="flow-title">🔗 Send Cloud Hosting Site Link to Requester</div>
+        <p class="flow-desc">Before asking any questions or chasing compliance details, <strong>send the requester the Cloud Hosting site link</strong>. This contains:<br>
+        – Account type descriptions (Sandbox / Non-Prod / Production)<br>
+        – Pre-inquiry checklist (WBS code, partners on board, compliance processes started)<br>
+        – Links to GTOM, InfoSec, and NSE Catalyst processes<br>
+        – Pricing model overview</p>
+      </div>
+      <div class="tip-box" style="margin-top:8px;">
+        <strong>💡 Why this matters</strong>
+        Previously, teams asked individually about GTOM, InfoSec, and AI compliance via ticket messages, causing weeks of back-and-forth. Directing to the site upfront saves significant time for both sides.
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="flow-step">
+    <div class="flow-left">
+      <div class="flow-num">3</div>
+      <div class="flow-line"></div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-box decision">
+        <div class="flow-title">🔍 Triage &amp; Validate the Request</div>
+        <p class="flow-desc">Review the ticket and determine:</p>
+        <div class="decision-branch">
+          <div class="branch">
+            <strong>✅ Sufficient Info?</strong>
+            Proceed to compliance and org-type assessment (Step 4).
+          </div>
+          <div class="branch">
+            <strong>❓ Missing Info?</strong>
+            Respond via ServiceNow ticket requesting missing details. If no response, <strong>arrange a Teams call (15–30 min)</strong> to gather requirements. Remind them to document responses in the ticket.
+          </div>
+        </div>
+        <p class="flow-desc" style="margin-top:8px;"><strong>Key questions to validate:</strong> Does the account contain PII? Will the client access it? What is the data classification? Is there a WBS code? Has GTOM/InfoSec/NSE Catalyst been started? Which cloud provider and environment type?</p>
+      </div>
+      <div class="tip-box" style="margin-top:8px;">
+        <strong>💡 Tip – Requesters and Teams Messages</strong>
+        Some requesters will proactively message the assigned person on Teams. Ask them to put all queries into the ServiceNow ticket to maintain an audit trail.
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div class="flow-step">
+    <div class="flow-left">
+      <div class="flow-num">4</div>
+      <div class="flow-line"></div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-box decision">
+        <div class="flow-title">⚖️ Determine Organisation Type &amp; Compliance Route</div>
+        <p class="flow-desc">Based on the validated information, determine the correct org type and compliance path:</p>
+        <div class="decision-branch">
+          <div class="branch">
+            <strong>🏢 NSE / Internal Org (GCP/AWS)</strong>
+            Deloitte-only access, no client-facing usage. Proceed to create P-code and raise with Platforms team.
+          </div>
+          <div class="branch">
+            <strong>🌐 Resell Org (GCP)</strong>
+            Client will access the environment. Pipeline provisioning required. Ensure GTOM and InfoSec are complete before proceeding.
+          </div>
+          <div class="branch">
+            <strong>🔷 Azure</strong>
+            Always Internal/MSE. Choose Hub Connected (global Deloitte AD access) or Hub Disconnected (isolated, manually managed users). Platforms team provisions.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5 -->
+  <div class="flow-step">
+    <div class="flow-left">
+      <div class="flow-num">5</div>
+      <div class="flow-line"></div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-box action">
+        <div class="flow-title">📂 Create P-Code in ServiceNow</div>
+        <p class="flow-desc">Create a new Project Code (P-Code) in ServiceNow. This is <strong>required before raising a platform request</strong> – the platform request system will not link without a valid P-code.<br><br>
+        When creating the P-code, the initial status will be set to <strong>"Opportunity"</strong>.</p>
+      </div>
+      <div class="tip-box warning" style="margin-top:8px;">
+        <strong>⚠️ Critical – Change P-Code Status to "Build"</strong>
+        After creating the P-code, you <strong>must</strong> change its status from <strong>Opportunity → Build</strong>. If it remains in "Opportunity" status, the platform request form will not be able to link to it and provisioning cannot proceed. This is a commonly missed step.
+      </div>
+      <div class="tip-box" style="margin-top:8px;">
+        <strong>💡 P-Code Generation Tip</strong>
+        The follow-up survey in ServiceNow can auto-generate a P-code with pre-filled information. If you need to manually find the next available P-code number, use the search filter <code>P000</code> to list recent codes and identify the next sequential one.
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 6 -->
+  <div class="flow-step">
+    <div class="flow-left">
+      <div class="flow-num">6</div>
+      <div class="flow-line"></div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-box action">
+        <div class="flow-title">📧 Send Terms &amp; Conditions Approval Email to Partner/Director</div>
+        <p class="flow-desc">Before raising the account request with the Platform team, send a <strong>Terms &amp; Conditions approval email</strong> to the responsible Partner or Director (whoever is approving the account creation).<br><br>
+        The email must include:
+        <ul>
+          <li>Cloud service provider (e.g. Google Cloud Platform / Azure / AWS)</li>
+          <li>Description of the solution/workload</li>
+          <li>WBS code to be used</li>
+          <li>Chargeable confirmation</li>
+          <li>Management tier (Self-Managed / Co-Managed / Fully Managed)</li>
+        </ul>
+        The Partner/Director must <strong>explicitly reply with approval wording</strong>. Keep this email as evidence – it can be attached to the platform request.
+        </p>
+      </div>
+      <div class="tip-box warning" style="margin-top:8px;">
+        <strong>⚠️ No approval = No provisioning</strong>
+        Do not raise the platform request without documented partner/director approval. Store the approval email for audit purposes.
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 7 -->
+  <div class="flow-step">
+    <div class="flow-left">
+      <div class="flow-num">7</div>
+      <div class="flow-line"></div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-box action">
+        <div class="flow-title">🖥️ Raise Cloud Account Request with Platform Team</div>
+        <p class="flow-desc">Using the internal platform request link, raise the new cloud account request. Ensure all required fields are completed before submitting. See Section 5 for the full field reference.<br><br>
+        Attach the partner approval email to the request before submitting.</p>
+      </div>
+      <div class="tip-box note" style="margin-top:8px;">
+        <strong>📌 Recommended</strong>
+        Before submitting a real request, browse the form without submitting to familiarise yourself with all available fields and dropdowns. This helps you prepare the right questions to ask requesters in advance.
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 8 -->
+  <div class="flow-step">
+    <div class="flow-left">
+      <div class="flow-num">8</div>
+      <div class="flow-line"></div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-box">
+        <div class="flow-title">⏱️ Platform Team Provisions the Account (SLA: 3 Working Days per Account)</div>
+        <p class="flow-desc">Once submitted, the Platform team will pick up the request and provision the account. The <strong>SLA is 3 working days per account</strong>.<br><br>
+        <strong>Important:</strong> Accounts are provisioned <em>sequentially, not in parallel</em>. If multiple accounts are requested (e.g. non-prod + prod + dev), each takes 3 working days separately.</p>
+      </div>
+      <div class="tip-box warning" style="margin-top:8px;">
+        <strong>⚠️ Date Submission Rules</strong>
+        <ul>
+          <li>Always request provisioning on a <strong>Monday or working day</strong>.</li>
+          <li>If a Monday is a Bank Holiday, select the next working day.</li>
+          <li>The Platform team will reject requests dated on non-working days and ask you to resubmit.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 9 -->
+  <div class="flow-step">
+    <div class="flow-left">
+      <div class="flow-num">9</div>
+      <div class="flow-line"></div>
+    </div>
+    <div class="flow-body">
+      <div class="flow-box end">
+        <div class="flow-title">✅ Account Provisioned – Confirm &amp; Close</div>
+        <p class="flow-desc">Once the Platform team confirms provisioning:
+        <ul>
+          <li>Notify the requester via ServiceNow ticket and/or Teams</li>
+          <li>Confirm account details and access instructions</li>
+          <li>Update the ServiceNow ticket to reflect completion</li>
+          <li>Close the ticket</li>
+        </ul>
+        </p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end flowchart -->
+
+<!-- SECTION 5 – OpenCloud Portal -->
+<h2 id="portal">5. OpenCloud Insights Portal – Client Inquiry Process</h2>
+<p>The <strong>OpenCloud Insights Portal</strong> is the client-facing portal used to kick-start the Cloud Hosting enquiry process. Before a ticket even reaches the CMS team, clients (or internal requesters) interact with this portal. Understanding its layout helps the team triage incoming requests effectively.</p>
+
+<div class="tip-box note">
+  <strong>📌 Portal Access</strong>
+  The OpenCloud Insights Portal is accessed at <a href="https://eu.opencloudportal.com/" target="_blank">https://eu.opencloudportal.com/</a>. The portal has several sections relevant to the provisioning process:
+  <ul>
+    <li><strong>Home / Overview</strong> – Landing page with navigation to all portal sections</li>
+    <li><strong>Cloud Financials</strong> – <a href="https://eu.opencloudportal.com/cloud-financials" target="_blank">https://eu.opencloudportal.com/cloud-financials</a> – Cost visibility and WBS tracking</li>
+    <li><strong>Security</strong> – <a href="https://eu.opencloudportal.com/security" target="_blank">https://eu.opencloudportal.com/security</a> – Compliance and security posture</li>
+    <li><strong>Admin</strong> – <a href="https://eu.opencloudportal.com/admin" target="_blank">https://eu.opencloudportal.com/admin</a> – Administrative functions</li>
+  </ul>
+</div>
+
+<h3>How Clients Raise an Inquiry</h3>
+<p>The client inquiry journey through the Cloud Hosting site follows this sequence before a ServiceNow ticket is created:</p>
+
+<table class="detail-table">
+  <tr><th>Stage</th><th>What the Client / Requester Does</th><th>CMS Team Note</th></tr>
+  <tr>
+    <td><strong>1. Visit Cloud Hosting Site</strong></td>
+    <td>Requester visits the internal Cloud Hosting information page. Previously, an "Inquire Now" button was prominently placed at the top — this has been moved lower to encourage reading the content first.</td>
+    <td>The Cloud Hosting site now contains the full inquiry checklist, account type descriptions, compliance links, and pricing model. Always send this link first.</td>
+  </tr>
+  <tr>
+    <td><strong>2. Review Account Types</strong></td>
+    <td>Requester reads about Sandbox, Non-Production, and Production account types to determine what they need.</td>
+    <td>If they have PII or client data, they must choose Production. Flag this early to avoid delays.</td>
+  </tr>
+  <tr>
+    <td><strong>3. Complete Pre-Inquiry Checklist</strong></td>
+    <td>Requester confirms they have: partners on board, WBS code arranged, and relevant compliance processes (GTOM / InfoSec / NSE Catalyst) started.</td>
+    <td>This checklist is designed to reduce back-and-forth. If they haven't completed it, send them back to the site before progressing.</td>
+  </tr>
+  <tr>
+    <td><strong>4. Click "Inquire Now"</strong></td>
+    <td>Requester scrolls to the bottom of the Cloud Hosting site and clicks the Inquire Now button to raise a ServiceNow ticket.</td>
+    <td>The ServiceNow form captures: project name, description, project type, readiness, compliance status (single dropdown only), business function, cloud provider, environment type.</td>
+  </tr>
+  <tr>
+    <td><strong>5. Ticket Lands in Opportunities Channel</strong></td>
+    <td>—</td>
+    <td>CMS team receives the ticket in the ServiceNow Opportunities channel. Triage begins from here (see Process Flow, Step 3).</td>
+  </tr>
+</table>
+
+<!-- SECTION 6 – Form Fields -->
+<h2 id="form-fields">6. ServiceNow Cloud Account Request Form – Field Reference</h2>
+<p>When raising a request via the Platform team's cloud request form, the following fields must be completed. Fields vary by cloud provider.</p>
+
+<h3>Common Fields (All Providers) <span class="tag all">ALL</span></h3>
+<table class="detail-table">
+  <tr><th>Field</th><th>Description / Guidance</th></tr>
+  <tr><td>Cloud Provider</td><td>GCP / AWS / Azure. Your selection changes the remaining fields dynamically.</td></tr>
+  <tr><td>Environment Type</td><td>Non-Prod / Production / Sandbox / Dev / Staging. Note: ServiceNow options may not match all environment names – select the closest match and update after provisioning if needed.</td></tr>
+  <tr><td>Account Description</td><td>Brief description of the workload or project purpose (e.g. "Development environment for Project X").</td></tr>
+  <tr><td>Data Classification</td><td>Select the highest classification of data that will reside in this account: Non-Confidential, Confidential, Sensitive, Financial, Intellectual Property. If client data → must be Production account.</td></tr>
+  <tr><td>Data Ownership</td><td>Deloitte or Client. <strong>If "Client" is selected in GCP, the account goes to the Resell Org.</strong></td></tr>
+  <tr><td>Data Description</td><td>Brief description of the data types to be stored.</td></tr>
+  <tr><td>WBS Code / Name</td><td>The financial WBS code approved for this account. Must be confirmed with the Partner/Director prior to submission.</td></tr>
+  <tr><td>Supported By</td><td>Self-Supported (None) / Co-Managed (CMS partly) / Fully Managed (Platforms/CMS). For Internal GCP org, this is typically Platforms/CMS. If CIP, it's internal-only.</td></tr>
+  <tr><td>Additional Information</td><td>Include ticket/reference numbers for: GTOM, NSE Catalyst, InfoSec processes.</td></tr>
+  <tr><td>Date Required</td><td>Must be a Monday or working day. Bank Holidays not accepted.</td></tr>
+  <tr><td>Attachments</td><td>Attach Partner/Director approval email here before submitting.</td></tr>
+</table>
+
+<h3>GCP-Specific Fields <span class="tag gcp">GCP</span></h3>
+<table class="detail-table">
+  <tr><th>Field</th><th>Description / Guidance</th></tr>
+  <tr><td>Open VPN Server</td><td>Yes / No. Default to No unless explicitly requested.</td></tr>
+  <tr><td>Network Configuration</td><td>Single VPC (1 public + 1 private subnet), Standard (2 public + 2 private), or Not Applicable. If self-managed, select "Not Applicable" unless the requester explicitly asks for a VPC to be provisioned.</td></tr>
+  <tr><td>Prisma Cloud</td><td>May be requested. If unsure whether to include, confirm with the requester.</td></tr>
+</table>
+
+<h3>AWS-Specific Fields <span class="tag aws">AWS</span></h3>
+<table class="detail-table">
+  <tr><th>Field</th><th>Description / Guidance</th></tr>
+  <tr><td>Request Type</td><td>Client (spoke only) or Stub/Client (Hub and Spoke). Select based on network topology requirements.</td></tr>
+  <tr><td>Preferred Pricing Agreement (PP)</td><td>Yes / No. Confirm with Sirjana or the relevant AWS team member if unsure.</td></tr>
+  <tr><td>Primary Region</td><td>Select the AWS region for deployment.</td></tr>
+  <tr><td>Open VPN</td><td>Yes / No.</td></tr>
+  <tr><td>NAT Gateway</td><td>Yes / No.</td></tr>
+  <tr><td>Stub Account / Networking Address</td><td>Required for Hub and Spoke configurations.</td></tr>
+  <tr><td>Prisma Cloud</td><td>Asked for AWS accounts – confirm requirement with requester.</td></tr>
+</table>
+
+<h3>Azure-Specific Fields <span class="tag azure">Azure</span></h3>
+<table class="detail-table">
+  <tr><th>Field</th><th>Description / Guidance</th></tr>
+  <tr><td>Hub Connection Type</td><td><strong>Internal Hub Connected</strong>: Connects to the global Deloitte network – all Deloitte AD users can reach the environment. <strong>Internal Hub Disconnected</strong>: Isolated; users and access must be managed manually. Default is Hub Connected for internal assets.</td></tr>
+  <tr><td>Region</td><td>Four options: UK South, UK West, West Europe, North Europe.</td></tr>
+  <tr><td>Prisma Cloud / Tenable</td><td>Azure uses Tenable and other integrated tooling by default. No Prisma Cloud questions are currently asked for Azure.</td></tr>
+</table>
+
+<!-- SECTION 7 – KB Steps -->
+<h2 id="kb-steps">7. Step-by-Step: Raising the Cloud Account Request (KB0010108)</h2>
+<p>Once all pre-requisites are confirmed, raise the account request via the OpenCloud portal. This section is based on the DCMS Knowledge Base article <strong>KB0010108</strong> (v6.0, last updated 12/09/2025).</p>
+
+<div class="tip-box note">
+  <strong>📌 Prerequisites Before Raising the Request</strong>
+  <ul>
+    <li>Must be an Okta user with ServiceNow ITIL user access</li>
+    <li>Must have the DCMS CMS Portal Role and be added to the Deloitte Cloud Managed Service 'company'</li>
+    <li>Ensure you are in the correct domain: MSP / DCMS / CMS</li>
+    <li>P-code must exist in ServiceNow and status must be set to <strong>Build</strong></li>
+    <li>Partner/Director T&amp;C approval email must be obtained</li>
+  </ul>
+</div>
+
+<h3>Navigation to the Request Form</h3>
+<ol>
+  <li>Navigate to the portal via ServiceNow or directly via: <a href="https://deloitteukams.service-now.com/cloudmanagedservices?id=sc_cat_item&sys_id=8d24dedd87549d106853a9740cbb35b4&referrer=popular_items" target="_blank"><strong>Request New Cloud Account – Direct Link</strong></a></li>
+  <li>Select <strong>Request Something</strong></li>
+  <li>Select <strong>OpenCloud On-Boarding</strong> → <strong>Request a New Cloud Account</strong></li>
+  <li>The account request form will open — complete all sections</li>
+</ol>
+
+<h3>AWS Account Request – Key Fields <span class="tag aws">AWS</span></h3>
+<table class="detail-table">
+  <tr><th>Field</th><th>Options / Guidance</th><th>Mandatory?</th></tr>
+  <tr><td>Requested For</td><td>Pre-populated with your name; change via drop-down if requesting on behalf of someone else</td><td>✅</td></tr>
+  <tr><td>Project ID</td><td>Select from drop-down (P-code must be in Build status)</td><td>✅</td></tr>
+  <tr><td>Cloud Provider</td><td>Select AWS</td><td>✅</td></tr>
+  <tr><td>PPA (Preferred Pricing Agreement)</td><td>Yes / No — select ? icon for guidance; contact Digital Platform team if unsure. <em>Note: PPA accounts use Qualys instead of Prisma</em></td><td>✅</td></tr>
+  <tr><td>Request Type</td><td><strong>Client</strong> = single account for existing project; <strong>Stub and Client</strong> = new projects requiring both Hub and Spoke accounts</td><td>✅</td></tr>
+  <tr><td>Environment</td><td>Production or Dev</td><td>✅</td></tr>
+  <tr><td>Primary Region</td><td>Select appropriate AWS region</td><td>✅</td></tr>
+  <tr><td>Network Configuration</td><td>Select appropriate config</td><td>✅</td></tr>
+  <tr><td>Networking Address</td><td>Enter networking address</td><td>✅</td></tr>
+  <tr><td>OpenVPN Access Server</td><td>Yes / No</td><td>✅</td></tr>
+  <tr><td>Account Description</td><td>Detailed description of purpose and workload</td><td>✅</td></tr>
+  <tr><td>Integrated Tooling – Prisma</td><td>Yes / No (not available for PPA). If No, provide reasoning. <em>Trend and Tenable are onboarded by default (read-only)</em></td><td>✅</td></tr>
+  <tr><td>Integrated Tooling – Datadog</td><td>Yes / No. If No, provide reasoning</td><td>✅</td></tr>
+  <tr><td>Data Classification</td><td>Confidential / High-risk Confidential / Protected Health Confidential / Public</td><td>✅</td></tr>
+  <tr><td>Data Description</td><td>Details of data the account will hold</td><td>✅</td></tr>
+  <tr><td>Supported By</td><td>Select the pod supporting the account</td><td>✅</td></tr>
+  <tr><td>Additional Information</td><td>GTOM, NSE Catalyst, InfoSec reference numbers; any other relevant info</td><td>➖</td></tr>
+  <tr><td>Date Required</td><td>Working day / Monday. Note: 3-day SLA applies</td><td>✅</td></tr>
+  <tr><td>Data Ownership</td><td>Client or Deloitte</td><td>✅</td></tr>
+</table>
+
+<h3>GCP Account Request – Key Fields <span class="tag gcp">GCP</span></h3>
+<table class="detail-table">
+  <tr><th>Field</th><th>Options / Guidance</th><th>Mandatory?</th></tr>
+  <tr><td>Requested For</td><td>Pre-populated; change if needed</td><td>✅</td></tr>
+  <tr><td>Project ID</td><td>Select P-code (must be in Build status)</td><td>✅</td></tr>
+  <tr><td>Cloud Provider</td><td>Select GCP</td><td>✅</td></tr>
+  <tr><td>Request Type</td><td>Client or Stub and Client (same as AWS)</td><td>✅</td></tr>
+  <tr><td>Environment</td><td>Production or Dev</td><td>✅</td></tr>
+  <tr><td>Primary Region</td><td>Select appropriate GCP region</td><td>✅</td></tr>
+  <tr><td>Network Configuration</td><td>Select appropriate config; use Not Applicable for self-managed</td><td>✅</td></tr>
+  <tr><td>Networking Address</td><td>Enter networking address</td><td>✅</td></tr>
+  <tr><td>OpenVPN Access Server</td><td>Yes / No — default No unless requested</td><td>✅</td></tr>
+  <tr><td>Account Description</td><td>Detailed description</td><td>✅</td></tr>
+  <tr><td>Integrated Tooling – Datadog</td><td>Yes / No. <em>Trend and Tenable onboarded by default</em></td><td>✅</td></tr>
+  <tr><td>Data Classification</td><td>Confidential / High-risk Confidential / Protected Health Confidential / Public</td><td>✅</td></tr>
+  <tr><td>Data Description</td><td>Details of data the account will hold</td><td>✅</td></tr>
+  <tr><td>Supported By</td><td>Select the pod (for NSE/Internal Org: Platforms/CMS; for CIP: internal only)</td><td>✅</td></tr>
+  <tr><td>Additional Information</td><td>GTOM, NSE Catalyst, InfoSec reference numbers</td><td>➖</td></tr>
+  <tr><td>Date Required</td><td>Working day. 3-day SLA applies</td><td>✅</td></tr>
+  <tr><td>Data Ownership</td><td>Client → Resell Org; Deloitte → NSE/Internal Org</td><td>✅</td></tr>
+</table>
+
+<h3>Azure Account Request <span class="tag azure">Azure</span></h3>
+<p>Follow the same navigation steps. Fill out all three form sections fully. If unsure on any field, contact the Product Engineering team (Rivin Jose Elavathingal – Azure Engineering Lead).</p>
+
+<div class="tip-box note">
+  <strong>📌 After Submitting</strong>
+  Once submitted, the request is actioned by the Products Engineering team. You will receive a request confirmation number. Follow up if no action within the 3-working-day SLA.
+</div>
+
+<!-- SECTION 8 – Tips -->
+<h2 id="tips-notes">8. Tips, Notes &amp; Gotchas</h2>
+
+<h3>Compliance Processes</h3>
+<div class="tip-box">
+  <strong>💡 GTOM (Go To Market)</strong>
+  Required for all Production accounts and mandatory before a Production account can be provisioned. GTOM can take <strong>months</strong> for production workloads. Advise requesters to start GTOM as early as possible. Do not wait for the ticket to be raised before starting GTOM.
+</div>
+<div class="tip-box">
+  <strong>💡 InfoSec Review</strong>
+  Must be started and a ticket reference obtained before provisioning. Include the InfoSec ticket number in the Additional Information field on the request form.
+</div>
+<div class="tip-box">
+  <strong>💡 NSE Catalyst</strong>
+  Another compliance process required. Obtain the reference number and include in the request.
+</div>
+
+<h3>P-Code Tips</h3>
+<div class="tip-box note">
+  <strong>📌 P-Code Auto-Generation</strong>
+  The ServiceNow follow-up survey can auto-generate a P-code with information pre-filled. Use this where possible to save time. If the follow-up survey is not relevant to your provider, manually identify the next available P-code using the <code>P000</code> search filter.
+</div>
+<div class="tip-box warning">
+  <strong>⚠️ P-Code Status Must Be "Build"</strong>
+  Always verify the P-code status is set to <strong>Build</strong> before raising the platform request. Searching by P-code (e.g. P000639) will show you the current status. If it shows "Opportunity", update it to "Build" first. The platform form will silently fail to link if the status is wrong.
+</div>
+
+<h3>WBS Code</h3>
+<div class="tip-box">
+  <strong>💡 WBS Code Can Cause Delays</strong>
+  Obtaining a valid WBS code can take significant time. Chase this early. The WBS code must be approved by a Partner/Director before the T&amp;C email can be sent.
+</div>
+
+<h3>Provisioning SLA &amp; Multi-Account Requests</h3>
+<div class="tip-box warning">
+  <strong>⚠️ 3 Working Days Per Account – Not Parallel</strong>
+  Each account takes 3 working days to provision. Multiple accounts (e.g. non-prod + prod + dev) are <strong>provisioned sequentially</strong>, not in parallel. Set realistic expectations with requesters at the outset.
+</div>
+
+<h3>Communication &amp; Escalation</h3>
+<div class="tip-box">
+  <strong>💡 Requesters Not Responding on Tickets?</strong>
+  Set up a brief Teams call (15–30 minutes) to gather all required information at once. Remind requesters to document all decisions in the ServiceNow ticket for audit purposes. Some requesters will proactively message assignees on Teams – redirect them to the ticket.
+</div>
+
+<h3>Environment Type Mismatches</h3>
+<div class="tip-box">
+  <strong>💡 ServiceNow vs. Real Environment Names</strong>
+  ServiceNow's environment dropdown does not always match the environments teams use (e.g. "Dev" may not appear). Select the closest option available (Non-Prod or Dev) and update the ticket/record after provisioning if needed.
+</div>
+
+<h3>Azure Teams Note</h3>
+<div class="tip-box note">
+  <strong>📌 Azure Provisioning</strong>
+  Azure provisioning is straightforward once all information is gathered – it is always internal (MSE-side). Once you have all required details, pass directly to the Platforms team. Pull in Karthik for any complex Azure queries.
+</div>
+
+<!-- SECTION 9 -->
+<h2 id="pricing">9. Pricing Guidance</h2>
+
+<table class="detail-table">
+  <tr>
+    <th>Tier</th>
+    <th>Provisioning Fee</th>
+    <th>Monthly Service Fee</th>
+    <th>Notes</th>
+  </tr>
+  <tr>
+    <td><strong>Self-Managed</strong></td>
+    <td>—</td>
+    <td>—</td>
+    <td>Client manages their own environment. Minimal CMS involvement post-provisioning.</td>
+  </tr>
+  <tr>
+    <td><strong>Co-Managed</strong></td>
+    <td>One-time fee (indicative)</td>
+    <td>Monthly fee applies</td>
+    <td>Deloitte and client share management responsibilities.</td>
+  </tr>
+  <tr>
+    <td><strong>Fully Managed</strong></td>
+    <td>One-time fee (indicative)</td>
+    <td>Monthly fee applies</td>
+    <td>Deloitte manages the environment fully on behalf of the client.</td>
+  </tr>
+</table>
+
+<div class="tip-box">
+  <strong>💡 Pricing is Indicative</strong>
+  The figures on the Cloud Hosting site are indicative only. Exceptions apply (e.g. AI Studio – provisioning fee waived; monthly compliance fee only). Always refer detailed pricing questions to <strong>Jonny Walker</strong> first, then to <strong>Adrian Lunn (CMS Lead)</strong> for final commercial confirmation.
+</div>
+
+<div class="tip-box warning">
+  <strong>⚠️ Do Not Quote Firm Prices</strong>
+  Only <strong>Adrian Lunn</strong> can confirm definitive pricing after discussing with the client's partners/senior managers. Do not commit to specific figures.
+</div>
+
+<!-- SECTION 10 -->
+<h2 id="contacts">10. Key Contacts &amp; Escalation</h2>
+
+<div class="contacts">
+  <div class="contact-card">
+    <div class="name">Karthik Sankaran</div>
+    <div class="role">GCP Engineering Lead</div>
+    <div style="font-size:12px; margin-top:4px;">GCP &amp; Azure escalation. Process oversight. Pull in for complex queries or client calls.</div>
+  </div>
+  <div class="contact-card">
+    <div class="name">Adrian Lunn</div>
+    <div class="role">CMS Lead</div>
+    <div style="font-size:12px; margin-top:4px;">Only person who can confirm definitive pricing. Reached via Jonny if needed.</div>
+  </div>
+  <div class="contact-card">
+    <div class="name">Jonny Walker</div>
+    <div class="role">GCP Engineering / ServiceOps Engineer</div>
+    <div style="font-size:12px; margin-top:4px;">First escalation for GCP tickets, pricing queries, SOP questions.</div>
+  </div>
+  <div class="contact-card">
+    <div class="name">Neil McClenaghan</div>
+    <div class="role">ServiceOps Engineer</div>
+    <div style="font-size:12px; margin-top:4px;">GCP ticket experience. P-code creation. Willing to assist team members. Creating P-code SOP.</div>
+  </div>
+  <div class="contact-card">
+    <div class="name">Sirjana Ale</div>
+    <div class="role">ServiceOps Engineer</div>
+    <div style="font-size:12px; margin-top:4px;">AWS experience. AWS Preferred Pricing Agreement (PP) guidance.</div>
+  </div>
+  <div class="contact-card">
+    <div class="name">Rachael Gowdy</div>
+    <div class="role">ServiceOps Lead</div>
+    <div style="font-size:12px; margin-top:4px;">Cloud Hosting site updates and changes to the inquiry process.</div>
+  </div>
+  <div class="contact-card">
+    <div class="name">Rivin Jose Elavathingal</div>
+    <div class="role">Azure Engineering Lead</div>
+    <div style="font-size:12px; margin-top:4px;">Data classification guidance, CIP account type, internal org questions. Receive all platform requests.</div>
+  </div>
+  <div class="contact-card">
+    <div class="name">James McKeown</div>
+    <div class="role">AWS Engineering Lead</div>
+    <div style="font-size:12px; margin-top:4px;">AWS technical queries and escalations.</div>
+  </div>
+</div>
+
+<h3>Escalation Path</h3>
+<table class="detail-table">
+  <tr><th>Scenario</th><th>First Contact</th><th>Escalate To</th></tr>
+  <tr><td>GCP ticket help / process query</td><td>Jonny Walker</td><td>Karthik Sankaran</td></tr>
+  <tr><td>Azure ticket query</td><td>Karthik Sankaran / Rivin Jose Elavathingal</td><td>Platform Team</td></tr>
+  <tr><td>AWS ticket query</td><td>James McKeown / Sirjana Ale</td><td>Karthik Sankaran</td></tr>
+  <tr><td>Pricing confirmation</td><td>Jonny Walker</td><td>Adrian Lunn</td></tr>
+  <tr><td>Data classification / org type</td><td>Rivin Jose Elavathingal / Platform Team</td><td>Karthik Sankaran</td></tr>
+  <tr><td>P-code creation help</td><td>Neil McClenaghan</td><td>ServiceNow team (improvement: auto P-code generation)</td></tr>
+  <tr><td>GTOM / InfoSec / NSE Catalyst</td><td>Cloud Hosting site links</td><td>Platform Team</td></tr>
+</table>
+
+<!-- FOOTER -->
+<hr style="margin-top:40px; border-color:#ccc;">
+<p style="font-size:12px; color:#888;">
+  <strong>Document Source:</strong> CMS Cloud Hosting Process Workflow Overview – Team Call, 30 April 2026 |
+  <strong>Participants:</strong> Karthik Sankaran, Jonny Walker, Neil McClenaghan, Sirjana Ale, Seana Murphy, Andrew Herbison, Oksana Tarnavska |
+  <strong>Document prepared by:</strong> CMS Team SOP Generator
+</p>
+
+</body>
+</html>

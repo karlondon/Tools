@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<!-- saved from url=(0074)https://deloitteukams.service-now.com/kb_view.do?sysparm_article=KB0010108 -->
+<html lang="en" class="ltr date-calendar tabbed" data-doctype="true" dir="ltr" ontouchend="CustomEvent.fireAll(&#39;body_clicked&#39;, event);"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><script>document.addEventListener('click', function (event) {
+				CustomEvent.fireAll('body_clicked', event);
+			});
+			document.hasBodyClickedTrigger = 'true';</script><script type="text/javascript"></script><title>DCMS Knowledge Base - How to request a new cloud account (AWS/GCP/Azure)</title><meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1"><meta http-equiv="cache-control" content="public"><meta name="viewport" content="initial-scale=1.0"><script type="text/javascript" data-description="globals population">
+	window.NOW = window.NOW || {};
+	var g_loadTime = new Date();
+	var lastActivity = new Date();
+	var g_lang = 'en';
+	var g_system_lang = 'en';
+	var g_enhanced_activated = 'true';
+	  var g_popup_timeout = parseInt(100);
+	var g_export_warn_threshold = parseInt(10000);
+	  var g_event_handler_ids = {};
+	var g_event_handlers = [];
+	var g_event_handlers_onLoad = [];
+	var g_event_handlers_onSubmit = [];
+	var g_event_handlers_onChange = [];
+	var g_event_handlers_onCellEdit = {};
+	var g_event_handlers_localCache = {};
+	var g_event_handlers_queryTracking = true;
+	var g_user_date_time_format = "dd/MM/yyyy HH:mm:ss";
+	var g_user_date_format = "dd/MM/yyyy";
+	var g_user_decimal_separator = ".";
+	var g_user_grouping_separator = ",";
+	var g_glide_list_separator = ", ";
+	var g_allow_field_dependency_for_templates = ("true" === "true");
+	var g_tz_offset = 3600000;
+	  var g_tz_user_offset = true;
+	var g_first_day_of_week = parseInt(1, 10);
+	var g_date_picker_first_day_of_week = parseInt(0, 10);
+	  var g_full_calendar_edit = true;
+	var g_submitted = false;
+	var g_max_table_length = 80;
+	var g_fontSizePreference = "";
+	var g_fontSize = "10pt";
+	// use to be the sys_property glide.ui.js_error_notify, hard coded for PRB603998
+	var g_jsErrorNotify = "true";
+	var g_cancelPreviousTransaction = true;
+	var g_text_direction = "ltr";
+	var g_glide_list_filter_max_length =  parseInt("0", 10);
+	var g_accessibility = false;
+	var g_accessibility_tooltips = false;
+	var g_accessibility_tooltip_duration = parseInt("10", 10);
+	var g_accessibility_visual_patterns = false;
+	var g_accessibility_screen_reader_table = false;
+	var g_accessibility_date_format = false;
+	var g_detail_row = false;
+	var g_builddate = "02-09-2026_2259";
+	// default values to be used in absence of user preferences are hard coded below
+	// as well as in keyboardShortcuts.js and keyboard_preference_changer.xml
+	window.g_keyboard_shortcuts = {};
+	window.g_keyboard_shortcuts.allow_in_input_fields = false;
+	window.g_keyboard_shortcuts.enabled = true;
+	window.g_keyboard_shortcuts.global_search = {};
+	window.g_keyboard_shortcuts.global_search.enabled = true;
+	window.g_keyboard_shortcuts.global_search.key_combination = 'ctrl+alt+g';
+	window.g_keyboard_shortcuts.main_frame = {};
+	window.g_keyboard_shortcuts.main_frame.enabled = true;
+	window.g_keyboard_shortcuts.main_frame.key_combination = 'ctrl+alt+p';
+	window.g_keyboard_shortcuts.navigator_toggle = {};
+	window.g_keyboard_shortcuts.navigator_toggle.enabled = true;
+	window.g_keyboard_shortcuts.navigator_toggle.key_combination = 'ctrl+alt+c';
+	window.g_keyboard_shortcuts.navigator_filter = {};
+	window.g_keyboard_shortcuts.navigator_filter.enabled = true;
+	window.g_keyboard_shortcuts.navigator_filter.key_combination = 'ctrl+alt+f';
+	window.g_keyboard_shortcuts.impersonator = {}
+	window.g_keyboard_shortcuts.impersonator.enabled = true;
+	window.g_keyboard_shortcuts.impersonator.key_combination = 'ctrl+alt+i';
+	// The `g_concourse_onmessage_enforce_same_origin` and `g_concourse_onmessage_enforce_same_origin_whitelist` variables
+    // do not appear to be used anywhere other than the CustomEventManager, but leaving these for backwards compatability
+	var g_concourse_onmessage_enforce_same_origin = 'true'.toLowerCase() === 'true';
+	var g_concourse_onmessage_enforce_same_origin_whitelist = '';
+	window.g_load_functions = [];
+	window.g_render_functions = [];
+	window.g_late_load_functions = [];
+	window.g_tiny_url = {};
+	window.g_tiny_url.use_tiny = 'true' === 'true';
+	window.g_tiny_url.min_length = parseInt('1024');
+	
+	
+	var g_ck = '150b60820fac4f501a9e71d800d1b2afe9bfc285ab5fdfddf972f6fe6f2ac8808b3cd3aa';
+	
+
+	
+	var g_acWaitTime = parseInt(250);
+	
+
+	var g_autoRequest = '';
+
+	try {
+		window.NOW.dateFormat = JSON.parse("{\"timeAgo\": false, \"dateBoth\": false}");
+	} catch (e) {
+		window.NOW.dateFormat = {timeAgo: false, dateBoth: false};
+	}
+
+	window.NOW.dateFormat.dateStringFormat = "dd/MM/yyyy";
+	window.NOW.dateFormat.timeStringFormat = "HH:mm:ss";
+	window.NOW.shortDateFormat = false;
+	window.NOW.listTableWrap = true;
+	window.NOW.compact = false;
+  	window.NOW.templateToggle = false;
+	window.NOW.tabbed = true;
+	window.NOW.permalink = true;
+	window.NOW.useSimpleStorage = true;
+	window.NOW.httpRequestCompressionThreshold = 40000;
+	window.NOW.httpRequestCompressionLevel = -1;
+	window.NOW.httpRequestCompressionMemoryLevel = -1;
+	window.NOW.httpRequestCompressionExcludeUrls = 'xmlhttp.do'.split(',');
+	window.NOW.deferAmbConnection = false;
+	window.NOW.deferredAmbConnectionTimeout = 10000;
+	window.NOW.simpleStorageSynch = "ac9166c50f2447501a9e71d800d1b265";
+	window.NOW.language =  'en';
+	window.NOW.listOpenInAppTab = false;
+	window.NOW.floatingScrollbars = 'false'.toLowerCase() === 'true';
+	
+	window.NOW.user = {};
+	window.NOW.user.preferences = [];
+	window.NOW.user.roles = ',sn_sow.sow_home,report_alias_admin,catalog_builder_editor,catalog,report_group,report_publisher,viz_creator,app_service_user,sn_request_approver_read,cmdb_query_builder_read,sn_cmdb_user,catalog_builder_developer,catalog_editor,itil_admin,knowledge,u_cms_service_feedback_user,sn_sow.sow_user,sn_sttrm_condition_read,cmdb_query_builder,sn_request_write,dcms cms portal,certification,canvas_user,agent_workspace_user,sn_problem_write,sn_bm_client.benchmark_data_viewer,view_changer,personalize_decision_table_input,assessment_admin,report_global,sn_chg_soc.change_soc_admin,sn_sow.sow_list,sn_incident_write,catalog_lookup_admin,sn_workflow_studio.workflow_studio_read,fd_read_operations,sn_cmdb_admin,sn_change_write,sn_udc.basic_read,sn_sow.it_agent_dashboard_user,sn_incident_read,approver_user,fd_read_flows,change_manager,email_composer,interaction_agent,user_criteria_admin,viz_admin,data_manager_user,cmdb_ms_admin,canvas_admin,dependency_views,sn_gd_guidance.guidance_user,sn_request_read,problem_task_analyst,dcms non-engineer,u_dcms_cloud_accounts_user,catalog_template_editor,cmdb_ms_editor,problem_manager,cmdb_dedup_admin,cmdb_payload_admin,workspace_user,catalog_admin,snc_platform_rest_api_access,sn_sttrm_attribute_read,survey_reader,gauge_maker,task_editor,report_scheduler,report_user,tracked_file_reader,sn_cmdb_editor,par_scheduler,itil,u_screenshares_user,sn_problem_read,sn_par_sche_export.par_scheduler_admin,problem_coordinator,u_dcms_projects_user,dcms_project_account_ro,sn_diagram_builder.db_read,service_viewer,cmdb_ms_user,report_admin,sn_change_read,sn_ace.ace_user,actsub_user,email_client_template_read,sn_nb_action.next_best_action_user,analytics_filter_admin,knowledge_admin,template_read_global,data_manager_admin,cmdb_read,sn_sow_admin.sow_admin_center_user';
+	window.NOW.user.allRoles = ',sn_sow.sow_home,report_alias_admin,catalog_builder_editor,catalog,report_group,report_publisher,viz_creator,app_service_user,sn_request_approver_read,cmdb_query_builder_read,sn_cmdb_user,catalog_builder_developer,catalog_editor,itil_admin,knowledge,u_cms_service_feedback_user,sn_sow.sow_user,sn_sttrm_condition_read,cmdb_query_builder,sn_request_write,dcms cms portal,certification,canvas_user,agent_workspace_user,sn_problem_write,sn_bm_client.benchmark_data_viewer,view_changer,personalize_decision_table_input,assessment_admin,report_global,sn_chg_soc.change_soc_admin,sn_sow.sow_list,sn_incident_write,catalog_lookup_admin,sn_workflow_studio.workflow_studio_read,fd_read_operations,sn_cmdb_admin,sn_change_write,sn_udc.basic_read,sn_sow.it_agent_dashboard_user,sn_incident_read,approver_user,fd_read_flows,change_manager,email_composer,interaction_agent,user_criteria_admin,viz_admin,data_manager_user,cmdb_ms_admin,canvas_admin,dependency_views,sn_gd_guidance.guidance_user,sn_request_read,problem_task_analyst,dcms non-engineer,u_dcms_cloud_accounts_user,catalog_template_editor,cmdb_ms_editor,problem_manager,cmdb_dedup_admin,cmdb_payload_admin,workspace_user,catalog_admin,snc_platform_rest_api_access,sn_sttrm_attribute_read,survey_reader,gauge_maker,task_editor,report_scheduler,report_user,tracked_file_reader,sn_cmdb_editor,par_scheduler,itil,u_screenshares_user,sn_problem_read,sn_par_sche_export.par_scheduler_admin,problem_coordinator,u_dcms_projects_user,dcms_project_account_ro,sn_diagram_builder.db_read,service_viewer,cmdb_ms_user,report_admin,sn_change_read,sn_ace.ace_user,actsub_user,email_client_template_read,sn_nb_action.next_best_action_user,analytics_filter_admin,knowledge_admin,template_read_global,data_manager_admin,cmdb_read,sn_sow_admin.sow_admin_center_user';
+	window.NOW.user.userID = '5187c58b9791dd5036247d0de053afbc';
+	window.NOW.user.departmentID = '';
+	window.NOW.user.firstName = 'Karthik';
+	window.NOW.user.lastName = 'Sankaran (TECH)';
+	window.NOW.user.name = 'karthiksankaran@deloitte.co.uk';
+  	window.NOW.user.isImpersonating = false;
+	window.NOW.batch_glide_ajax_requests = 'true' === 'true';
+	window.NOW.batch_glide_ajax_requests_max_time_in_queue = ~~'50';
+	window.NOW.batch_glide_ajax_disable_time = ~~'1000';
+
+	window.NOW.currency = {};
+	window.NOW.currency.code = 'GBP';
+	window.NOW.locale = {};
+	window.NOW.locale.code = 'en_GB';
+
+	window.NOW.attachment = {};
+	
+	window.NOW.attachment.overflow_limit =  parseInt('3', 10);
+	window.NOW.isPolarisEnabled = "false";
+	window.NOW.polaris_page_info ={"canUsePolarisCSS":false,"canUsePolarisTemplates":false,"jvar_form_name":"ui_page_render"};</script><script data-comment="GlideUser initialization">(function() {
+		 g_render_functions.push(setGlideUser);
+		function setGlideUser() {
+			if (window.g_user || !window.GlideUser)
+		return;
+
+		window.g_user = new GlideUser(NOW.user.name,
+			  NOW.user.firstName,
+			  NOW.user.lastName,
+			  NOW.user.roles,
+			  NOW.user.userID,
+			  NOW.user.departmentID);
+		window.g_user.setRoles(NOW.user.allRoles, true);
+		}
+	})();</script><script data-description="NOW glide web analytics siteid and url">window.snWebaConfig = window.snWebaConfig || {};
+		// glide web analytics config
+		window.snWebaConfig.siteId = "0";
+		window.snWebaConfig.trackerURL = "";
+		window.snWebaConfig.webaScriptPath = "/scripts/piwik-3.1.1/thirdparty/piwik.min.js";
+		window.snWebaConfig.ambClient = (window.g_ambClient) ? window.g_ambClient : ((window.amb)? window.amb.getClient(): "");
+		window.snWebaConfig.subscribed = false;</script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/ConditionalFocus.jsdbx"></script><script data-description="UX Metrics Data">(function () {
+				try {
+					window.NOW = window.NOW || {};
+					window.NOW.UXMetrics = window.NOW.UXMetrics || {};
+					var config = '{\"subscribers\":[{\"path\":\"/uxasset/externals/@devsnc/ux-metrics-appsee-subscriber/index.jsdbx\",\"config\":{\"apiAuth\":\"ec68c87625dc4725a14994257a8b1136\",\"apiKey\":\"2498c428db0ac49842b321c40596197d:8b8832c0a3911110c1c3de5e26fcda37\",\"uxCollectionMode\":\"Both\",\"endpointURL\":\"https://api-appsee.service-now.com\",\"restrictedApps\":\"\",\"allowedPropsInPageNavigate\":\"Entry Page,Page Title\",\"enableUnauthenticatedUserTracking\":\"false\",\"channelType\":\"CoreUI\",\"trackingConsent\":\"Basic\",\"user\":{\"domainName\":\"MSP/DCMS/CMS/CMS Technicians\",\"roles\":\",sn_sow.sow_home,report_alias_admin,catalog_builder_editor,catalog,report_group,report_publisher,viz_creator,app_service_user,sn_request_approver_read,cmdb_query_builder_read,sn_cmdb_user,catalog_builder_developer,catalog_editor,itil_admin,knowledge,u_cms_service_feedback_user,sn_sow.sow_user,sn_sttrm_condition_read,cmdb_query_builder,sn_request_write,dcms cms portal,certification,canvas_user,agent_workspace_user,sn_problem_write,sn_bm_client.benchmark_data_viewer,view_changer,personalize_decision_table_input,assessment_admin,report_global,sn_chg_soc.change_soc_admin,sn_sow.sow_list,sn_incident_write,catalog_lookup_admin,sn_workflow_studio.workflow_studio_read,fd_read_operations,sn_cmdb_admin,sn_change_write,sn_udc.basic_read,sn_sow.it_agent_dashboard_user,sn_incident_read,approver_user,fd_read_flows,change_manager,email_composer,interaction_agent,user_criteria_admin,viz_admin,data_manager_user,cmdb_ms_admin,canvas_admin,dependency_views,sn_gd_guidance.guidance_user,sn_request_read,problem_task_analyst,dcms non-engineer,u_dcms_cloud_accounts_user,catalog_template_editor,cmdb_ms_editor,problem_manager,cmdb_dedup_admin,cmdb_payload_admin,workspace_user,catalog_admin,snc_platform_rest_api_access,sn_sttrm_attribute_read,survey_reader,gauge_maker,task_editor,report_scheduler,report_user,tracked_file_reader,sn_cmdb_editor,par_scheduler,itil,u_screenshares_user,sn_problem_read,sn_par_sche_export.par_scheduler_admin,problem_coordinator,u_dcms_projects_user,dcms_project_account_ro,sn_diagram_builder.db_read,service_viewer,cmdb_ms_user,report_admin,sn_change_read,sn_ace.ace_user,actsub_user,email_client_template_read,sn_nb_action.next_best_action_user,analytics_filter_admin,knowledge_admin,template_read_global,data_manager_admin,cmdb_read,sn_sow_admin.sow_admin_center_user\",\"hashId\":\"b622cbb7267ec0b14f2e1cef88524885636dc0a4d0f4a2a847a36df6ec590fd8\",\"domainId\":\"774190f01f1310005a3637b8ec8b70ef/8f20aad71b3a2850ed06a688bd4bcbe8/422a0ea61b87e890ed06a688bd4bcb39/2523ecf0dbabe41066729b1faa96192f\"},\"enabled\":\"true\"}}],\"userConsentRequired\":false,\"globalMetricsLevel\":4}';
+					if (config) {
+						window.NOW.UXMetrics.config = JSON.parse(config);
+						window.NOW.UXMetrics.ucmInfo = {
+							user_analytics_consent_text: '',
+							user_consent : "BasicTracking"
+						};
+					}
+				} catch(err) {}
+			})();</script><link href="https://deloitteukams.service-now.com/favicon.ico?v=5" rel="shortcut icon"><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/xperf_timing.jsx"></script><link type="text/css" rel="stylesheet" href="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/css_includes_doctype.cssx"><link type="text/css" rel="stylesheet" href="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/source_sans_pro.cssx"><link type="text/css" rel="stylesheet" href="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/heisenberg_all.cssx"><script>NOW.xperf.cssEnd = NOW.xperf.now();
+			NOW.xperf.scriptBegin = NOW.xperf.now();</script><script src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/legacy_date_time_choices_processor.do"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/js_includes_doctype.jsx"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/js_includes_ux_metrics.js"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/js_includes_customer.jsx"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/history_across_tabs.jsx"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/js_includes_legacy.jsx"></script><script type="text/javascript" data-comment="navpage layout preferences, onfocus observation">/**
+	* Every window needs to observe these events.
+	*/
+	if (Prototype.Browser.IE && !isMSIE9) {
+		document.onfocusout = function() { CustomEvent.fireTop(GlideEvent.WINDOW_BLURRED, window); };
+		document.onfocusin = function() { CustomEvent.fireTop(GlideEvent.WINDOW_FOCUSED, window); };
+	} else {
+		Event.observe(window, 'blur', function() { CustomEvent.fireTop(GlideEvent.WINDOW_BLURRED, window); });
+		Event.observe(window, 'focus', function() { CustomEvent.fireTop(GlideEvent.WINDOW_FOCUSED, window); });
+	}</script><script type="text/javascript">g_swLoadTime = new StopWatch(g_loadTime);
+
+    if (window.CustomEvent){
+        CustomEvent.fireAll("ck_updated", "150b60820fac4f501a9e71d800d1b2afe9bfc285ab5fdfddf972f6fe6f2ac8808b3cd3aa");
+	    CustomEvent.fireTop("navigation.complete", window);
+	}
+
+    addLoadEvent( function() {
+
+		if (isValidTouchDevice())
+			addTouchScrollClassToBody();
+
+      if (typeof g_ck != 'undefined') {
+        CustomEvent.observe("ck_updated", function(ck) { g_ck = ck; });
+        CustomEvent.fireAll("ck_updated", "150b60820fac4f501a9e71d800d1b2afe9bfc285ab5fdfddf972f6fe6f2ac8808b3cd3aa");CustomEvent.fireTop('user.impersonation', '');CustomEvent.fireTop('record.domain', { domain: 'MSP/DCMS/CMS/CMS Technicians', domainId: '2523ecf0dbabe41066729b1faa96192f', domainName: 'CMS Technicians' });}try {
+              var helpico = getTopWindow().document.getElementById("help_ico");
+
+              if (helpico) {
+                var urlname=window.location.pathname.split("?");
+                var search_str = window.location.search;
+                
+                // if this is a form, extract the record's sys_id...
+                var sys_id_loc = search_str.search(/sys_id=[0-9a-f]{32}/i);
+                var sys_id_str = (sys_id_loc != -1) ? search_str.substr(sys_id_loc, 39) : null;
+                
+                // make the URL to our context help processor...
+                var url_search = "?sysparm_url=" + urlname[0];
+                if (sys_id_loc != -1)
+                   url_search += "&" + sys_id_str;
+
+               	helpico.href="context_help.do" + url_search;                	
+              }
+            } catch (exception) {}
+
+      synchCache();
+      pageLoaded();
+    });
+    
+    function synchCache() {
+      try {
+        var w = getTopWindow();
+        if (w.g_cache_message)
+          w.g_cache_message.stamp("ac9166c50f2447501a9e71d800d1b265");
+  
+        if (w.g_cache_td)
+          w.g_cache_td.stamp("2297e44e0f6c4f501a9e71d800d1b23c");
+      } catch(e) {}
+    }
+
+    function isValidTouchDevice() {
+		var navigator = window.navigator || {};
+		var devices;
+		try {
+			devices = 'iPad,Android'.split(',');
+		} catch(ex) {
+			devices = [];
+		}
+		return devices.some(function(item) {return item.trim() === navigator.platform;});
+	}
+
+	function addTouchScrollClassToBody() {
+		if ('ontouchstart' in window ||
+				(navigator.maxTouchPoints !== 'undefined' && navigator.maxTouchPoints > 0) ||
+				(navigator.msMaxTouchPoints !== 'undefined' && navigator.msMaxTouchPoints > 0)) {
+			if (typeof document.body != undefined) {
+				document.body.classList.add('touch_scroll');
+			}
+		}
+	}
+  </script><script>window.NOW = window.NOW || {};
+        NOW.amb_themed_login = true;</script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/js_includes_amb.jsx"></script><!--googleoff: all--><noscript>This site requires JavaScript to be enabled</noscript> <!--googleon: all--><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/js_guided_tours_includes.jsx"></script><script>NOW.xperf.scriptEnd = NOW.xperf.now();
+				NOW.xperf.parseEnd = NOW.xperf.now();</script></head><body class="chrome        non_standard_lists" data-formname="ui_page_render"><span class="sr-only"><div id="html_page_aria_live_polite" role="region" aria-relevant="additions text" aria-atomic="false" aria-live="polite"></div><div id="html_page_aria_live_assertive" role="region" aria-relevant="additions text" aria-atomic="false" aria-live="assertive"></div></span><div class="outputmsg_div"><div id="output_messages" class="outputmsg_container outputmsg_hide"><button type="button" aria-label="Close Messages" id="close-messages-btn" class="btn btn-icon close icon-cross" onclick="GlideUI.get().onCloseMessagesButtonClick(this); return false;"></button><div class="outputmsg_div" aria-live="polite" role="region" data-server-messages="false"></div></div><script>addRenderEvent(function() {CustomEvent.fire('glide_optics_inspect_update_watchfield', '');});
+
+			var accessibilityEnabled = Boolean(false);
+			var hasMessages = false;
+			if (accessibilityEnabled && hasMessages) {
+				$j(function() {
+					$j('#output_messages .btn.btn-icon.close').focus();
+				});
+			}</script></div><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/jquery_includes.jsx"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/timeAgo.jsx"></script><link type="text/css" rel="stylesheet" href="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/css_includes_knowledge.cssx"><link href="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/b3ba3821d73221004792a1737e610382.cssdbx" type="text/css" rel="stylesheet"><script>if('How to request a new cloud account (AWS/GCP/Azure)' != ''){
+			$j("title").text(new DOMParser().parseFromString("DCMS Knowledge Base - How to request a new cloud account (AWS/GCP/Azure)", "text/html").documentElement.textContent);
+		}
+		var kbConfig = {
+			canContribute: 'true',
+			historyRowCount: 0,
+			i18n: {
+				STATUS_MSG: {
+					draft: 'This knowledge item has been created',
+					review: 'This knowledge item has been published',
+					published: 'This knowledge item has been published',
+					pending_retirement: 'This knowledge item has been retired',
+					retired: 'This knowledge item has been retired',
+					delete_failed: 'This article could not be deleted'
+				},
+				TXT_PLACEHOLDER: 'Add content',
+				NOT_RETIRED: 'Article not retired',
+				NOT_PUBLISHED: 'Article not published',
+				NOT_SAVED: 'Article not saved',
+				SAVED: 'Article saved',
+				DISCARDED: 'Article changes discarded',
+				SUBMITTED: 'Your article has been submitted',
+				PREVIEW: ' Preview ',
+				PREVIEW_HINT: 'Preview changes',
+				CONFIRM_DELETE: 'Confirm deletion of this article?',
+				DELETE: 'Delete',
+				TITLE_RETIRE: 'Retire',
+				MESSAGE_RETIRE: 'Retire this article?',
+				TITLE_CANCEL: 'Cancel changes',
+				MESSAGE_CANCEL: 'Discard all changes?'
+			}
+		};
+
+		$j(function() {
+			if (parent.document) {
+				// fix iframe resize issue for CMS service portal
+				parent.CustomEvent.fire('content_frame.resized', window.name, parent.document.body.scrollHeight);
+			}
+
+			if('' != '') {
+				if(typeof URL != 'undefined') {
+					var url = new URL(window.location.href);
+					url.searchParams.set('sysparm_article', '');
+					window.history.pushState({path: url.href}, '', url);
+				} else {
+					// Fallback solution for IE where URL is not defined.
+					var replaceQueryParameter = function(parameter, value, search) {
+						var regex = new RegExp("([?;&amp;])" + parameter + "[^&amp;]*[;&amp;]?");
+						var query = search.replace(regex, "$1").replace(/&amp;$/, '');
+
+						return (query.length > 2 ? query + "&amp;" : "?") + (value ? parameter + "=" + value : '');
+					}
+		
+					var url = window.location.origin + replaceQueryParameter('sysparm_article', '', window.location.search);
+					window.history.pushState({path: url}, '', url);
+				} 
+			}
+		});</script><script>// variables for tinymce init
+				var g_tinymce_lang = "en";
+				var g_tinymce_remove_script_host = true;
+				var tinymce_toolbar_line1 = "bold,italic,underline,undo,redo,|,fontselect,fontsizeselect,table,|,forecolor,backcolor,link,unlink,|,image,media,code,|,alignleft,aligncenter,alignright,|,bullist,numlist,fullscreen";
+				var tinymce_toolbar_line2 = "";
+				var tinymce_fonts = "Andale Mono=andale mono,times;Arial=arial,helvetica,sans-serif;Arial Black=arial black,avant garde;Book Antiqua=book antiqua,palatino;Comic Sans MS=comic sans ms,sans-serif;Courier New=courier new,courier;Georgia=georgia,palatino;Helvetica=helvetica;Impact=impact,chicago;Journal=journal;Symbol=symbol;Tahoma=tahoma,arial,helvetica,sans-serif;Terminal=terminal,monaco;Times New Roman=times new roman,times;Trebuchet MS=trebuchet ms,geneva;Verdana=verdana,geneva;Webdings=webdings;Wingdings=wingdings,zapf dingbats;";
+
+				addLoadEvent(function() {
+					if (typeof g_sc_form == "undefined") if (typeof g_form != "undefined") {
+						g_sc_form = g_form;
+					}
+				});</script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/KnowledgeFunctions.jsdbx"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/KBViewArticle.jsdbx"></script><div class="snc-article-hidden-fields" aria-hidden="true"><input id="articleId" type="hidden" value="43291b7f97fb26501c2fbfe3f153af1d"><input type="hidden" aria-hidden="true" id="ts_queryId" value=""><input id="articleWorkflowState" type="hidden" value="published"><input id="articleTitleTemplate" type="hidden" value=""><input id="articleTemplate" type="hidden" value=""><input id="articleTitleOld" type="hidden" value="How to request a new cloud account (AWS/GCP/Azure)"><input id="articleOriginal" type="hidden" value="&lt;h1 id=&quot;Howtorequestanewcloudaccount(AWS/GCP)-1.Summary&quot;&gt;1.&amp;nbsp;&amp;nbsp; Summary&lt;/h1&gt;
+&lt;hr&gt;
+&lt;p&gt;This SOP provides details on how to request a new AWS/GCP/Azure cloud account via the internal portal&lt;/p&gt;
+&lt;h1 id=&quot;Howtorequestanewcloudaccount(AWS/GCP)-2.Audience/Prerequisites&quot;&gt;2.&amp;nbsp;&amp;nbsp; Audience / Prerequisites&lt;/h1&gt;
+&lt;hr&gt;
+&lt;ul&gt;&lt;li&gt;Cloud Architects&lt;/li&gt;&lt;li&gt;Must be an Okta user&amp;nbsp;and&amp;nbsp;have ServiceNow ITIL user access&lt;/li&gt;&lt;li&gt;Must have the DCMS CMS Portal Role and be added to the Deloitte Cloud Managed Service ‘company’ to enable redirect&lt;/li&gt;&lt;li&gt;Ensure you are in the correct domain MSP/DCMS/CMS&lt;/li&gt;&lt;/ul&gt;
+&lt;h1 id=&quot;Howtorequestanewcloudaccount(AWS/GCP)-3.Procedure&quot;&gt;3.&amp;nbsp;&amp;nbsp; Procedure&lt;/h1&gt;
+&lt;hr&gt;
+&lt;h2 id=&quot;Howtorequestanewcloudaccount(AWS/GCP)-3.1.Processsteps&quot;&gt;3.1.&amp;nbsp; Process steps&lt;/h2&gt;
+&lt;h3 id=&quot;Howtorequestanewcloudaccount(AWS/GCP)-3.1.1AWSRequest&quot;&gt;3.1.1 Request a new AWS account&lt;/h3&gt;
+&lt;p&gt;1. Navigate to the Portal via ServiceNow or with &lt;a href=&quot;https://deloitteukams.service-now.com/cloudmanagedservices?sysparm_stack=no&quot; rel=&quot;nofollow&quot;&gt;this link&lt;/a&gt;&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=8f291b7f97fb26501c2fbfe3f153af43&quot; alt=&quot;&quot; width=&quot;421&quot; height=&quot;182&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;2. Select &lt;strong&gt;Request Something&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=07291b7f97fb26501c2fbfe3f153af4d&quot; alt=&quot;&quot; width=&quot;428&quot; height=&quot;128&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;3. Select &lt;strong&gt;OpenCloud On-Boarding&lt;/strong&gt; then &lt;strong&gt;Request a New Cloud Account&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=8b291b7f97fb26501c2fbfe3f153af47&quot; alt=&quot;&quot; width=&quot;444&quot; height=&quot;180&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;4. The account request form will open:&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=1f291b7f97fb26501c2fbfe3f153af5a&quot; alt=&quot;&quot; width=&quot;687&quot; height=&quot;281&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;5. The form is divided into three main sections. Fill out each section of the form with as much information as possible:&lt;br&gt;&lt;br&gt;** denotes mandatory field&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;ul style=&quot;list-style-position: inside;&quot;&gt;&lt;li&gt;&lt;strong&gt;Requested for:&lt;/strong&gt; this section is pre-populated with your name but this can be changed by selecting the box and choosing from the drop-down menu if needed **&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=03291b7f97fb26501c2fbfe3f153af42&quot; alt=&quot;&quot; width=&quot;374&quot; height=&quot;136&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Project ID:&lt;/strong&gt; select the appropriate project from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Project Name:&lt;/strong&gt;&amp;nbsp;this section will be populated once the Project ID above has been selected&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Client Name:&lt;/strong&gt;&amp;nbsp;this section will be populated once the Project ID above has been selected&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Cloud Provider:&lt;/strong&gt; select AWS from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;&lt;span title=&quot;&quot;&gt;PPA (Preferred Pricing Agreement) account request:&amp;nbsp;&lt;/span&gt;&lt;/strong&gt;&lt;span title=&quot;&quot;&gt;select Yes or No. For further explanation on this, please select the&lt;strong&gt; ?&lt;/strong&gt; icon (if further clarification is required, reach out to the Digital Platform team for assistance) **&lt;br&gt;&lt;br&gt;&lt;/span&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Request Type:&lt;/strong&gt; select either&lt;strong&gt; Client&lt;/strong&gt; (single account for an existing project) or &lt;strong&gt;Stub and Client&lt;/strong&gt; (creates both a &lt;strong&gt;Stub AND Client&lt;/strong&gt; account &lt;strong&gt;for new projects&lt;/strong&gt;) from the drop-down menu. &lt;em&gt;Note that selecting Stub will add an additional mandatory section include&lt;/em&gt;&lt;em&gt;&amp;nbsp;both Stub and Client account specifications&lt;/em&gt;&amp;nbsp; **&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=1b291b7f97fb26501c2fbfe3f153af84&quot; alt=&quot;&quot; width=&quot;579&quot; height=&quot;369&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;/li&gt;&lt;/ul&gt;
+&lt;hr&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;ul style=&quot;list-style-position: inside;&quot;&gt;&lt;li&gt;&lt;strong&gt;Environment:&lt;/strong&gt; select Production or Dev from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Primary Region:&amp;nbsp;&lt;/strong&gt;select the appropriate region from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Network Configuration:&lt;/strong&gt; select the appropriate network config from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Networking Address:&lt;/strong&gt; enter the networking address **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;&lt;span title=&quot;&quot;&gt;OpenVPN Access Server required for Client Account?&lt;/span&gt;:&lt;/strong&gt; select either Yes or No from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Account Description:&lt;/strong&gt; enter as much information as possible here **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Integrated Tooling:&lt;/strong&gt; select Yes/No from the drop-down menu for Prisma and Datadog (Prisma is not available for PPA accounts as they will be automatically onboarded to the GCSS provided compliance solution). Provide explanation if tools are unselected. Trend and Tenable are onboarded to all new accounts (AWS/GCP/Azure) by default and these fields are read-only (If PPA is selected, the account will be automatically onboarded to Qualys, rather than Prisma)&lt;/li&gt;&lt;/ul&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;div&gt;
+&lt;p&gt;&lt;em&gt;Tip: Selecting No on any of the tools will reveal an explanation box for reasoning - this is also mandatory&lt;/em&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;p&gt;&lt;img style=&quot;border-width: 1px; border-style: solid;&quot; src=&quot;https://deloitteukams.service-now.com/sys_attachment.do?sys_id=0f291b7f97fb26501c2fbfe3f153af45&quot; width=&quot;349&quot; height=&quot;312&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;hr&gt;
+&lt;ul style=&quot;list-style-position: inside;&quot;&gt;&lt;li&gt;&lt;strong&gt;Data Classification:&lt;/strong&gt; select Confidential, High-risk Confidential, Protected Health Confidential or Public from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Data Description:&lt;/strong&gt; enter details of the potential data the account will hold **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Supported by:&lt;/strong&gt; select the pod that will support the account from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Additional information:&lt;/strong&gt; if there is any additional information that will assist in the account creation, enter it here&amp;nbsp;&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Date required:&lt;/strong&gt; enter the date by which the account is needed - &lt;em&gt;note that there is currently a 3 day SLA on account requests&lt;/em&gt; **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Data Ownership:&lt;/strong&gt; select Client or Deloitte from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=17291b7f97fb26501c2fbfe3f153af53&quot; alt=&quot;&quot; width=&quot;433&quot; height=&quot;278&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;/li&gt;&lt;/ul&gt;
+&lt;p&gt;6. Finally, select&amp;nbsp;Submit.&amp;nbsp;The new AWS cloud account has now been requested and account creation will be actioned by a member of the Products Engineering team&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;h3&gt;3.1.2 Request a new GCP account&lt;/h3&gt;
+&lt;p&gt;1. Navigate to the Portal via ServiceNow or with &lt;a href=&quot;https://deloitteukams.service-now.com/cloudmanagedservices?sysparm_stack=no&quot; rel=&quot;nofollow&quot;&gt;this link&lt;/a&gt;&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=8f291b7f97fb26501c2fbfe3f153af43&quot; alt=&quot;&quot; width=&quot;421&quot; height=&quot;182&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;2. Select &lt;strong&gt;Request Something&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=07291b7f97fb26501c2fbfe3f153af4d&quot; alt=&quot;&quot; width=&quot;428&quot; height=&quot;128&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;3. Select &lt;strong&gt;OpenCloud On-Boarding&lt;/strong&gt; then &lt;strong&gt;Request a New Cloud Account&lt;br&gt;&lt;/strong&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=8b291b7f97fb26501c2fbfe3f153af47&quot; alt=&quot;&quot; width=&quot;444&quot; height=&quot;180&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;/p&gt;
+&lt;p&gt;4. The account request form will open:&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=9b291b7f97fb26501c2fbfe3f153af5c&quot; alt=&quot;&quot; width=&quot;547&quot; height=&quot;224&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;5. The form is divided into three main sections. Fill out each section of the form with as much information as possible:&lt;br&gt;&lt;br&gt;** denotes mandatory field&lt;/p&gt;
+&lt;ul style=&quot;list-style-position: inside;&quot;&gt;&lt;li&gt;&lt;strong&gt;Requested for:&lt;/strong&gt; this section is pre-populated with your name but this can be changed by selecting the box and choosing from the drop-down menu if needed **&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=03291b7f97fb26501c2fbfe3f153af42&quot; alt=&quot;&quot; width=&quot;330&quot; height=&quot;120&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Project ID:&lt;/strong&gt; select the appropriate project from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Project Name:&lt;/strong&gt;&amp;nbsp;this section will be populated once the Project ID above has been selected&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Client Name:&lt;/strong&gt;&amp;nbsp;this section will be populated once the Project ID above has been selected&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Cloud Provider:&amp;nbsp;&lt;/strong&gt;select GCP from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Request Type:&amp;nbsp;&lt;/strong&gt;select either&lt;strong&gt; Client&lt;/strong&gt; (single account for an existing project) or &lt;strong&gt;Stub and Client&lt;/strong&gt; (creates both a &lt;strong&gt;Stub AND Client&lt;/strong&gt; account &lt;strong&gt;for new projects&lt;/strong&gt;) from the drop-down menu. &lt;em&gt;Note that selecting Stub will add an additional mandatory section include&lt;/em&gt;&lt;em&gt;&amp;nbsp;both Stub and Client account specifications&lt;/em&gt;&amp;nbsp;**&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=13291b7f97fb26501c2fbfe3f153af57&quot; alt=&quot;&quot; width=&quot;493&quot; height=&quot;348&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;/li&gt;&lt;/ul&gt;
+&lt;hr&gt;
+&lt;ul&gt;&lt;li&gt;&lt;strong&gt;Environment:&lt;/strong&gt; select Production or Dev from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Primary Region:&lt;/strong&gt; select the appropriate region from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Network Configuration:&lt;/strong&gt; select the appropriate network config from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Networking Address:&lt;/strong&gt; enter the networking address **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;&lt;span title=&quot;&quot;&gt;OpenVPN Access Server required for Client Account?&lt;/span&gt;:&lt;/strong&gt; select either Yes or No from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Account Description:&amp;nbsp;&lt;/strong&gt;enter as much information as possible here **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Integrated Tooling:&lt;/strong&gt; select Yes/No from the drop-down menu for&amp;nbsp;Datadog. Provide explanation if unselected. Trend and Tenable are onboarded to all new accounts (AWS/GCP/Azure) by default and these fields are read-only&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border-width: 1px; border-style: solid;&quot; src=&quot;/sys_attachment.do?sys_id=cb291b7f97fb26501c2fbfe3f153af23&quot; width=&quot;414&quot; height=&quot;333&quot;&gt;&lt;/li&gt;&lt;/ul&gt;
+&lt;div&gt;
+&lt;p&gt;&amp;nbsp;&lt;/p&gt;
+&lt;div&gt;
+&lt;p&gt;&lt;em&gt;Tip: Selecting No on any of the tools will reveal an explanation box for reasoning - this is also mandatory&lt;/em&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;hr&gt;
+&lt;ul style=&quot;list-style-position: inside;&quot;&gt;&lt;li&gt;&lt;strong&gt;Data Classification:&lt;/strong&gt; select Confidential, High-risk Confidential, Protected Health Confidential or Public from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Data Description:&lt;/strong&gt; enter details of the potential data the account will hold **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Supported by:&lt;/strong&gt; select the pod that will support the account from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Additional information:&lt;/strong&gt; if there is any additional information that will assist in the account creation, enter it here&amp;nbsp;&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Date required for?:&amp;nbsp;&lt;/strong&gt;enter the date by which the account is needed **&lt;br&gt;&lt;br&gt;&lt;/li&gt;&lt;li&gt;&lt;strong&gt;Data Ownership:&lt;/strong&gt; select Client or Deloitte from the drop-down menu **&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black; align: baseline;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=93291b7f97fb26501c2fbfe3f153af55&quot; alt=&quot;&quot; width=&quot;472&quot; height=&quot;291&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;/li&gt;&lt;/ul&gt;
+&lt;p&gt;6. Finally, select Submit.&amp;nbsp;The new&amp;nbsp;GCP&amp;nbsp;cloud account has now been requested and account creation will be actioned by a member of the Products Engineering team&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;h3&gt;3.1.3 Request a new Azure account&lt;/h3&gt;
+&lt;p&gt;1. Navigate to the Portal via ServiceNow or with &lt;a href=&quot;https://deloitteukams.service-now.com/cloudmanagedservices?sysparm_stack=no&quot; rel=&quot;nofollow&quot;&gt;this link&lt;/a&gt;&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=8f291b7f97fb26501c2fbfe3f153af43&quot; alt=&quot;&quot; width=&quot;421&quot; height=&quot;182&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;2. Select &lt;strong&gt;Request Something&lt;/strong&gt;&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=07291b7f97fb26501c2fbfe3f153af4d&quot; alt=&quot;&quot; width=&quot;428&quot; height=&quot;128&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;3. Select &lt;strong&gt;OpenCloud On-Boarding&lt;/strong&gt; then &lt;strong&gt;Request a New Cloud Account&lt;br&gt;&lt;/strong&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=8b291b7f97fb26501c2fbfe3f153af47&quot; alt=&quot;&quot; width=&quot;444&quot; height=&quot;180&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;/p&gt;
+&lt;p&gt;4. The account request form will open:&lt;br&gt;&lt;br&gt;&lt;img style=&quot;border: 1px solid black;&quot; title=&quot;&quot; src=&quot;sys_attachment.do?sys_id=9b291b7f97fb26501c2fbfe3f153af5c&quot; alt=&quot;&quot; width=&quot;547&quot; height=&quot;224&quot; align=&quot;bottom&quot; border=&quot;1&quot; hspace=&quot;&quot; vspace=&quot;&quot;&gt;&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;5. The form is divided into three main sections. As above, fill out each section of the form with as much information as possible (if unsure, please contact the Product Engineering team)&lt;br&gt;&lt;br&gt;&lt;/p&gt;
+&lt;p&gt;6. Finally, select Submit. The new Azure cloud account has now been requested and account creation will be actioned by a member of the Products Engineering team&lt;/p&gt;"><input id="articleTextType" type="hidden"><textarea id="articleWikiText" style="display:none" aria-label="Article wiki text"></textarea><input id="articleInPopUp" type="hidden" value="false"><input id="articleDirty" type="hidden" value="Changes have been made. Continuing will discard the changes."><input id="articleIsNew" type="hidden"><input id="articleModified" type="hidden" value="false"><input id="articleEditMode" type="hidden" value="false"><input id="articleVersion" type="hidden" value="3"><input id="articleDisplayAttachments" type="hidden" value="false"><input id="articleShowKBCreateIncident" type="hidden" value="true"><input id="articleVersioningInstalled" type="hidden" value="true"><input id="articleKnowledgeBase" type="hidden" value="cc51e22bdb70f41022b4b4c4f3961929"><input id="articleKnowledgeBaseName" type="hidden" value="DCMS Knowledge Base"><input id="articleNumber" type="hidden" value="KB0010108"><input id="createIncidentLinkLocation" type="hidden" value="incident.do?sys_id=-1&amp;sysparm_query=active=true^comments=(Created after Knowledge search: How%20to%20request%20a%20new%20cloud%20account%20(AWS%2FGCP%2FAzure))&amp;sysparm_stack=knowledge_home_launcher.do"><input id="attachFields" type="hidden" value="comments"><input id="canShowKBFeedback" type="hidden" value="true"><input id="isLiveFeedEnabled" type="hidden" value="false"></div><div class="row navbar navbar-default snc-article-header-toolbar" role="navigation"><div class="col-xs-7 kb-container-fluid"><div class="row kb-navbar-header"><div class="col-xs-2 head-back-n-star"><button role="link" id="backButton" title="" aria-label="Back" class="btn btn-default icon-chevron-left navbar-btn snc-article-toolbar-btn pull-left" data-original-title="Back"></button>
+	
+	<div class="modal" id="createFavoritesModal" aria-labelledby="favorite_modal_title" name="create_favorites_modal" role="dialog">
+		<div class="modal-dialog modal-md">
+			<div class="modal-content">
+				<header class="modal-header clearfix">
+					<button data-dismiss="modal" class="btn btn-icon close icon-cross">
+						<span class="sr-only">Close</span></button>
+					<h2 id="favorite_modal_title" class="modal-title pull-left h4">Create Favorite</h2></header>
+				<form class="create-favorite" name="create_favorite_form">
+					<div class="modal-body clearfix">
+					<div id="output_messages_favorite" class="outputmsg_container outputmsg_hide compact">
+						<button aria-label="Close Messages" class="btn btn-icon close icon-cross"></button>
+						<div class="outputmsg_div" aria-live="polite" role="region" data-server-messages="false"></div></div>
+						<div id="favorite_preview"><span></span></div>
+						<label class="sr-only" for="create_favorite_title" aria-labelledby="create_favorite_title">Bookmark title</label>
+						<input type="text" id="create_favorite_title" name="title" class="form-control" value="" aria-label="Bookmark title" aria-required="true" aria-invalid="false" placeholder="Bookmark title">
+						<input type="hidden" name="url" value="">
+						<input type="hidden" name="window_name" value="">
+						<input type="hidden" name="id" value="">
+						<input type="hidden" name="color" value="">
+						<div class="color-picker">
+							<fieldset id="icon_colors">
+								<legend class="sr-only">Color</legend><ul role="radiogroup" id="magellan-color-picker-colors"><li role="radio" name="color" aria-label="purple" id="favorite-color-purple" value="purple" class="color-option color-bg-purple" title="Purple" tabindex="0" aria-checked="false" data-original-title="Purple"></li><li role="radio" name="color" aria-label="blue" id="favorite-color-blue" value="blue" class="color-option color-bg-blue" title="Blue" tabindex="-1" aria-checked="false" data-original-title="Blue"></li><li role="radio" name="color" aria-label="cyan" id="favorite-color-cyan" value="cyan" class="color-option color-bg-cyan" title="Cyan" tabindex="-1" aria-checked="false" data-original-title="Cyan"></li><li role="radio" name="color" aria-label="aquamarine" id="favorite-color-aquamarine" value="aquamarine" class="color-option color-bg-aquamarine" title="Aquamarine" tabindex="-1" aria-checked="false" data-original-title="Aquamarine"></li><li role="radio" name="color" aria-label="green" id="favorite-color-green" value="green" class="color-option color-bg-green" title="Green" tabindex="-1" aria-checked="false" data-original-title="Green"></li><li role="radio" name="color" aria-label="yellow" id="favorite-color-yellow" value="yellow" class="color-option color-bg-yellow" title="Yellow" tabindex="-1" aria-checked="false" data-original-title="Yellow"></li><li role="radio" name="color" aria-label="orange" id="favorite-color-orange" value="orange" class="color-option color-bg-orange" title="Orange" tabindex="-1" aria-checked="false" data-original-title="Orange"></li><li role="radio" name="color" aria-label="burnt-orange" id="favorite-color-burnt-orange" value="burnt-orange" class="color-option color-bg-burnt-orange" title="Burnt-orange" tabindex="-1" aria-checked="false" data-original-title="Burnt-orange"></li><li role="radio" name="color" aria-label="red" id="favorite-color-red" value="red" class="color-option color-bg-red" title="Red" tabindex="-1" aria-checked="false" data-original-title="Red"></li><li role="radio" name="color" aria-label="pink" id="favorite-color-pink" value="pink" class="color-option color-bg-pink" title="Pink" tabindex="-1" aria-checked="false" data-original-title="Pink"></li><li role="radio" name="color" aria-label="fuschia" id="favorite-color-fuschia" value="fuschia" class="color-option color-bg-fuschia" title="Fuschia" tabindex="-1" aria-checked="false" data-original-title="Fuschia"></li><li role="radio" name="color" aria-label="white" id="favorite-color-white" value="white" class="color-option color-bg-white" title="White" tabindex="-1" aria-checked="false" data-original-title="White"></li></ul></fieldset></div>
+						<input type="hidden" name="icon" value="">
+						<div class="icon-picker">
+							<fieldset id="icon_picker" class="nav-edit-favorites-icon-grid">
+								<legend class="sr-only">Icon</legend><ul role="radiogroup" id="magellan-color-picker-icons"><li role="radio" name="icon" aria-label="favorite icon article-document" id="favorite-icon-article-document" class="option-icon icon-article-document" value="article-document" title="Article-document" tabindex="0" aria-checked="false" data-original-title="Article-document"></li><li role="radio" name="icon" aria-label="favorite icon user" id="favorite-icon-user" class="option-icon icon-user" value="user" title="User" tabindex="-1" aria-checked="false" data-original-title="User"></li><li role="radio" name="icon" aria-label="favorite icon user-group" id="favorite-icon-user-group" class="option-icon icon-user-group" value="user-group" title="User-group" tabindex="-1" aria-checked="false" data-original-title="User-group"></li><li role="radio" name="icon" aria-label="favorite icon lightbulb" id="favorite-icon-lightbulb" class="option-icon icon-lightbulb" value="lightbulb" title="Lightbulb" tabindex="-1" aria-checked="false" data-original-title="Lightbulb"></li><li role="radio" name="icon" aria-label="favorite icon home" id="favorite-icon-home" class="option-icon icon-home" value="home" title="Home" tabindex="-1" aria-checked="false" data-original-title="Home"></li><li role="radio" name="icon" aria-label="favorite icon mobile" id="favorite-icon-mobile" class="option-icon icon-mobile" value="mobile" title="Mobile" tabindex="-1" aria-checked="false" data-original-title="Mobile"></li><li role="radio" name="icon" aria-label="favorite icon comment" id="favorite-icon-comment" class="option-icon icon-comment" value="comment" title="Comment" tabindex="-1" aria-checked="false" data-original-title="Comment"></li><li role="radio" name="icon" aria-label="favorite icon mail" id="favorite-icon-mail" class="option-icon icon-mail" value="mail" title="Mail" tabindex="-1" aria-checked="false" data-original-title="Mail"></li><li role="radio" name="icon" aria-label="favorite icon locked" id="favorite-icon-locked" class="option-icon icon-locked" value="locked" title="Locked" tabindex="-1" aria-checked="false" data-original-title="Locked"></li><li role="radio" name="icon" aria-label="favorite icon database" id="favorite-icon-database" class="option-icon icon-database" value="database" title="Database" tabindex="-1" aria-checked="false" data-original-title="Database"></li><li role="radio" name="icon" aria-label="favorite icon book" id="favorite-icon-book" class="option-icon icon-book" value="book" title="Book" tabindex="-1" aria-checked="false" data-original-title="Book"></li><li role="radio" name="icon" aria-label="favorite icon drawer" id="favorite-icon-drawer" class="option-icon icon-drawer" value="drawer" title="Drawer" tabindex="-1" aria-checked="false" data-original-title="Drawer"></li><li role="radio" name="icon" aria-label="favorite icon folder" id="favorite-icon-folder" class="option-icon icon-folder" value="folder" title="Folder" tabindex="-1" aria-checked="false" data-original-title="Folder"></li><li role="radio" name="icon" aria-label="favorite icon catalog" id="favorite-icon-catalog" class="option-icon icon-catalog" value="catalog" title="Catalog" tabindex="-1" aria-checked="false" data-original-title="Catalog"></li><li role="radio" name="icon" aria-label="favorite icon tab" id="favorite-icon-tab" class="option-icon icon-tab" value="tab" title="Tab" tabindex="-1" aria-checked="false" data-original-title="Tab"></li><li role="radio" name="icon" aria-label="favorite icon cards" id="favorite-icon-cards" class="option-icon icon-cards" value="cards" title="Cards" tabindex="-1" aria-checked="false" data-original-title="Cards"></li><li role="radio" name="icon" aria-label="favorite icon tree-right" id="favorite-icon-tree-right" class="option-icon icon-tree-right" value="tree-right" title="Tree-right" tabindex="-1" aria-checked="false" data-original-title="Tree-right"></li><li role="radio" name="icon" aria-label="favorite icon tree" id="favorite-icon-tree" class="option-icon icon-tree" value="tree" title="Tree" tabindex="-1" aria-checked="false" data-original-title="Tree"></li><li role="radio" name="icon" aria-label="favorite icon book-open" id="favorite-icon-book-open" class="option-icon icon-book-open" value="book-open" title="Book-open" tabindex="-1" aria-checked="false" data-original-title="Book-open"></li><li role="radio" name="icon" aria-label="favorite icon paperclip" id="favorite-icon-paperclip" class="option-icon icon-paperclip" value="paperclip" title="Paperclip" tabindex="-1" aria-checked="false" data-original-title="Paperclip"></li><li role="radio" name="icon" aria-label="favorite icon edit" id="favorite-icon-edit" class="option-icon icon-edit" value="edit" title="Edit" tabindex="-1" aria-checked="false" data-original-title="Edit"></li><li role="radio" name="icon" aria-label="favorite icon trash" id="favorite-icon-trash" class="option-icon icon-trash" value="trash" title="Trash" tabindex="-1" aria-checked="false" data-original-title="Trash"></li><li role="radio" name="icon" aria-label="favorite icon image" id="favorite-icon-image" class="option-icon icon-image" value="image" title="Image" tabindex="-1" aria-checked="false" data-original-title="Image"></li><li role="radio" name="icon" aria-label="favorite icon search" id="favorite-icon-search" class="option-icon icon-search" value="search" title="Search" tabindex="-1" aria-checked="false" data-original-title="Search"></li><li role="radio" name="icon" aria-label="favorite icon power" id="favorite-icon-power" class="option-icon icon-power" value="power" title="Power" tabindex="-1" aria-checked="false" data-original-title="Power"></li><li role="radio" name="icon" aria-label="favorite icon cog" id="favorite-icon-cog" class="option-icon icon-cog" value="cog" title="Cog" tabindex="-1" aria-checked="false" data-original-title="Cog"></li><li role="radio" name="icon" aria-label="favorite icon star" id="favorite-icon-star" class="option-icon icon-star" value="star" title="Star" tabindex="-1" aria-checked="false" data-original-title="Star"></li><li role="radio" name="icon" aria-label="favorite icon star-empty" id="favorite-icon-star-empty" class="option-icon icon-star-empty" value="star-empty" title="Star-empty" tabindex="-1" aria-checked="false" data-original-title="Star-empty"></li><li role="radio" name="icon" aria-label="favorite icon new-ticket" id="favorite-icon-new-ticket" class="option-icon icon-new-ticket" value="new-ticket" title="New-ticket" tabindex="-1" aria-checked="false" data-original-title="New-ticket"></li><li role="radio" name="icon" aria-label="favorite icon dashboard" id="favorite-icon-dashboard" class="option-icon icon-dashboard" value="dashboard" title="Dashboard" tabindex="-1" aria-checked="false" data-original-title="Dashboard"></li><li role="radio" name="icon" aria-label="favorite icon cart-full" id="favorite-icon-cart-full" class="option-icon icon-cart-full" value="cart-full" title="Cart-full" tabindex="-1" aria-checked="false" data-original-title="Cart-full"></li><li role="radio" name="icon" aria-label="favorite icon view" id="favorite-icon-view" class="option-icon icon-view" value="view" title="View" tabindex="-1" aria-checked="false" data-original-title="View"></li><li role="radio" name="icon" aria-label="favorite icon label" id="favorite-icon-label" class="option-icon icon-label" value="label" title="Label" tabindex="-1" aria-checked="false" data-original-title="Label"></li><li role="radio" name="icon" aria-label="favorite icon filter" id="favorite-icon-filter" class="option-icon icon-filter" value="filter" title="Filter" tabindex="-1" aria-checked="false" data-original-title="Filter"></li><li role="radio" name="icon" aria-label="favorite icon calendar" id="favorite-icon-calendar" class="option-icon icon-calendar" value="calendar" title="Calendar" tabindex="-1" aria-checked="false" data-original-title="Calendar"></li><li role="radio" name="icon" aria-label="favorite icon script" id="favorite-icon-script" class="option-icon icon-script" value="script" title="Script" tabindex="-1" aria-checked="false" data-original-title="Script"></li><li role="radio" name="icon" aria-label="favorite icon add" id="favorite-icon-add" class="option-icon icon-add" value="add" title="Add" tabindex="-1" aria-checked="false" data-original-title="Add"></li><li role="radio" name="icon" aria-label="favorite icon delete" id="favorite-icon-delete" class="option-icon icon-delete" value="delete" title="Delete" tabindex="-1" aria-checked="false" data-original-title="Delete"></li><li role="radio" name="icon" aria-label="favorite icon help" id="favorite-icon-help" class="option-icon icon-help" value="help" title="Help" tabindex="-1" aria-checked="false" data-original-title="Help"></li><li role="radio" name="icon" aria-label="favorite icon check-circle" id="favorite-icon-check-circle" class="option-icon icon-check-circle" value="check-circle" title="Check-circle" tabindex="-1" aria-checked="false" data-original-title="Check-circle"></li><li role="radio" name="icon" aria-label="favorite icon alert" id="favorite-icon-alert" class="option-icon icon-alert" value="alert" title="Alert" tabindex="-1" aria-checked="false" data-original-title="Alert"></li><li role="radio" name="icon" aria-label="favorite icon sort-ascending" id="favorite-icon-sort-ascending" class="option-icon icon-sort-ascending" value="sort-ascending" title="Sort-ascending" tabindex="-1" aria-checked="false" data-original-title="Sort-ascending"></li><li role="radio" name="icon" aria-label="favorite icon console" id="favorite-icon-console" class="option-icon icon-console" value="console" title="Console" tabindex="-1" aria-checked="false" data-original-title="Console"></li><li role="radio" name="icon" aria-label="favorite icon list" id="favorite-icon-list" class="option-icon icon-list" value="list" title="List" tabindex="-1" aria-checked="false" data-original-title="List"></li><li role="radio" name="icon" aria-label="favorite icon form" id="favorite-icon-form" class="option-icon icon-form" value="form" title="Form" tabindex="-1" aria-checked="false" data-original-title="Form"></li><li role="radio" name="icon" aria-label="favorite icon livefeed" id="favorite-icon-livefeed" class="option-icon icon-livefeed" value="livefeed" title="Livefeed" tabindex="-1" aria-checked="false" data-original-title="Livefeed"></li><li role="radio" name="icon" aria-label="favorite icon key" id="favorite-icon-key" class="option-icon icon-key" value="key" title="Key" tabindex="-1" aria-checked="false" data-original-title="Key"></li><li role="radio" name="icon" aria-label="favorite icon hr" id="favorite-icon-hr" class="option-icon icon-hr" value="hr" title="Hr" tabindex="-1" aria-checked="false" data-original-title="Hr"></li></ul></fieldset></div></div>
+					<div class="modal-footer">
+						<button data-dismiss="modal" type="button" class="btn btn-default">Cancel</button>
+						<button type="submit" class="btn btn-primary">Done</button></div></form>
+				<script type="text/javascript">
+					
+						window.MagellanCreateFavorites = {
+							navColors : ["purple","blue","cyan","aquamarine","green","yellow","orange","burnt-orange","red","pink","fuschia","white"],
+							navIcons : ["article-document","user","user-group","lightbulb","home","mobile","comment","mail","locked","database","book","drawer","folder","catalog","tab","cards","tree-right","tree","book-open","paperclip","edit","trash","image","search","power","cog","star","star-empty","new-ticket","dashboard","cart-full","view","label","filter","calendar","script","add","delete","help","check-circle","alert","sort-ascending","console","list","form","livefeed","key","hr"],
+							paramBlackList : ["sysparm_no_stack","sysparm_userpref_module","sysparm_record_target","sysparm_record_row","sysparm_record_rows","sysparm_record_list"]
+						};
+					</script>
+				<script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/radioButton.jsx"></script>
+				<script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/radioGroup.jsx"></script>
+				<script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/magellan.CreateFavoriteModal.jsx"></script></div></div></div><script>(function() {
+									var historyData = {
+										title: 'How to request a new cloud account (AWS/GCP/Azure)',
+										isTable: false,
+										url: '/kb_view.do?sysparm_article=KB0010108'
+									};
+									CustomEvent.fire('magellanNavigator.sendHistoryEvent', historyData);
+								})();
+								function showCreateFavoriteModal() {
+									if (MagellanCreateFavorites && MagellanCreateFavorites.addFavorite) {
+										MagellanCreateFavorites.addFavorite({
+										title : 'How to request a new cloud account (AWS/GCP/Azure)',
+										icon : 'book',
+										url: '/kb_view.do?sysparm_article=KB0010108'
+									});
+									}
+								}</script><button onclick="showCreateFavoriteModal()" class="btn btn-icon icon-star pull-left" title="Create Favorite" aria-label="Create Favorite" data-original-title="Create Favorite"></button></div><div class="col-xs-10 head-bc"><ol class="breadcrumb kb_view_breadcrumb"><li><a href="https://deloitteukams.service-now.com/knowledge_home_launcher.do">Home</a></li><li><a href="https://deloitteukams.service-now.com/knowledge_home_launcher.do?sysparm_kb=cc51e22bdb70f41022b4b4c4f3961929&amp;sysparm_category=a470764187a34d508474557bbbbb359c&amp;browse_type=categories">Engineering Platforms</a></li><li><a href="https://deloitteukams.service-now.com/knowledge_home_launcher.do?sysparm_kb=cc51e22bdb70f41022b4b4c4f3961929&amp;sysparm_category=5836b34747de1950d383ef42e36d432b&amp;browse_type=categories">Account Requests</a></li><li>How to request a new cloud account (AWS/GCP/Azure)</li></ol></div></div></div><div class="col-xs-5 snc-kb-navbar-right"><div class="header-bar-btn-group" id="header-bar-button-group"><button id="subscribeArticle" title="" class="btn btn-default snc-article-header-toolbar-button-subscription navbar-btn pull-right" data-original-title="Subscribe Article">Subscribe</button><button id="unsubscribeArticle" title="Unsubscribe Article" class="btn btn-default snc-article-header-toolbar-button-subscription snc-article-header-toolbar-button-hide navbar-btn pull-right" data-original-title="Unsubscribe Article"><span class="subscribed">Subscribed</span><span class="unsubscribe">Unsubscribe</span></button><button id="createIncident" title="" aria-label="Create Incident" class="btn btn-default navbar-btn snc-article-header-toolbar-button pull-right" data-original-title="Create Incident" style="display: block;">Create Incident</button><button id="moreInformation" title="Information" aria-label="Information" class="btn btn-default navbar-btn snc-article-header-toolbar-button pull-right" data-original-title="Information" style="display: none;"><span class="icon icon-view"></span></button><button role="link" id="editArticle" style="margin-left: 0.4em; display: block;" title="" aria-label="Edit content" class="btn navbar-btn snc-article-header-toolbar-button pull-right btn-primary" data-original-title="Edit content">Edit</button></div></div></div><div id="kb_confirmationDlg" tabindex="-1" aria-hidden="true" class="modal" role="dialog" aria-labelledby="modal1_title"><div class="modal-dialog modal-sm modal-alert"><div class="modal-content" tabindex="0" aria-label="Cancel changes confirmation dialog"><header class="modal-header"><h4 id="modal1_title" class="modal-title">Cancel changes</h4></header><div class="modal-body" tab-index="0" aria-label="Discard all changes?" aria-role="question"><p>Discard all changes?</p></div><footer class="modal-footer flex"><button data-dismiss="modal" aria-label="No" class="btn btn-default kb-no-btn" onclick="$j(&#39;#kb_confirmationDlg&#39;).hide()">No</button><button data-dismiss="modal" aria-label="Yes" class="btn btn-danger kb-yes-btn">Yes</button></footer></div></div></div><div id="unSubscribe" aria-hidden="true" class="modal" role="dialog" aria-labelledby="modal2_title"><div class="modal-dialog modal-sm"><div class="modal-content"><header class="modal-header"><h4 id="modal2_title" class="modal-title">Unsubscribe</h4></header><div class="modal-body"><p>In order to unsubscribe from this article, you will need to unsubscribe from the parent Knowledge Base: DCMS Knowledge Base.</p><p><b>Would you like to unsubscribe from DCMS Knowledge Base ?</b></p></div><footer class="modal-footer flex"><button data-dismiss="modal" class="btn btn-default kb-no-btn">No</button><button id="unsubscribeDialog" data-dismiss="modal" class="btn btn-primary kb-yes-btn">Yes</button></footer></div></div></div><div class="kb-view-content-wrapper" style="margin-top: 36.0606px;"><div id="messageBox" class="snc-article-header-message outputmsg_container" aria-live="assertive" role="alert"><div class="outputmsg_div"><div id="messageType" class="outputmsg outputmsg_info notification notification-info" style="width:100%; display:inline-flex;" role="status"><div style="width:100%;" id="ariaNotification"><img class="outputmsg_image" id="info_outputmsg_image" title="Informational Message" aria-label="Informational Message" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/outputmsg_info_24.gifx" alt="Informational Message" data-original-title="Informational Message"><span id="articleText" class="outputmsg_text"></span></div><button id="closeMessageBox" title="Close Messages" class="btn btn-icon close icon-cross" onclick="$j(&#39;#messageBox&#39;).hide()" data-original-title="Close Messages"><span class="sr-only">Close Messages</span></button></div></div></div><script>document.getElementById("info_outputmsg_image").setAttribute('alt', "Informational Message");</script><div class="snc-article-header-title"><input id="articleTitleEditable" type="text" aria-label="Article title" value="How to request a new cloud account (AWS/GCP/Azure)" class="snc-article-header-title-editable" placeholder="Add title" style="display:none" autofocus="true"><h1 id="articleTitleReadonly" class="snc-article-header-title-readonly snc-article-header-toolbar-title-no-image" style="">How to request a new cloud account (AWS/GCP/Azure)</h1><div id="articleNumberReadonly" class="snc-article-header-number-readonly" style="">
+					KB0010108
+
+					
+						&nbsp;-&nbsp;
+						 <a id="versionNumber" aria-expanded="false" aria-controls="versions-list" role="button" href="javascript:void(0)" aria-label="v6.0 (Latest Version)" aria-description="Opens version history" title="v6.0 (Latest Version) " data-toggle="collapse" data-target="#versions-list" data-original-title="v6.0 (Latest Version) ">v6.0 (Latest Version) </a></div></div><script>
+				function KbStarRatingClass() {
+					var currentId = '43291b7f97fb26501c2fbfe3f153af1d';
+					var currentRating = 0;
+					function ajaxPost(value) {
+						if (currentId) {
+							var ajax = new GlideAjax('KBAjax');
+							ajax.addParam('sysparm_type', 'saveStarRating');
+							ajax.addParam('sysparm_rating', value);
+							ajax.addParam('sysparm_id', currentId);
+							var query = $j('#sysparm_search');
+							var ts_queryId = "";
+							ajax.addParam('sysparm_search', (query.length) ? escape(query.val()) : '');
+							ajax.addParam("ts_queryId", ts_queryId);
+							ajax.getXMLAnswer(postRatingDone);
+						}
+					}
+					function postRatingDone(answer){
+						var data = answer.evalJSON(true);
+						if (!data) {
+							return kbViewArticle.showErrorMessage('Article rating not submitted');
+						}
+						if (!data.success) {
+							return kbViewArticle.showErrorMessage(data.message);
+						}
+					}
+					function setStarsRating(value) {
+						if (!isNaN(value)) {
+							currentRating = Math.round(value);
+						}
+						if (currentRating > 0) {
+							var ratingMessage = getUIMessage([currentRating]);
+							$j('#articleStarRatingGroup').attr("title", ratingMessage);
+							$j('#articleStarRatingGroup').attr("data-original-title", ratingMessage);
+							$j('.kb-star-rating label').filter(function() {
+							return $j(this).attr('data-index') <= currentRating;
+							}).addClass('kb-active-star');
+							if(this.selfRated) {
+								$j('.kb-star-rating label.kb-active-star').addClass('kb-active-star-self').removeClass('kb-active-star');
+							}
+						}
+						else{
+								var message = "This article has not been rated yet. Use up and down arrow keys to select and submit the rating.";
+								
+								$j('#articleStarRatingGroup').attr("title", message);
+								$j('#articleStarRatingGroup').attr("data-original-title", message);
+						}
+					}
+					function saveRating(value) {
+						ajaxPost(value);
+						this.selfRated = true;
+					}
+					return {
+						setStarsRating: setStarsRating,
+						saveRating: saveRating
+					};
+				}
+				$j(function() {
+					// As the hex values of the Heisenberg icons keep changing it's impossible to reliably set the "content" CSS
+					// attribute of the :hover:before pseudo class in the stylesheet in order to display a full star instead of an
+					// empty one when hovering over with the mouse.
+					// Instead we set the pseudo to fetch its "content" from a "data-content" attribute. (see .kb-star-rating)
+					var ele = $j('#placeholder-icon-star')[0];
+					if(ele && window.getComputedStyle) {
+						var content;
+						var contentStyle = getComputedStyle(ele,':before');
+						if(!contentStyle) {
+							//Happens for FF in popovers
+							contentStyle = window.parent.getComputedStyle(ele,':before');
+						}
+						content = contentStyle.getPropertyValue('content');
+						if(content && content != 'none') {
+							content = content.replace(/"/g, '');
+							$j('.kb-star-rating .icon-star-empty').attr('data-content', content);
+						}else if(content == 'none'){
+							//This happens for popovers in IE
+							useIconStarImageClassess();
+						}
+					}
+					// create an instance
+					var kbArticleRating = new KbStarRatingClass();
+					kbArticleRating.setStarsRating();
+					$j('.kb-star-rating label').click(function (event) {
+						var targetIndex = $j(event.currentTarget).attr('data-index');
+						kbArticleRating.setStarsRating(targetIndex);
+						$j('#rated_value').val(targetIndex);
+						kbArticleRating.saveRating(targetIndex);
+						updateCurrentStarRatingForAria(targetIndex);
+					});
+					$j('.kb-star-rating input').on("focus",function(e) {
+						var id = e.target.id;
+						id = parseInt(id[id.length-1]);
+						$j('.kb-star-rating label').filter(function() {
+								return $j(this).attr('data-index') <= id;
+						}).addClass('kb-hover-star');
+					});
+					$j('.kb-star-rating input').on("blur",function(e) {
+						$j('.kb-star-rating label').removeClass('kb-hover-star');
+					});
+					$j('.kb-star-rating').on("keydown",function(e) {	
+						var id = e.target.id;
+						var int_id = parseInt(id[id.length-1]);
+						if(e.keyCode == 40) {
+							int_id %= 5;
+							if(int_id == 0){
+								$j(this).find('label').removeClass('kb-hover-star');
+							}
+							$j('.kb-star-rating label').filter(function() {
+								return $j(this).attr('data-index') <= int_id+1;
+							}).addClass('kb-hover-star');
+						}
+						else if(e.keyCode == 38) {
+							$j('.kb-star-rating label').filter(function() {
+								return $j(this).attr('data-index') >= int_id;
+							}).removeClass('kb-hover-star');
+							if(int_id == 1){
+								$j(this).find('label').addClass('kb-hover-star');
+							}
+						}
+						 else if(e.keyCode == 13) {
+							kbArticleRating.setStarsRating(int_id);
+							$j('#rated_value').val(int_id);
+							kbArticleRating.saveRating(int_id);
+							updateCurrentStarRatingForAria(int_id);
+						}
+						else if(e.keyCode == 9) {
+							$j(this).find('label').removeClass('kb-hover-star');
+						}
+					});
+					$j('.kb-star-rating').on("mouseenter focusin", function(){
+						removeToolTipForRatingParent("remove");
+						$j('.kb-star-rating label.kb-active-star').removeClass('kb-active-star');
+						$j('.kb-star-rating label.kb-active-star-self').removeClass('kb-active-star-self');
+					});
+					$j('.kb-star-rating').on("mouseleave focusout",function() {
+						kbArticleRating.setStarsRating();
+					});
+					$j('.kb-star-rating label.icon-star-empty').on("mouseenter focusin", function(){
+						$j(this).addClass('kb-hover-star').prevAll().addClass('kb-hover-star');
+					});
+					$j('.kb-star-rating label.icon-star-empty').on("mouseleave focusout",function() {
+						$j(this).removeClass('kb-hover-star').prevAll().removeClass('kb-hover-star');
+					});
+					if(false){
+						$j('#articleStarRatingGroup').find("*").unbind();
+					}
+					
+					function useIconStarImageClassess(){
+						$j('.kb-star-rating').addClass('kb-star-image');
+						$j('.icon-star-empty').mouseover(function() {
+							$j(this).addClass('kb-hover-star').prevAll().addClass('kb-hover-star');
+						}).mouseout(function() {
+							$j(this).removeClass('kb-hover-star').prevAll().removeClass('kb-hover-star');
+						});
+					}
+					updateCurrentStarRatingForAria();
+				});
+					function getUIMessage(params) {
+						var message = "This article has {0} star rating.Use up and down arrow keys to select and submit the rating.";
+					
+						return message.replace(/\{(\d+)\}/g, function() {
+						return params[arguments[1]];
+						});
+					};
+				
+					function removeToolTipForRatingParent(){
+						$j('#articleStarRatingGroup').removeAttr("title","");
+						$j('#articleStarRatingGroup').removeAttr("data-original-title","");
+					}
+					
+					function updateCurrentStarRatingForAria(currentRating){
+						if(currentRating)
+							$j('#articleStarRatingGroup').attr("aria-label", getUIMessage([Math.round(currentRating)]));
+						else{
+							$j('#articleStarRatingGroup').attr("aria-label","This article has not been rated yet.Use up and down arrow keys to select and submit the rating." );
+
+						}
+						if(false ){
+							$j('#articleStarRatingGroup').attr('tabindex', '0');
+						}
+					}
+				</script><input id="rating_value" type="hidden" value=""><input id="num_ratings" type="hidden" value="0"><input id="rated_value" type="hidden"><div role="group" id="articleStarRatingGroup" class="accessibility-disabled" style="display:inline-flex" title="This article has not been rated yet. Use up and down arrow keys to select and submit the rating." data-original-title="This article has not been rated yet. Use up and down arrow keys to select and submit the rating." aria-label="This article has not been rated yet.Use up and down arrow keys to select and submit the rating."><span class="rating kb-star-rating "><input type="radio" class="rating-input" id="rating-input-1-1" name="rating-input-1" aria-label="1-star rating" title="1-star rating" data-original-title="1-star rating"><label data-index="1" for="rating-input-1-1" class="rating-star icon-star-empty" data-content=""></label><input type="radio" class="rating-input" id="rating-input-1-2" name="rating-input-1" aria-label="2-star rating" title="2-star rating" data-original-title="2-star rating"><label data-index="2" for="rating-input-1-2" class="rating-star icon-star-empty" data-content=""></label><input type="radio" class="rating-input" id="rating-input-1-3" name="rating-input-1" aria-label="3-star rating" title="3-star rating" data-original-title="3-star rating"><label data-index="3" for="rating-input-1-3" class="rating-star icon-star-empty" data-content=""></label><input type="radio" class="rating-input" id="rating-input-1-4" name="rating-input-1" aria-label="4-star rating" title="4-star rating" data-original-title="4-star rating"><label data-index="4" for="rating-input-1-4" class="rating-star icon-star-empty" data-content=""></label><input type="radio" class="rating-input" id="rating-input-1-5" name="rating-input-1" aria-label="5-star rating" title="5-star rating" data-original-title="5-star rating"><label data-index="5" for="rating-input-1-5" class="rating-star icon-star-empty" data-content=""></label></span><span id="placeholder-icon-star" class="icon-star" style="visibility:hidden; position: absolute;"></span></div><div class="kb-article-view-count">9 views</div><div id="versions-list" class="collapse snc-article-versions-history-list"><p><b>6.0&nbsp;-&nbsp;Last modified on 12/09/2025 Revised by Sophie Nicholson (TECH)</b></p><p><a aria-label="5.0" aria-description="Opens version 5.0" href="https://deloitteukams.service-now.com/kb_view.do?sys_kb_id=efe2375897c3521036247d0de053afee&amp;sysparm_class_name=kb_knowledge">5.0</a>&nbsp;-&nbsp;Last modified on 08/01/2025 Revised by Sophie Nicholson (TECH)</p><p><a aria-label="4.0" aria-description="Opens version 4.0" href="https://deloitteukams.service-now.com/kb_view.do?sys_kb_id=f55cc67fc369d690ca55d38605013165&amp;sysparm_class_name=kb_knowledge">4.0</a>&nbsp;-&nbsp;Last modified on 05/11/2024 Revised by Sophie Nicholson (TECH)</p><p><a aria-label="3.0" aria-description="Opens version 3.0" href="https://deloitteukams.service-now.com/kb_view.do?sys_kb_id=00b81d07c3c01250b40c7eedd401312c&amp;sysparm_class_name=kb_knowledge">3.0</a>&nbsp;-&nbsp;Last modified on 20/08/2024 Revised by Sophie Nicholson (TECH)</p><p><a aria-label="2.0" aria-description="Opens version 2.0" href="https://deloitteukams.service-now.com/kb_view.do?sys_kb_id=9b32efbd978fb590bc84f1d3f153af8e&amp;sysparm_class_name=kb_knowledge">2.0</a>&nbsp;-&nbsp;Last modified on 12/12/2023 Revised by Sophie Nicholson (TECH)</p><p><a aria-label="1.0" aria-description="Opens version 1.0" href="https://deloitteukams.service-now.com/kb_view.do?sys_kb_id=3655374397d69550bc84f1d3f153afa1&amp;sysparm_class_name=kb_knowledge">1.0</a>&nbsp;-&nbsp;Created on 10/10/2022 Authored by Sophie Nicholson (TECH)</p></div><article id="article" class="snc-article-content-text row" style="display: block;"><h1 id="Howtorequestanewcloudaccount(AWS/GCP)-1.Summary">1.&nbsp;&nbsp; Summary</h1>
+<hr>
+<p>This SOP provides details on how to request a new AWS/GCP/Azure cloud account via the internal portal</p>
+<h1 id="Howtorequestanewcloudaccount(AWS/GCP)-2.Audience/Prerequisites">2.&nbsp;&nbsp; Audience / Prerequisites</h1>
+<hr>
+<ul><li>Cloud Architects</li><li>Must be an Okta user&nbsp;and&nbsp;have ServiceNow ITIL user access</li><li>Must have the DCMS CMS Portal Role and be added to the Deloitte Cloud Managed Service ‘company’ to enable redirect</li><li>Ensure you are in the correct domain MSP/DCMS/CMS</li></ul>
+<h1 id="Howtorequestanewcloudaccount(AWS/GCP)-3.Procedure">3.&nbsp;&nbsp; Procedure</h1>
+<hr>
+<h2 id="Howtorequestanewcloudaccount(AWS/GCP)-3.1.Processsteps">3.1.&nbsp; Process steps</h2>
+<h3 id="Howtorequestanewcloudaccount(AWS/GCP)-3.1.1AWSRequest">3.1.1 Request a new AWS account</h3>
+<p>1. Navigate to the Portal via ServiceNow or with <a href="https://deloitteukams.service-now.com/cloudmanagedservices?sysparm_stack=no" rel="nofollow">this link</a><br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image.png" alt="" width="421" height="182" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br>2. Select <strong>Request Something</strong><br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(1).png" alt="" width="428" height="128" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br><br>3. Select <strong>OpenCloud On-Boarding</strong> then <strong>Request a New Cloud Account</strong><br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(2).png" alt="" width="444" height="180" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br>4. The account request form will open:<br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Screenshot 2022-11-23 at 20.34.25.png" alt="" width="687" height="281" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br></p>
+<p>5. The form is divided into three main sections. Fill out each section of the form with as much information as possible:<br><br>** denotes mandatory field<br><br></p>
+<ul style="list-style-position: inside;"><li><strong>Requested for:</strong> this section is pre-populated with your name but this can be changed by selecting the box and choosing from the drop-down menu if needed **<br><br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(3).png" alt="" width="374" height="136" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br></li><li><strong>Project ID:</strong> select the appropriate project from the drop-down menu **<br><br></li><li><strong>Project Name:</strong>&nbsp;this section will be populated once the Project ID above has been selected<br><br></li><li><strong>Client Name:</strong>&nbsp;this section will be populated once the Project ID above has been selected<br><br></li><li><strong>Cloud Provider:</strong> select AWS from the drop-down menu **<br><br></li><li><strong><span title="" data-original-title="">PPA (Preferred Pricing Agreement) account request:&nbsp;</span></strong><span title="" data-original-title="">select Yes or No. For further explanation on this, please select the<strong> ?</strong> icon (if further clarification is required, reach out to the Digital Platform team for assistance) **<br><br></span></li><li><strong>Request Type:</strong> select either<strong> Client</strong> (single account for an existing project) or <strong>Stub and Client</strong> (creates both a <strong>Stub AND Client</strong> account <strong>for new projects</strong>) from the drop-down menu. <em>Note that selecting Stub will add an additional mandatory section include</em><em>&nbsp;both Stub and Client account specifications</em>&nbsp; **<br><br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Screenshot 2023-04-28 at 13.51.36.png" alt="" width="579" height="369" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""></li></ul>
+<hr>
+<p>&nbsp;</p>
+<ul style="list-style-position: inside;"><li><strong>Environment:</strong> select Production or Dev from the drop-down menu **<br><br></li><li><strong>Primary Region:&nbsp;</strong>select the appropriate region from the drop-down menu **<br><br></li><li><strong>Network Configuration:</strong> select the appropriate network config from the drop-down menu **<br><br></li><li><strong>Networking Address:</strong> enter the networking address **<br><br></li><li><strong><span title="" data-original-title="">OpenVPN Access Server required for Client Account?</span>:</strong> select either Yes or No from the drop-down menu **<br><br></li><li><strong>Account Description:</strong> enter as much information as possible here **<br><br></li><li><strong>Integrated Tooling:</strong> select Yes/No from the drop-down menu for Prisma and Datadog (Prisma is not available for PPA accounts as they will be automatically onboarded to the GCSS provided compliance solution). Provide explanation if tools are unselected. Trend and Tenable are onboarded to all new accounts (AWS/GCP/Azure) by default and these fields are read-only (If PPA is selected, the account will be automatically onboarded to Qualys, rather than Prisma)</li></ul>
+<p>&nbsp;</p>
+<div>
+<p><em>Tip: Selecting No on any of the tools will reveal an explanation box for reasoning - this is also mandatory</em></p>
+</div>
+<p><img style="border-width: 1px; border-style: solid;" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(4).png" width="349" height="312" data-selector="true" data-original-title=""><br><br><br></p>
+<hr>
+<ul style="list-style-position: inside;"><li><strong>Data Classification:</strong> select Confidential, High-risk Confidential, Protected Health Confidential or Public from the drop-down menu **<br><br></li><li><strong>Data Description:</strong> enter details of the potential data the account will hold **<br><br></li><li><strong>Supported by:</strong> select the pod that will support the account from the drop-down menu **<br><br></li><li><strong>Additional information:</strong> if there is any additional information that will assist in the account creation, enter it here&nbsp;<br><br></li><li><strong>Date required:</strong> enter the date by which the account is needed - <em>note that there is currently a 3 day SLA on account requests</em> **<br><br></li><li><strong>Data Ownership:</strong> select Client or Deloitte from the drop-down menu **<br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Screenshot 2022-07-05 at 10.54.36.png" alt="" width="433" height="278" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""></li></ul>
+<p>6. Finally, select&nbsp;Submit.&nbsp;The new AWS cloud account has now been requested and account creation will be actioned by a member of the Products Engineering team<br><br><br></p>
+<h3>3.1.2 Request a new GCP account</h3>
+<p>1. Navigate to the Portal via ServiceNow or with <a href="https://deloitteukams.service-now.com/cloudmanagedservices?sysparm_stack=no" rel="nofollow">this link</a><br><br><img style="border: 1px solid black;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image.png" alt="" width="421" height="182" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br>2. Select <strong>Request Something</strong><br><br><img style="border: 1px solid black;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(1).png" alt="" width="428" height="128" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br>3. Select <strong>OpenCloud On-Boarding</strong> then <strong>Request a New Cloud Account<br></strong><br><img style="border: 1px solid black;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(2).png" alt="" width="444" height="180" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""></p>
+<p>4. The account request form will open:<br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Screenshot 2022-11-23 at 20.34(1).25.png" alt="" width="547" height="224" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br></p>
+<p>5. The form is divided into three main sections. Fill out each section of the form with as much information as possible:<br><br>** denotes mandatory field</p>
+<ul style="list-style-position: inside;"><li><strong>Requested for:</strong> this section is pre-populated with your name but this can be changed by selecting the box and choosing from the drop-down menu if needed **<br><br><img style="border: 1px solid black;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(3).png" alt="" width="330" height="120" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br></li><li><strong>Project ID:</strong> select the appropriate project from the drop-down menu **<br><br></li><li><strong>Project Name:</strong>&nbsp;this section will be populated once the Project ID above has been selected<br><br></li><li><strong>Client Name:</strong>&nbsp;this section will be populated once the Project ID above has been selected<br><br></li><li><strong>Cloud Provider:&nbsp;</strong>select GCP from the drop-down menu **<br><br></li><li><strong>Request Type:&nbsp;</strong>select either<strong> Client</strong> (single account for an existing project) or <strong>Stub and Client</strong> (creates both a <strong>Stub AND Client</strong> account <strong>for new projects</strong>) from the drop-down menu. <em>Note that selecting Stub will add an additional mandatory section include</em><em>&nbsp;both Stub and Client account specifications</em>&nbsp;**<br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Screenshot 2022-07-15 at 10.20.00.png" alt="" width="493" height="348" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""></li></ul>
+<hr>
+<ul><li><strong>Environment:</strong> select Production or Dev from the drop-down menu **<br><br></li><li><strong>Primary Region:</strong> select the appropriate region from the drop-down menu **<br><br></li><li><strong>Network Configuration:</strong> select the appropriate network config from the drop-down menu **<br><br></li><li><strong>Networking Address:</strong> enter the networking address **<br><br></li><li><strong><span title="" data-original-title="">OpenVPN Access Server required for Client Account?</span>:</strong> select either Yes or No from the drop-down menu **<br><br></li><li><strong>Account Description:&nbsp;</strong>enter as much information as possible here **<br><br></li><li><strong>Integrated Tooling:</strong> select Yes/No from the drop-down menu for&nbsp;Datadog. Provide explanation if unselected. Trend and Tenable are onboarded to all new accounts (AWS/GCP/Azure) by default and these fields are read-only<br><br><img style="border-width: 1px; border-style: solid;" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(5).png" width="414" height="333" data-selector="true" data-original-title=""></li></ul>
+<div>
+<p>&nbsp;</p>
+<div>
+<p><em>Tip: Selecting No on any of the tools will reveal an explanation box for reasoning - this is also mandatory</em></p>
+</div>
+</div>
+<hr>
+<ul style="list-style-position: inside;"><li><strong>Data Classification:</strong> select Confidential, High-risk Confidential, Protected Health Confidential or Public from the drop-down menu **<br><br></li><li><strong>Data Description:</strong> enter details of the potential data the account will hold **<br><br></li><li><strong>Supported by:</strong> select the pod that will support the account from the drop-down menu **<br><br></li><li><strong>Additional information:</strong> if there is any additional information that will assist in the account creation, enter it here&nbsp;<br><br></li><li><strong>Date required for?:&nbsp;</strong>enter the date by which the account is needed **<br><br></li><li><strong>Data Ownership:</strong> select Client or Deloitte from the drop-down menu **<br><br><img style="border: 1px solid black; align: baseline;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Screenshot 2022-07-15 at 08.40.27.png" alt="" width="472" height="291" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""></li></ul>
+<p>6. Finally, select Submit.&nbsp;The new&nbsp;GCP&nbsp;cloud account has now been requested and account creation will be actioned by a member of the Products Engineering team<br><br></p>
+<h3>3.1.3 Request a new Azure account</h3>
+<p>1. Navigate to the Portal via ServiceNow or with <a href="https://deloitteukams.service-now.com/cloudmanagedservices?sysparm_stack=no" rel="nofollow">this link</a><br><br><img style="border: 1px solid black;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image.png" alt="" width="421" height="182" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br>2. Select <strong>Request Something</strong><br><br><img style="border: 1px solid black;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(1).png" alt="" width="428" height="128" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br>3. Select <strong>OpenCloud On-Boarding</strong> then <strong>Request a New Cloud Account<br></strong><br><img style="border: 1px solid black;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Pasted image(2).png" alt="" width="444" height="180" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""></p>
+<p>4. The account request form will open:<br><br><img style="border: 1px solid black;" title="" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/Screenshot 2022-11-23 at 20.34(1).25.png" alt="" width="547" height="224" align="bottom" border="1" hspace="" vspace="" data-selector="true" data-original-title=""><br><br></p>
+<p>5. The form is divided into three main sections. As above, fill out each section of the form with as much information as possible (if unsure, please contact the Product Engineering team)<br><br></p>
+<p>6. Finally, select Submit. The new Azure cloud account has now been requested and account creation will be actioned by a member of the Products Engineering team</p></article></div><script type="text/javascript">function openAttachment(url, name) {
+			window.open(url, name, "toolbar=no,menubar=no,personalbar=no,width=800,height=600," +
+						"scrollbars=yes,resizable=yes");
+			
+		}</script><div class="snc-article-header-author"><div class="snc-article-author"><div id="authorGhost" class="icon-user-profile snc-article-header-author-ghost snc-article-header-author-ghost-black"></div><div class="author-info"><div id="articleAuthor" class="snc-article-footer-metadata-published" style="display: block;padding-top: 5px">Revised by Sophie Nicholson (TECH)</div><div id="articleModifiedLabel" class="snc-article-footer-metadata-published">Last modified 7 months ago</div></div></div></div><div id="articleFooterSection" class="snc-article-footer-section"><div class="snc-article-footer-section-ratings"><script>function KbArticleRatingClass() {
+						var THANK_YOU = "Thank you";
+						var currentId = '43291b7f97fb26501c2fbfe3f153af1d';
+						var feedbackRequestState = null;
+						function ajaxPost(value) {
+							if (currentId) {
+								var ajax = new GlideAjax('KBAjax');
+								ajax.addParam('sysparm_type', 'saveUseful');
+								ajax.addParam('sysparm_useful', value);
+								ajax.addParam("sysparm_article_id", currentId);
+								var query = $j('#sysparm_search');
+								ajax.addParam('sysparm_search', (query.length) ? escape(query.val()) : '');
+								ajax.addParam("ts_queryId", "");
+								ajax.getXMLAnswer(postUsefulCallback);
+							}
+						}
+
+						function postUsefulCallback(answer) {
+							var data = answer.evalJSON(true);
+							if (!data) {
+								return kbViewArticle.showErrorMessage('Useful rating not submitted');
+							}
+							if (!data.success) {
+								return kbViewArticle.showErrorMessage(data.message);
+							}
+						}
+
+						function feedback(value) {
+							// animation
+							if(feedbackRequestState === value)
+								return;
+							feedbackRequestState = value;
+							var box = $j('.kb_box_centered');
+							var notification = $j('#kb_feedback_notification');;
+
+                            box.fadeOut('slow', function() {
+                                notification.fadeIn('slow');
+                                box.remove();
+								setTimeout(function() {
+									  notification.children('.icon-cross.close').focus();
+								}, 800);
+					
+                            });
+
+							ajaxPost(value);
+						}
+					
+					    function close() {
+                            var notification = $j('#kb_feedback_notification');
+                            var ratings = $j('.snc-article-footer-section-ratings');
+					
+                            notification.animate({opacity: 0}, 600, function() {
+								ratings.animate({
+									height: 0,
+                                    opacity: 0,
+									padding: 0,
+									margin: 0
+                                }, 600, function() {
+                                    ratings.remove();
+                                    if($j('#comment_link_div_cancel :visible').length != 0)
+                                    	$j('#comment_link_div_cancel .pointerhand').focus();
+                                    else if($j('#comment_link_div :visible').length != 0)
+                                    	$j('#comment_link_div .pointerhand').focus();
+                                });
+                            });
+                        }
+
+						return {
+							feedback: feedback,
+							close: close
+						};
+					}
+
+					// create an instance
+					var kbArticleRating = new KbArticleRatingClass();</script><div class="kb_box_centered"><span class="sr-only">Was this article helpful?</span><span class="kb-article-yn-label"><span id="kb_helpful_yn_label" aria-hidden="true">Helpful?</span></span><span role="group" aria-label="Was this article helpful?" class="kb-article-yn-box"><button class="btn btn-success-subdued kb-article-yes-btn" onclick="kbArticleRating.feedback(&#39;yes&#39;)" aria-label="Yes,this article was helpful">Yes</button><button class="btn btn-destructive-subdued kb-article-no-btn" onclick="kbArticleRating.feedback(&#39;no&#39;)" aria-label="No,this article was not helpful">No</button><span class="kb-article-yn-percentage" aria-hidden="true"></span></span></div><div id="kb_feedback_notification" class="notification notification-closable notification-info notification_message_sticky" style="display:none"><span class="icon-cross close" tabindex="0" role="button" aria-label="Close Notification" onclick="kbArticleRating.close()"></span><span role="alert">Thank you</span></div></div><div id="kbCommentsAndLiveFeedDisplay" class="snc-comments-live-feed-cntnr"><div class="snc-kb-layout"><input type="hidden" aria-hidden="true" id="sys_id" value="43291b7f97fb26501c2fbfe3f153af1d"><input type="hidden" aria-hidden="true" id="article_flag" value=""><input type="hidden" aria-hidden="true" id="view_id" value=""><input type="hidden" aria-hidden="true" id="sysparm_search" value=""><input type="hidden" aria-hidden="true" id="ts_query_id" value=""><div id="comments_section" class="snc-comments-section" style="display:;"></div><div id="comment_link_div" class="snc-kb-comment-link" style="display: none;"><span class="pointerhand" onclick="showComments()" role="button" tabindex="0" aria-label="Leave a comment">Leave a comment...</span></div><div id="comment_link_div_cancel" class="snc-kb-comment-link" style="display: ;margin-bottom:0.3em;"><span class="pointerhand" onclick="hideComments()" role="button" tabindex="0" aria-label="Hide comment box">Leave a comment</span></div><div role="alert" id="commentsdiv_empty" class="snc-kb-comment-div-empty">Please type feedback before submitting</div><div id="commentsdiv_done" class="snc-kb-comment-div-done" style="display:none">Your feedback has been submitted, thank you</div><div id="commentsdiv_flagmsg" class="snc-kb-comment-div-flagmsg">Please submit descriptive feedback after flagging an article, or it will not be modified</div><div id="commentsdiv" class="snc-kb-comment-div" style="display: ;"><div><textarea name="article_comments" id="article_comments" aria-label="Leave a comment" class="snc-kb-comments-entry form-control"></textarea></div><div><button name="not_important" class="btn btn-primary" style="margin-top:0.3em" id="feedback_button" type="submit" value="sysverb_feedback" aria-label="Comment" onclick="return kbFeedback2(&#39;article_comments&#39;);">Comment</button></div></div></div></div></div><div id="articleFooter" class="snc-article-footer"><div class="snc-article-footer-metadata-permalink"><a href="https://deloitteukams.service-now.com/kb_view.do?sysparm_article=KB0010108#" id="permalink" aria-label="Copy Permalink">Copy Permalink</a></div><script language="javascript">$j('#permalink').click(
+			function(){
+				//generate direct url to this article, by getting the domain and adding sysparm_article=NUMBER_OF_ARTICLE
+				copyToClipboard(window.location.origin + '/kb_view.do?sysparm_article=KB0010108');
+				$j('#permalink').focus();
+				return false;
+			}
+		);</script></div><script language="javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/KnowledgeIframeFix.jsdbx"></script><div style="border:none; visibility:hidden"><form name="sys_personalize" method="GET" action="https://deloitteukams.service-now.com/slushbucket.do"><input type="hidden" name="sysparm_referring_url" value="kb_view.do?sysparm_article=KB0010108"><input type="hidden" name="sysparm_view" value=""></form></div><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/ui_page_footer.jsx"></script><span style="display:none" data-comments="js_includes_last_doctype"></span><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/purify.jsx"></script><script>NOW.xperf.lastDoctypeBegin = NOW.xperf.now();</script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/js_includes_last_doctype.jsx"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/heisenberg_all.jsx"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/js_includes_list_edit_doctype.jsx"></script><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/transaction_scope_includes.jsx"></script><script>if ('') 
+			GlideTransactionScope.setTransactionScope('');
+		if ('') 
+			GlideTransactionScope.setRecordScope('');
+		if ('') 
+			GlideTransactionScope.setTransactionUpdateSet('');
+		if (typeof g_form != 'undefined')
+			$(g_form.getFormElement()).fire('glidescope:initialized', {gts : GlideTransactionScope});</script><span style="display:none" data-comments="requires"></span><script>NOW.xperf.lastDoctypeEnd = NOW.xperf.now();</script><span style="display:none" data-comments="db_context_menu_script"></span><script>NOW.xperf.dbContextBegin = NOW.xperf.now();</script><script>NOW.xperf.dbContextEnd = NOW.xperf.now();</script><span style="display:none" data-comments="db_context_menu_script"></span><script type="text/javascript" src="./DCMS Knowledge Base - How to request a new cloud account (AWS_GCP_Azure)_files/z_last_include.jsx"></script><span id="ac.status" role="status" aria-live="polite" class="sr-only"></span><span aria-live="polite" class="sr-only"></span><script type="text/html" id="popup_template"><div class="popup popup_form" style=""><iframe src="$src" style=""></iframe></div></script></body></html>

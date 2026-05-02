@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GCP Engineering Team Journey — Mission Control</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:    #090E1A;
+  --bg2:   #0D1526;
+  --blue:  #4285F4;
+  --green: #34A853;
+  --yell:  #FBBC04;
+  --red:   #EA4335;
+  --purp:  #A855F7;
+  --cyan:  #06B6D4;
+  --teal:  #00C9A7;
+  --white: #FFFFFF;
+  --dim:   rgba(255,255,255,0.55);
+  --card:  rgba(255,255,255,0.04);
+  --border:rgba(255,255,255,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  font-family:'Space Grotesk',sans-serif;
+  background:var(--bg);
+  color:var(--white);
+  overflow-x:hidden;
+  cursor:none;
+}
+
+/* ── CUSTOM CURSOR ── */
+.cursor{position:fixed;pointer-events:none;z-index:9999;}
+.cursor-dot{width:8px;height:8px;background:var(--blue);border-radius:50%;transform:translate(-50%,-50%);}
+.cursor-ring{width:36px;height:36px;border:1px solid rgba(66,133,244,0.5);border-radius:50%;transform:translate(-50%,-50%);transition:width .2s,height .2s,border-color .2s;}
+body:has(a:hover) .cursor-ring,body:has(button:hover) .cursor-ring{width:52px;height:52px;border-color:var(--blue);}
+
+/* ── PROGRESS BAR ── */
+#progress-bar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--blue),var(--teal));width:0%;z-index:100;transition:width .1s;}
+
+/* ── STAR CANVAS ── */
+#stars{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+/* ── NAV ── */
+nav{
+  position:fixed;top:0;left:0;right:0;z-index:50;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1.2rem 3rem;
+  background:rgba(9,14,26,0.7);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+.nav-logo{font-family:'Space Mono',monospace;font-size:.85rem;color:var(--blue);letter-spacing:.15em;text-transform:uppercase;}
+.nav-links{display:flex;gap:2rem;}
+.nav-links a{color:var(--dim);text-decoration:none;font-size:.82rem;letter-spacing:.08em;text-transform:uppercase;transition:color .2s;}
+.nav-links a:hover{color:var(--white);}
+.nav-badge{font-family:'Space Mono',monospace;font-size:.72rem;background:rgba(66,133,244,0.15);border:1px solid rgba(66,133,244,0.3);color:var(--blue);padding:.35rem .8rem;border-radius:2rem;}
+
+/* ── SIDE DOT NAV ── */
+.side-nav{position:fixed;right:2rem;top:50%;transform:translateY(-50%);z-index:50;display:flex;flex-direction:column;gap:.9rem;}
+.side-dot{width:8px;height:8px;border-radius:50%;border:1px solid rgba(255,255,255,0.25);cursor:pointer;transition:all .3s;position:relative;}
+.side-dot.active{background:var(--blue);border-color:var(--blue);transform:scale(1.4);}
+.side-dot:hover::after{content:attr(data-label);position:absolute;right:1.4rem;top:50%;transform:translateY(-50%);background:rgba(9,14,26,0.9);color:var(--white);font-size:.7rem;white-space:nowrap;padding:.3rem .6rem;border-radius:.3rem;border:1px solid var(--border);pointer-events:none;}
+
+/* ── HERO ── */
+#hero{
+  position:relative;min-height:100vh;z-index:1;
+  display:flex;align-items:center;justify-content:center;
+  padding:6rem 3rem 4rem;
+  overflow:hidden;
+}
+.hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;max-width:1280px;width:100%;}
+
+.hero-label{
+  font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.25em;
+  color:var(--blue);text-transform:uppercase;margin-bottom:1.2rem;
+  display:flex;align-items:center;gap:.8rem;
+}
+.hero-label::before{content:'';width:32px;height:1px;background:var(--blue);}
+.hero-title{font-size:clamp(2.8rem,5vw,5rem);font-weight:700;line-height:1.05;margin-bottom:1.5rem;}
+.hero-title .line2{
+  background:linear-gradient(135deg,var(--blue),var(--teal),var(--purp));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.hero-desc{color:var(--dim);font-size:1.05rem;line-height:1.7;max-width:480px;margin-bottom:2.5rem;}
+
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;}
+.stat-block{
+  background:var(--card);border:1px solid var(--border);border-radius:.75rem;
+  padding:1rem .8rem;text-align:center;
+  transition:border-color .3s,transform .2s;
+}
+.stat-block:hover{border-color:rgba(66,133,244,0.4);transform:translateY(-3px);}
+.stat-num{font-size:1.8rem;font-weight:700;line-height:1;}
+.stat-lbl{font-size:.65rem;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-top:.3rem;}
+
+/* ── ORBITAL VISUAL ── */
+.orbital-wrap{position:relative;width:460px;height:460px;margin:0 auto;}
+.orbit-ring{position:absolute;border-radius:50%;border-style:solid;border-color:rgba(255,255,255,0.08);animation:spin linear infinite;}
+.orbit-ring.r1{width:140px;height:140px;top:50%;left:50%;transform:translate(-50%,-50%);border-width:1px;animation-duration:8s;}
+.orbit-ring.r2{width:240px;height:240px;top:50%;left:50%;transform:translate(-50%,-50%);border-width:1px;animation-duration:14s;animation-direction:reverse;}
+.orbit-ring.r3{width:340px;height:340px;top:50%;left:50%;transform:translate(-50%,-50%);border-width:1px;animation-duration:22s;}
+.orbit-ring.r4{width:440px;height:440px;top:50%;left:50%;transform:translate(-50%,-50%);border-width:1px;animation-duration:32s;animation-direction:reverse;}
+@keyframes spin{from{transform:translate(-50%,-50%) rotate(0deg);}to{transform:translate(-50%,-50%) rotate(360deg);}}
+
+.orbit-center{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  width:64px;height:64px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--teal));
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;
+  box-shadow:0 0 40px rgba(66,133,244,0.6),0 0 80px rgba(66,133,244,0.2);
+}
+
+.planet{position:absolute;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;animation:planet-pulse 3s ease-in-out infinite;}
+@keyframes planet-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0.1);}50%{box-shadow:0 0 0 8px rgba(255,255,255,0);}}
+.planet.p1{width:36px;height:36px;background:var(--blue);top:50%;left:calc(50% + 120px);transform:translateY(-50%);}
+.planet.p2{width:28px;height:28px;background:var(--green);top:calc(50% - 120px);left:50%;transform:translateX(-50%);}
+.planet.p3{width:32px;height:32px;background:var(--yell);top:50%;left:calc(50% - 120px);transform:translateY(-50%);}
+.planet.p4{width:30px;height:30px;background:var(--red);top:calc(50% + 120px);left:50%;transform:translateX(-50%);}
+
+/* ── SECTION WRAPPER ── */
+section{position:relative;z-index:1;padding:6rem 3rem;}
+.section-inner{max-width:1280px;margin:0 auto;}
+.section-eyebrow{
+  font-family:'Space Mono',monospace;font-size:.72rem;letter-spacing:.25em;
+  color:var(--dim);text-transform:uppercase;margin-bottom:1rem;
+  display:flex;align-items:center;gap:.8rem;
+}
+.section-eyebrow::before{content:'';flex:1;height:1px;background:var(--border);}
+.section-title{font-size:clamp(2rem,3.5vw,3rem);font-weight:700;margin-bottom:.5rem;}
+.section-sub{color:var(--dim);font-size:1rem;line-height:1.6;}
+
+/* ── TIMELINE ── */
+#timeline{padding-top:3rem;}
+.tl-header{text-align:center;margin-bottom:5rem;}
+
+.tl-track{position:relative;padding:2rem 0;}
+.tl-line{
+  position:absolute;left:50%;top:0;bottom:0;width:2px;
+  background:linear-gradient(180deg,transparent,var(--blue) 5%,var(--teal) 50%,var(--purp) 95%,transparent);
+  transform:translateX(-50%);
+}
+
+.tl-item{
+  display:grid;grid-template-columns:1fr 60px 1fr;gap:0;
+  margin-bottom:4rem;align-items:center;
+  opacity:0;transform:translateY(30px);
+  transition:opacity .6s ease,transform .6s ease;
+}
+.tl-item.visible{opacity:1;transform:translateY(0);}
+.tl-item:nth-child(odd) .tl-card{margin-right:2rem;margin-left:auto;}
+.tl-item:nth-child(even) .tl-card{margin-left:2rem;grid-column:3;}
+.tl-item:nth-child(odd) .tl-spacer{grid-column:2;}
+.tl-item:nth-child(even) .tl-spacer{grid-column:2;}
+.tl-item:nth-child(even) .tl-card{grid-column:3;margin-left:2rem;}
+.tl-item:nth-child(even) .tl-empty{grid-column:1;}
+
+.tl-node{
+  grid-column:2;display:flex;align-items:center;justify-content:center;
+  width:54px;height:54px;border-radius:50%;
+  border:2px solid currentColor;
+  font-size:1.4rem;position:relative;z-index:2;
+  background:var(--bg);cursor:default;
+  transition:transform .2s,box-shadow .2s;
+}
+.tl-node:hover{transform:scale(1.15);}
+
+.tl-card{
+  background:rgba(13,21,38,0.8);
+  border:1px solid var(--border);
+  border-radius:1.25rem;
+  padding:1.8rem;
+  max-width:500px;
+  backdrop-filter:blur(12px);
+  position:relative;overflow:hidden;
+  transition:border-color .3s,transform .2s,box-shadow .2s;
+}
+.tl-card:hover{transform:translateY(-4px);}
+.tl-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:currentColor;border-radius:1.25rem 1.25rem 0 0;
+}
+.tl-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:1rem;}
+.tl-phase{
+  font-family:'Space Mono',monospace;font-size:.65rem;letter-spacing:.2em;
+  text-transform:uppercase;padding:.3rem .7rem;border-radius:2rem;
+  border:1px solid currentColor;background:rgba(currentColor,.1);
+}
+.tl-date{font-family:'Space Mono',monospace;font-size:.7rem;color:var(--dim);}
+.tl-icon{font-size:2.5rem;margin-bottom:.5rem;display:block;}
+.tl-card-title{font-size:1.25rem;font-weight:700;margin-bottom:.6rem;}
+.tl-card-desc{color:var(--dim);font-size:.88rem;line-height:1.65;}
+.tl-badge{
+  display:inline-flex;align-items:center;gap:.4rem;
+  margin-top:1rem;font-size:.7rem;font-family:'Space Mono',monospace;
+  background:rgba(255,255,255,0.05);border:1px solid var(--border);
+  padding:.35rem .8rem;border-radius:2rem;color:var(--dim);
+}
+.tl-badge-dot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+
+/* ODD item layout */
+.tl-item:nth-child(odd) .tl-card{grid-column:1;margin-right:2rem;}
+.tl-item:nth-child(odd) .tl-node{grid-column:2;}
+.tl-item:nth-child(odd) .tl-empty{grid-column:3;}
+
+/* EVEN item layout */
+.tl-item:nth-child(even) .tl-empty{grid-column:1;}
+.tl-item:nth-child(even) .tl-node{grid-column:2;}
+.tl-item:nth-child(even) .tl-card{grid-column:3;margin-left:2rem;}
+
+/* ── CLIENTS SECTION ── */
+#clients{background:linear-gradient(180deg,transparent,rgba(13,21,38,0.6),transparent);}
+.clients-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem;}
+.client-card{
+  background:var(--card);border:1px solid var(--border);border-radius:1.25rem;
+  padding:2rem;position:relative;overflow:hidden;
+  transition:transform .3s,border-color .3s,box-shadow .3s;
+}
+.client-card:hover{transform:translateY(-6px);}
+.client-icon{font-size:2.8rem;margin-bottom:1rem;display:block;}
+.client-name{font-size:1.15rem;font-weight:700;margin-bottom:.4rem;}
+.client-type{font-size:.72rem;font-family:'Space Mono',monospace;color:var(--dim);letter-spacing:.1em;text-transform:uppercase;margin-bottom:.8rem;}
+.client-desc{font-size:.85rem;color:var(--dim);line-height:1.6;}
+.client-status{
+  display:inline-flex;align-items:center;gap:.4rem;margin-top:1rem;
+  font-size:.68rem;font-family:'Space Mono',monospace;padding:.3rem .7rem;
+  border-radius:2rem;
+}
+.status-live{background:rgba(52,168,83,0.15);border:1px solid rgba(52,168,83,0.35);color:var(--green);}
+.status-active{background:rgba(66,133,244,0.15);border:1px solid rgba(66,133,244,0.35);color:var(--blue);}
+.status-new{background:rgba(0,201,167,0.15);border:1px solid rgba(0,201,167,0.35);color:var(--teal);}
+.client-glow{position:absolute;width:120px;height:120px;border-radius:50%;filter:blur(60px);opacity:.15;bottom:-30px;right:-30px;}
+
+/* ── TEAM SECTION ── */
+#team{padding-top:3rem;}
+.team-layout{display:grid;grid-template-columns:1fr 1.4fr;gap:4rem;align-items:start;margin-top:3rem;}
+.team-cards{display:flex;flex-direction:column;gap:1rem;}
+.team-member{
+  background:var(--card);border:1px solid var(--border);border-radius:1rem;
+  padding:1.5rem;display:flex;align-items:center;gap:1.2rem;
+  transition:border-color .3s,transform .2s;
+}
+.team-member:hover{transform:translateX(6px);border-color:rgba(66,133,244,0.35);}
+.member-avatar{
+  width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;flex-shrink:0;
+}
+.member-name{font-weight:600;font-size:.95rem;}
+.member-role{font-size:.75rem;color:var(--dim);margin-top:.2rem;}
+.member-joined{font-family:'Space Mono',monospace;font-size:.65rem;color:var(--dim);margin-top:.4rem;padding:.2rem .5rem;background:var(--card);border-radius:.3rem;display:inline-block;}
+
+.team-story{padding:2.5rem;background:var(--card);border:1px solid var(--border);border-radius:1.25rem;position:relative;}
+.story-quote{font-size:4rem;line-height:1;color:var(--blue);opacity:.3;font-family:serif;position:absolute;top:1rem;left:1.5rem;}
+.story-text{font-size:1rem;line-height:1.8;color:var(--dim);padding-top:2rem;}
+.story-text strong{color:var(--white);}
+.story-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2rem;}
+.story-stat{text-align:center;}
+.story-stat-num{font-size:2rem;font-weight:700;}
+.story-stat-lbl{font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;}
+
+/* ── WHATS NEXT ── */
+#next{background:linear-gradient(180deg,transparent,rgba(168,85,247,0.03),transparent);}
+.next-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:3rem;}
+.next-card{
+  background:var(--card);border:1px solid var(--border);border-radius:1.25rem;
+  padding:1.8rem;position:relative;overflow:hidden;
+  transition:transform .3s,box-shadow .3s;
+}
+.next-card:hover{transform:translateY(-5px);}
+.next-card::after{content:'';position:absolute;inset:0;border-radius:1.25rem;border:1px solid transparent;background:linear-gradient(135deg,currentColor,transparent) border-box;mask:linear-gradient(#fff 0 0) padding-box,linear-gradient(#fff 0 0);mask-composite:exclude;opacity:0;transition:opacity .3s;}
+.next-card:hover::after{opacity:.15;}
+.next-icon{font-size:2.2rem;margin-bottom:1rem;display:block;}
+.next-title{font-size:1.1rem;font-weight:700;margin-bottom:.5rem;}
+.next-desc{font-size:.84rem;color:var(--dim);line-height:1.6;}
+.next-chip{
+  display:inline-block;margin-top:1rem;font-size:.65rem;font-family:'Space Mono',monospace;
+  padding:.3rem .7rem;border-radius:2rem;border:1px solid currentColor;
+  background:rgba(currentColor,.08);text-transform:uppercase;letter-spacing:.1em;
+}
+
+/* ── QUOTE FOOTER ── */
+#quote-section{padding:5rem 3rem;text-align:center;}
+.big-quote{font-size:clamp(1.5rem,3vw,2.5rem);font-weight:600;line-height:1.4;max-width:800px;margin:0 auto 1.5rem;}
+.big-quote em{font-style:normal;background:linear-gradient(135deg,var(--blue),var(--teal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.quote-attr{color:var(--dim);font-size:.85rem;font-family:'Space Mono',monospace;}
+.divider-line{width:120px;height:2px;background:linear-gradient(90deg,var(--blue),var(--teal));margin:2rem auto;}
+
+/* ── FOOTER ── */
+footer{
+  border-top:1px solid var(--border);padding:2rem 3rem;
+  display:flex;align-items:center;justify-content:space-between;
+  position:relative;z-index:1;
+}
+.footer-brand{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--dim);}
+.footer-dots{display:flex;gap:.5rem;}
+.fdot{width:8px;height:8px;border-radius:50%;}
+
+/* ── SCROLL ANIMATIONS ── */
+.fade-up{opacity:0;transform:translateY(40px);transition:opacity .7s ease,transform .7s ease;}
+.fade-up.visible{opacity:1;transform:translateY(0);}
+.fade-left{opacity:0;transform:translateX(-40px);transition:opacity .7s ease,transform .7s ease;}
+.fade-left.visible{opacity:1;transform:translateX(0);}
+.fade-right{opacity:0;transform:translateX(40px);transition:opacity .7s ease,transform .7s ease;}
+.fade-right.visible{opacity:1;transform:translateX(0);}
+
+/* ── GLOW ACCENTS ── */
+.glow-blue{position:absolute;width:600px;height:600px;border-radius:50%;background:rgba(66,133,244,0.06);filter:blur(100px);pointer-events:none;}
+.glow-purp{position:absolute;width:500px;height:500px;border-radius:50%;background:rgba(168,85,247,0.05);filter:blur(100px);pointer-events:none;}
+.glow-teal{position:absolute;width:400px;height:400px;border-radius:50%;background:rgba(0,201,167,0.05);filter:blur(80px);pointer-events:none;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--blue);border-radius:2px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .hero-grid{grid-template-columns:1fr;}
+  .orbital-wrap{display:none;}
+  .tl-item{grid-template-columns:1fr;}
+  .tl-line{left:1.5rem;}
+  .tl-node{margin-left:1.5rem;margin-bottom:1rem;}
+  .tl-item:nth-child(odd) .tl-card,
+  .tl-item:nth-child(even) .tl-card{grid-column:1;margin:0 0 0 4rem;}
+  .tl-item:nth-child(odd) .tl-empty,
+  .tl-item:nth-child(even) .tl-empty{display:none;}
+  .tl-item:nth-child(odd) .tl-node,
+  .tl-item:nth-child(even) .tl-node{grid-column:1;justify-content:flex-start;}
+  .clients-grid,.next-grid{grid-template-columns:1fr;}
+  .team-layout{grid-template-columns:1fr;}
+  nav{padding:1rem 1.5rem;}
+  section{padding:4rem 1.5rem;}
+  .hero-stats{grid-template-columns:repeat(2,1fr);}
+  .side-nav{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor cursor-dot" id="cdot"></div>
+<div class="cursor cursor-ring" id="cring"></div>
+
+<!-- Progress Bar -->
+<div id="progress-bar"></div>
+
+<!-- Star Canvas -->
+<canvas id="stars"></canvas>
+
+<!-- Navigation -->
+<nav>
+  <div class="nav-logo">⬡ GCP Engineering</div>
+  <div class="nav-links">
+    <a href="#timeline">Timeline</a>
+    <a href="#clients">Clients</a>
+    <a href="#team">Team</a>
+    <a href="#next">What's Next</a>
+  </div>
+  <div class="nav-badge">📡 Mission Active</div>
+</nav>
+
+<!-- Side Dot Nav -->
+<div class="side-nav" id="sideNav">
+  <div class="side-dot active" data-target="hero" data-label="Home"></div>
+  <div class="side-dot" data-target="timeline" data-label="Timeline"></div>
+  <div class="side-dot" data-target="clients" data-label="Clients"></div>
+  <div class="side-dot" data-target="team" data-label="Team"></div>
+  <div class="side-dot" data-target="next" data-label="What's Next"></div>
+</div>
+
+<!-- ══ HERO ══ -->
+<section id="hero">
+  <div class="glow-blue" style="top:-200px;left:-200px;"></div>
+  <div class="glow-purp" style="bottom:-100px;right:-100px;"></div>
+
+  <div class="hero-grid">
+    <!-- Left: Text -->
+    <div>
+      <div class="hero-label">GCP Engineering · Team Journey</div>
+      <h1 class="hero-title">
+        FROM ZERO<br>
+        TO <span class="line2">FULL ORBIT</span>
+      </h1>
+      <p class="hero-desc">
+        A 12-month mission from zero to a fully operational cloud engineering practice —
+        delivering real projects, real clients, real impact on Google Cloud Platform.
+      </p>
+      <div class="hero-stats">
+        <div class="stat-block">
+          <div class="stat-num" style="color:var(--blue);">2→3</div>
+          <div class="stat-lbl">Team Members</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num" style="color:var(--green);">4+</div>
+          <div class="stat-lbl">Live Clients</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num" style="color:var(--yell);">3</div>
+          <div class="stat-lbl">Open Roles</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num" style="color:var(--teal);">12</div>
+          <div class="stat-lbl">Months of Growth</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Orbital Visual -->
+    <div class="orbital-wrap">
+      <div class="orbit-ring r4"></div>
+      <div class="orbit-ring r3"></div>
+      <div class="orbit-ring r2"></div>
+      <div class="orbit-ring r1"></div>
+      <div class="orbit-center">☁️</div>
+      <div class="planet p1" title="Azure Blue — Core Platform">🌐</div>
+      <div class="planet p2" title="Green — Growth">🚀</div>
+      <div class="planet p3" title="Yellow — First Win">⭐</div>
+      <div class="planet p4" title="Red — Transition">🔄</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TIMELINE ══ -->
+<section id="timeline">
+  <div class="section-inner">
+    <div class="tl-header fade-up">
+      <div class="section-eyebrow">Mission Log</div>
+      <h2 class="section-title">8 Stages of the Journey</h2>
+      <p class="section-sub">Every mission milestone — from handover to orbit.</p>
+    </div>
+
+    <div class="tl-track">
+      <div class="tl-line"></div>
+
+      <!-- M1: Transition -->
+      <div class="tl-item" style="color:var(--red);" data-tl="1">
+        <div class="tl-card" style="color:var(--red);border-color:rgba(234,67,53,0.25);">
+          <div class="tl-card-top">
+            <span class="tl-phase" style="color:var(--red);border-color:rgba(234,67,53,0.4);background:rgba(234,67,53,0.08);">TRANSITION</span>
+            <span class="tl-date">Jun – Jul 2025</span>
+          </div>
+          <span class="tl-icon">🔄</span>
+          <div class="tl-card-title">Service Handover</div>
+          <div class="tl-card-desc">Inheriting a live GCP environment from the previous team. Understanding the landscape, identifying gaps, and beginning to own the platform end-to-end.</div>
+          <div class="tl-badge" style="color:var(--red);">
+            <span class="tl-badge-dot" style="background:var(--red);"></span>
+            Foundation phase begins
+          </div>
+        </div>
+        <div class="tl-node" style="color:var(--red);box-shadow:0 0 20px rgba(234,67,53,0.25);">🔄</div>
+        <div class="tl-empty"></div>
+      </div>
+
+      <!-- M2: Foundation -->
+      <div class="tl-item" style="color:var(--blue);" data-tl="2">
+        <div class="tl-empty"></div>
+        <div class="tl-node" style="color:var(--blue);box-shadow:0 0 20px rgba(66,133,244,0.25);">⊕</div>
+        <div class="tl-card" style="color:var(--blue);border-color:rgba(66,133,244,0.25);">
+          <div class="tl-card-top">
+            <span class="tl-phase" style="color:var(--blue);border-color:rgba(66,133,244,0.4);background:rgba(66,133,244,0.08);">FOUNDATION</span>
+            <span class="tl-date">Jul 2025</span>
+          </div>
+          <span class="tl-icon">🏗️</span>
+          <div class="tl-card-title">Team of Two</div>
+          <div class="tl-card-desc">A Senior Manager and a Consultant — just two people, shared across two streams — committed to building a world-class GCP engineering practice from scratch.</div>
+          <div class="tl-badge" style="color:var(--blue);">
+            <span class="tl-badge-dot" style="background:var(--blue);"></span>
+            1 Sr. Manager · 1 Consultant
+          </div>
+        </div>
+      </div>
+
+      <!-- M3: Build -->
+      <div class="tl-item" style="color:var(--green);" data-tl="3">
+        <div class="tl-card" style="color:var(--green);border-color:rgba(52,168,83,0.25);">
+          <div class="tl-card-top">
+            <span class="tl-phase" style="color:var(--green);border-color:rgba(52,168,83,0.4);background:rgba(52,168,83,0.08);">BUILD</span>
+            <span class="tl-date">Aug – Nov 2025</span>
+          </div>
+          <span class="tl-icon">⚙️</span>
+          <div class="tl-card-title">GCP Vending Pipeline</div>
+          <div class="tl-card-desc">Architected and shipped a GCP Project Vending Pipeline — automating project provisioning for internal clients. Alpha Commerce and PairD Billing were first in line.</div>
+          <div class="tl-badge" style="color:var(--green);">
+            <span class="tl-badge-dot" style="background:var(--green);"></span>
+            Alpha Commerce · PairD Billing
+          </div>
+        </div>
+        <div class="tl-node" style="color:var(--green);box-shadow:0 0 20px rgba(52,168,83,0.25);">⚙️</div>
+        <div class="tl-empty"></div>
+      </div>
+
+      <!-- M4: First Win -->
+      <div class="tl-item" style="color:var(--yell);" data-tl="4">
+        <div class="tl-empty"></div>
+        <div class="tl-node" style="color:var(--yell);box-shadow:0 0 20px rgba(251,188,4,0.3);">⭐</div>
+        <div class="tl-card" style="color:var(--yell);border-color:rgba(251,188,4,0.25);">
+          <div class="tl-card-top">
+            <span class="tl-phase" style="color:var(--yell);border-color:rgba(251,188,4,0.4);background:rgba(251,188,4,0.08);">FIRST WIN</span>
+            <span class="tl-date">15 Nov 2025</span>
+          </div>
+          <span class="tl-icon">🏆</span>
+          <div class="tl-card-title">West Brom Goes Live</div>
+          <div class="tl-card-desc">First chargeable external project lands. Delivered Google Cloud Storage Transfer Service — backing up West Brom's AWS-hosted application data into GCP. Revenue starts flowing.</div>
+          <div class="tl-badge" style="color:var(--yell);">
+            <span class="tl-badge-dot" style="background:var(--yell);"></span>
+            Storage Transfer · AWS → GCP
+          </div>
+        </div>
+      </div>
+
+      <!-- M5: Validation -->
+      <div class="tl-item" style="color:var(--cyan);" data-tl="5">
+        <div class="tl-card" style="color:var(--cyan);border-color:rgba(6,182,212,0.25);">
+          <div class="tl-card-top">
+            <span class="tl-phase" style="color:var(--cyan);border-color:rgba(6,182,212,0.4);background:rgba(6,182,212,0.08);">VALIDATION</span>
+            <span class="tl-date">Early Jan 2026</span>
+          </div>
+          <span class="tl-icon">✅</span>
+          <div class="tl-card-title">GC Resell — Live</div>
+          <div class="tl-card-desc">Google Cloud Resell project goes live — validating the team's capability to deliver end-to-end commercial GCP engagements and proving the model at scale.</div>
+          <div class="tl-badge" style="color:var(--cyan);">
+            <span class="tl-badge-dot" style="background:var(--cyan);"></span>
+            Commercial validation confirmed
+          </div>
+        </div>
+        <div class="tl-node" style="color:var(--cyan);box-shadow:0 0 20px rgba(6,182,212,0.25);">✅</div>
+        <div class="tl-empty"></div>
+      </div>
+
+      <!-- M6: 3rd Member -->
+      <div class="tl-item" style="color:var(--green);" data-tl="6">
+        <div class="tl-empty"></div>
+        <div class="tl-node" style="color:var(--green);box-shadow:0 0 20px rgba(52,168,83,0.3);">➕</div>
+        <div class="tl-card" style="color:var(--green);border-color:rgba(52,168,83,0.25);">
+          <div class="tl-card-top">
+            <span class="tl-phase" style="color:var(--green);border-color:rgba(52,168,83,0.4);background:rgba(52,168,83,0.08);">TEAM GROWS</span>
+            <span class="tl-date">Mid-Feb 2026</span>
+          </div>
+          <span class="tl-icon">🧑‍💻</span>
+          <div class="tl-card-title">Third Member Joins</div>
+          <div class="tl-card-desc">A third engineer joins the squad — strengthening delivery capacity, enabling parallel workstreams, and taking the team from a duo to a true engineering crew.</div>
+          <div class="tl-badge" style="color:var(--green);">
+            <span class="tl-badge-dot" style="background:var(--green);"></span>
+            Headcount 2 → 3
+          </div>
+        </div>
+      </div>
+
+      <!-- M7: Growth -->
+      <div class="tl-item" style="color:var(--purp);" data-tl="7">
+        <div class="tl-card" style="color:var(--purp);border-color:rgba(168,85,247,0.25);">
+          <div class="tl-card-top">
+            <span class="tl-phase" style="color:var(--purp);border-color:rgba(168,85,247,0.4);background:rgba(168,85,247,0.08);">GROWTH</span>
+            <span class="tl-date">March 2026</span>
+          </div>
+          <span class="tl-icon">📈</span>
+          <div class="tl-card-title">Scaling Up — 3 Roles Open</div>
+          <div class="tl-card-desc">Demand is outpacing supply. Three open roles signal that the practice is mature, trusted, and ready to scale. The team is officially a growth engine.</div>
+          <div class="tl-badge" style="color:var(--purp);">
+            <span class="tl-badge-dot" style="background:var(--purp);"></span>
+            3 open engineering roles
+          </div>
+        </div>
+        <div class="tl-node" style="color:var(--purp);box-shadow:0 0 20px rgba(168,85,247,0.25);">📈</div>
+        <div class="tl-empty"></div>
+      </div>
+
+      <!-- M8: YHCR -->
+      <div class="tl-item" style="color:var(--teal);" data-tl="8">
+        <div class="tl-empty"></div>
+        <div class="tl-node" style="color:var(--teal);box-shadow:0 0 24px rgba(0,201,167,0.4);border-width:2px;animation:pulse-node 2s ease-in-out infinite;">◉</div>
+        <div class="tl-card" style="color:var(--teal);border-color:rgba(0,201,167,0.35);box-shadow:0 0 30px rgba(0,201,167,0.08);">
+          <div class="tl-card-top">
+            <span class="tl-phase" style="color:var(--teal);border-color:rgba(0,201,167,0.5);background:rgba(0,201,167,0.1);">NEW CLIENT</span>
+            <span class="tl-date">Apr / May 2026</span>
+          </div>
+          <span class="tl-icon">🌟</span>
+          <div class="tl-card-title">YHCR — Incoming</div>
+          <div class="tl-card-desc">New client engagement in the pipeline. YHCR represents continued growth and expanding trust in the team's GCP capabilities — the journey continues.</div>
+          <div class="tl-badge" style="color:var(--teal);background:rgba(0,201,167,0.1);border-color:rgba(0,201,167,0.35);">
+            <span class="tl-badge-dot" style="background:var(--teal);"></span>
+            🔴 LIVE NOW
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /.tl-track -->
+  </div>
+</section>
+
+<!-- ══ CLIENTS ══ -->
+<section id="clients">
+  <div class="section-inner">
+    <div class="tl-header fade-up">
+      <div class="section-eyebrow">Delivered</div>
+      <h2 class="section-title">Clients We've Served</h2>
+      <p class="section-sub">Internal and external — each one a proof point of capability.</p>
+    </div>
+    <div class="clients-grid">
+      <div class="client-card fade-up" style="border-color:rgba(52,168,83,0.2);">
+        <div class="client-glow" style="background:var(--green);"></div>
+        <span class="client-icon">🏛️</span>
+        <div class="client-name">Alpha Commerce</div>
+        <div class="client-type">Internal Client · Project Vending</div>
+        <div class="client-desc">First internal client through the GCP Project Vending Pipeline — automated provisioning, governance, and access controls delivered end-to-end.</div>
+        <div class="client-status status-live">🟢 Live</div>
+      </div>
+      <div class="client-card fade-up" style="border-color:rgba(66,133,244,0.2);animation-delay:.1s">
+        <div class="client-glow" style="background:var(--blue);"></div>
+        <span class="client-icon">💳</span>
+        <div class="client-name">PairD Billing</div>
+        <div class="client-type">Internal Client · Project Vending</div>
+        <div class="client-desc">Second internal client onboarded via the vending pipeline. Billing infrastructure running on GCP with full automated project setup and IAM policies.</div>
+        <div class="client-status status-live">🟢 Live</div>
+      </div>
+      <div class="client-card fade-up" style="border-color:rgba(251,188,4,0.2);animation-delay:.15s">
+        <div class="client-glow" style="background:var(--yell);"></div>
+        <span class="client-icon">🏦</span>
+        <div class="client-name">West Bromwich</div>
+        <div class="client-type">External · Storage Transfer Service</div>
+        <div class="client-desc">First chargeable external project. GCP Storage Transfer Service backing up AWS-hosted application data into Google Cloud — the first invoice of many.</div>
+        <div class="client-status status-live">🟢 Live · Nov 2025</div>
+      </div>
+      <div class="client-card fade-up" style="border-color:rgba(6,182,212,0.2);animation-delay:.2s">
+        <div class="client-glow" style="background:var(--cyan);"></div>
+        <span class="client-icon">☁️</span>
+        <div class="client-name">GC Resell</div>
+        <div class="client-type">Commercial Validation · GCP Resell</div>
+        <div class="client-desc">Google Cloud Resell project validated the commercial model — proving the team can execute full-cycle GCP sales and delivery engagements.</div>
+        <div class="client-status status-active">🔵 Active · Jan 2026</div>
+      </div>
+      <div class="client-card fade-up" style="border-color:rgba(0,201,167,0.25);animation-delay:.25s;box-shadow:0 0 30px rgba(0,201,167,0.06);">
+        <div class="client-glow" style="background:var(--teal);"></div>
+        <span class="client-icon">🌟</span>
+        <div class="client-name">YHCR</div>
+        <div class="client-type">New Client · Apr/May 2026</div>
+        <div class="client-desc">Latest client engagement — representing continued growth and market trust. YHCR is the newest chapter in an expanding client portfolio.</div>
+        <div class="client-status status-new">⚡ New · In Progress</div>
+      </div>
+      <div class="client-card fade-up" style="border-color:rgba(168,85,247,0.15);animation-delay:.3s;background:rgba(168,85,247,0.03);">
+        <div class="client-glow" style="background:var(--purp);opacity:.1;"></div>
+        <span class="client-icon">🔮</span>
+        <div class="client-name">You're Next?</div>
+        <div class="client-type">Opportunity · Open Pipeline</div>
+        <div class="client-desc">With 3 open roles and growing capacity, the team is ready to take on more. The best engagements are still ahead of us.</div>
+        <div class="client-status" style="background:rgba(168,85,247,0.1);border:1px solid rgba(168,85,247,0.3);color:var(--purp);">🔮 Coming Soon</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ TEAM ══ -->
+<section id="team">
+  <div class="section-inner">
+    <div class="fade-up">
+      <div class="section-eyebrow">The Crew</div>
+      <h2 class="section-title">Who Built This</h2>
+      <p class="section-sub">Small team. Big output. Zero excuses.</p>
+    </div>
+    <div class="team-layout">
+      <div class="team-cards fade-left">
+        <div class="team-member">
+          <div class="member-avatar" style="background:rgba(66,133,244,0.15);border:1px solid rgba(66,133,244,0.3);">👔</div>
+          <div>
+            <div class="member-name">Senior Manager</div>
+            <div class="member-role">Practice Lead · GCP Engineering</div>
+            <div class="member-joined">Since Jul 2025</div>
+          </div>
+        </div>
+        <div class="team-member">
+          <div class="member-avatar" style="background:rgba(52,168,83,0.15);border:1px solid rgba(52,168,83,0.3);">💻</div>
+          <div>
+            <div class="member-name">Consultant</div>
+            <div class="member-role">GCP Engineer · Shared across 2 streams</div>
+            <div class="member-joined">Since Jul 2025</div>
+          </div>
+        </div>
+        <div class="team-member" style="border-color:rgba(52,168,83,0.3);">
+          <div class="member-avatar" style="background:rgba(52,168,83,0.15);border:1px solid rgba(52,168,83,0.3);">🧑‍💻</div>
+          <div>
+            <div class="member-name">Engineer #3</div>
+            <div class="member-role">GCP Engineer · Delivery Support</div>
+            <div class="member-joined" style="background:rgba(52,168,83,0.1);color:var(--green);">Joined Mid-Feb 2026</div>
+          </div>
+        </div>
+        <div class="team-member" style="border-color:rgba(168,85,247,0.25);background:rgba(168,85,247,0.03);">
+          <div class="member-avatar" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.3);">🔮</div>
+          <div>
+            <div class="member-name">3 Roles Open</div>
+            <div class="member-role">Growing the crew — hiring now</div>
+            <div class="member-joined" style="background:rgba(168,85,247,0.1);color:var(--purp);">March 2026 onwards</div>
+          </div>
+        </div>
+      </div>
+      <div class="team-story fade-right">
+        <div class="story-quote">"</div>
+        <div class="story-text">
+          This team started with <strong>just two people</strong> in July 2025 — a Senior Manager and a Consultant, shared across multiple workstreams.
+          In the months that followed, they didn't just maintain a platform — they <strong>built something from nothing</strong>.<br><br>
+          The GCP Project Vending Pipeline. The first chargeable project. The first external client delivery.
+          GC Resell going live. A third member joining the mission.<br><br>
+          By March 2026, the demand had grown so fast that <strong>three new roles</strong> were opened to keep pace with opportunity.
+          And with <strong>YHCR</strong> coming into the pipeline, the team is far from slowing down.
+        </div>
+        <div class="story-stats">
+          <div class="story-stat">
+            <div class="story-stat-num" style="color:var(--blue);">9</div>
+            <div class="story-stat-lbl">Months to First External Client</div>
+          </div>
+          <div class="story-stat">
+            <div class="story-stat-num" style="color:var(--green);">5+</div>
+            <div class="story-stat-lbl">Projects Delivered</div>
+          </div>
+          <div class="story-stat">
+            <div class="story-stat-num" style="color:var(--purp);">3x</div>
+            <div class="story-stat-lbl">Growth Trajectory</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WHAT'S NEXT ══ -->
+<section id="next">
+  <div class="section-inner">
+    <div class="tl-header fade-up">
+      <div class="section-eyebrow">Looking Ahead</div>
+      <h2 class="section-title">What's Next on the Horizon</h2>
+      <p class="section-sub">The mission is active. The best chapters are being written now.</p>
+    </div>
+    <div class="next-grid">
+      <div class="next-card fade-up" style="color:var(--purp);">
+        <span class="next-icon">👥</span>
+        <div class="next-title">Team Expansion</div>
+        <div class="next-desc">Three open engineering roles ready to be filled. Growing capacity to meet an expanding portfolio of client engagements across GCP.</div>
+        <div class="next-chip" style="color:var(--purp);border-color:rgba(168,85,247,0.4);background:rgba(168,85,247,0.08);">Hiring Now</div>
+      </div>
+      <div class="next-card fade-up" style="color:var(--teal);">
+        <span class="next-icon">🤝</span>
+        <div class="next-title">YHCR Onboarding</div>
+        <div class="next-desc">New client YHCR is in the pipeline for April/May 2026. Another proof point for the practice, another relationship to nurture and grow.</div>
+        <div class="next-chip" style="color:var(--teal);border-color:rgba(0,201,167,0.4);background:rgba(0,201,167,0.08);">In Progress</div>
+      </div>
+      <div class="next-card fade-up" style="color:var(--blue);">
+        <span class="next-icon">🛰️</span>
+        <div class="next-title">Scale the Platform</div>
+        <div class="next-desc">The Project Vending Pipeline is ready to serve more internal clients. With more engineers, we can onboard faster, automate deeper, and reduce lead times to zero.</div>
+        <div class="next-chip" style="color:var(--blue);border-color:rgba(66,133,244,0.4);background:rgba(66,133,244,0.08);">Roadmap 2026</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ QUOTE ══ -->
+<section id="quote-section">
+  <div class="divider-line"></div>
+  <div class="big-quote fade-up">
+    "Two engineers. Zero budget. Twelve months.<br>
+    <em>Orbit achieved.</em>"
+  </div>
+  <p class="quote-attr fade-up" style="animation-delay:.2s;">GCP Engineering · Journey Log · 2025–2026</p>
+  <div class="divider-line"></div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer>
+  <div class="footer-brand">⬡ GCP Engineering · Mission Active Since Jul 2025</div>
+  <div class="footer-dots">
+    <div class="fdot" style="background:var(--blue);"></div>
+    <div class="fdot" style="background:var(--red);"></div>
+    <div class="fdot" style="background:var(--yell);"></div>
+    <div class="fdot" style="background:var(--green);"></div>
+  </div>
+  <div class="footer-brand" style="color:var(--dim);font-size:.65rem;">Built with ☁️ + ❤️</div>
+</footer>
+
+<style>
+@keyframes pulse-node{0%,100%{box-shadow:0 0 24px rgba(0,201,167,0.4);}50%{box-shadow:0 0 40px rgba(0,201,167,0.7),0 0 60px rgba(0,201,167,0.2);}}
+</style>
+
+<script>
+// ── STAR CANVAS ──
+(function(){
+  const canvas = document.getElementById('stars');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars=[], shooting=[];
+
+  function resize(){
+    W=canvas.width=window.innerWidth;
+    H=canvas.height=window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize',resize);
+
+  // Create stars
+  for(let i=0;i<280;i++){
+    stars.push({
+      x:Math.random(),y:Math.random(),
+      r:Math.random()*1.5+0.3,
+      a:Math.random(),da:Math.random()*0.003+0.001,
+      twinkle:Math.random()*Math.PI*2
+    });
+  }
+
+  function addShootingStar(){
+    shooting.push({x:Math.random()*W,y:0,vx:2+Math.random()*3,vy:1+Math.random()*2,life:1});
+  }
+  setInterval(addShootingStar,3000);
+
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    const t=Date.now()/1000;
+
+    // Stars
+    stars.forEach(s=>{
+      const brightness=0.3+0.7*Math.sin(s.twinkle+t*s.da*20);
+      ctx.beginPath();
+      ctx.arc(s.x*W,s.y*H,s.r*brightness,0,Math.PI*2);
+      ctx.fillStyle=`rgba(255,255,255,${brightness*0.7})`;
+      ctx.fill();
+    });
+
+    // Shooting stars
+    shooting.forEach((s,i)=>{
+      ctx.beginPath();
+      ctx.moveTo(s.x,s.y);
+      ctx.lineTo(s.x-s.vx*20,s.y-s.vy*20);
+      const grad=ctx.createLinearGradient(s.x,s.y,s.x-s.vx*20,s.y-s.vy*20);
+      grad.addColorStop(0,`rgba(255,255,255,${s.life})`);
+      grad.addColorStop(1,'rgba(255,255,255,0)');
+      ctx.strokeStyle=grad;ctx.lineWidth=1.5;ctx.stroke();
+      s.x+=s.vx;s.y+=s.vy;s.life-=0.018;
+    });
+    shooting=shooting.filter(s=>s.life>0&&s.x<W&&s.y<H);
+
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ── CUSTOM CURSOR ──
+(function(){
+  const dot=document.getElementById('cdot');
+  const ring=document.getElementById('cring');
+  let mx=0,my=0,rx=0,ry=0;
+  document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+  function moveCursor(){
+    dot.style.left=mx+'px';dot.style.top=my+'px';
+    rx+=(mx-rx)*.12;ry+=(my-ry)*.12;
+    ring.style.left=rx+'px';ring.style.top=ry+'px';
+    requestAnimationFrame(moveCursor);
+  }
+  moveCursor();
+})();
+
+// ── PROGRESS BAR ──
+window.addEventListener('scroll',()=>{
+  const scrolled=(window.scrollY/(document.body.scrollHeight-window.innerHeight))*100;
+  document.getElementById('progress-bar').style.width=scrolled+'%';
+});
+
+// ── INTERSECTION OBSERVER ──
+(function(){
+  const obs=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting)e.target.classList.add('visible');
+    });
+  },{threshold:.15,rootMargin:'0px 0px -60px 0px'});
+
+  document.querySelectorAll('.tl-item,.fade-up,.fade-left,.fade-right').forEach((el,i)=>{
+    el.style.transitionDelay=(i%4)*0.08+'s';
+    obs.observe(el);
+  });
+})();
+
+// ── SIDE DOT NAV ──
+(function(){
+  const sections=['hero','timeline','clients','team','next'];
+  const dots=document.querySelectorAll('.side-dot');
+
+  dots.forEach(d=>{
+    d.addEventListener('click',()=>{
+      document.getElementById(d.dataset.target).scrollIntoView({behavior:'smooth'});
+    });
+  });
+
+  const obs=new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting){
+        const idx=sections.indexOf(e.target.id);
+        dots.forEach((d,i)=>d.classList.toggle('active',i===idx));
+      }
+    });
+  },{threshold:.4});
+
+  sections.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)obs.observe(el);
+  });
+})();
+
+// ── CARD HOVER TILT ──
+document.querySelectorAll('.tl-card,.client-card,.next-card').forEach(card=>{
+  card.addEventListener('mousemove',e=>{
+    const r=card.getBoundingClientRect();
+    const x=(e.clientX-r.left)/r.width-.5;
+    const y=(e.clientY-r.top)/r.height-.5;
+    card.style.transform=`translateY(-4px) rotateX(${-y*4}deg) rotateY(${x*4}deg)`;
+  });
+  card.addEventListener('mouseleave',()=>{
+    card.style.transform='';
+  });
+});
+</script>
+</body>
+</html>
