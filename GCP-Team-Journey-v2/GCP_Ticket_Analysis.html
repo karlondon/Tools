@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>GCP Ticket Analysis Report</title>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f6fb; color: #222; margin: 0; padding: 0; }
+  header { background: linear-gradient(135deg, #1a73e8, #0d47a1); color: white; padding: 32px 40px; }
+  header h1 { margin: 0 0 6px; font-size: 2rem; }
+  header p { margin: 0; opacity: .85; }
+  .container { max-width: 1200px; margin: 0 auto; padding: 32px 24px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); gap: 16px; margin-bottom: 32px; }
+  .card { background: white; border-radius: 10px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,.08); text-align: center; }
+  .card .num { font-size: 2.4rem; font-weight: 700; color: #1a73e8; }
+  .card .label { font-size: .85rem; color: #666; margin-top: 4px; }
+  .section { background: white; border-radius: 10px; padding: 24px; margin-bottom: 28px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+  .section h2 { margin: 0 0 18px; font-size: 1.1rem; color: #1a73e8; border-bottom: 2px solid #e8f0fe; padding-bottom: 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+  th { background: #e8f0fe; color: #1a73e8; padding: 8px 10px; text-align: left; }
+  td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  tr:hover td { background: #f8faff; }
+  .team-row td { background: #e8f8ee; }
+  .badge { display: inline-block; background: #1a73e8; color: white; border-radius: 12px; padding: 2px 10px; font-size: .78rem; margin: 1px; }
+  .bar { height: 14px; background: linear-gradient(90deg,#1a73e8,#42a5f5); border-radius: 3px; display: inline-block; vertical-align: middle; }
+  .chart-wrap { position: relative; height: 280px; }
+  canvas { max-width: 100%; }
+  .note { font-size:.8rem; color:#888; margin-top:8px; }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>📊 GCP Ticket Analysis Report</h1>
+  <p>GCP Engineering &amp; Solutions Operations · Generated 07 May 2026 19:44</p>
+</header>
+<div class="container">
+
+<!-- KPI Cards -->
+<div class="grid">
+  <div class="card"><div class="num">725</div><div class="label">Total Tickets</div></div>
+  <div class="card"><div class="num">49</div><div class="label">Tickets with pCode</div></div>
+  <div class="card"><div class="num">23</div><div class="label">Unique pCodes (Clients)</div></div>
+  <div class="card"><div class="num">246</div><div class="label">GCP Eng + SolOps Tickets</div></div>
+  <div class="card"><div class="num">39</div><div class="label">Team pCode Tickets</div></div>
+  <div class="card"><div class="num">11</div><div class="label">Months of Activity</div></div>
+</div>
+
+<!-- Monthly Trend -->
+<div class="section">
+  <h2>📈 Monthly Ticket Trend</h2>
+  <div class="chart-wrap"><canvas id="monthChart"></canvas></div>
+  <p class="note">All tickets vs GCP Engineers + Service Ops Engineers vs pCode tickets by month created</p>
+</div>
+
+<!-- pCode Analysis -->
+<div class="section">
+  <h2>🏷️ Tickets per pCode (Client) — 23 Unique Clients</h2>
+  <table>
+    <tr><th>pCode</th><th>Total Tickets</th><th>Team Tickets (GCP Eng / SolOps)</th><th>Handled By</th></tr>
+    
+    <tr>
+      <td><span class="badge">P000430</span></td>
+      <td>21 <div class="bar" style="width:200px"></div></td>
+      <td>21</td>
+      <td>Service Ops Engineers(17), GCP Engineers(4)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000483</span></td>
+      <td>9 <div class="bar" style="width:85px"></div></td>
+      <td>7</td>
+      <td>Service Ops Engineers(7), Digital Platform Support Team(2)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000460</span></td>
+      <td>3 <div class="bar" style="width:28px"></div></td>
+      <td>1</td>
+      <td>Digital Platform Support Team(2), GCP Engineers(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000389</span></td>
+      <td>2 <div class="bar" style="width:19px"></div></td>
+      <td>1</td>
+      <td>GCP Engineers(1), OS Engineering(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000621</span></td>
+      <td>2 <div class="bar" style="width:19px"></div></td>
+      <td>1</td>
+      <td>GCP Engineers(1), OS Engineering(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000576</span></td>
+      <td>2 <div class="bar" style="width:19px"></div></td>
+      <td>2</td>
+      <td>Service Ops Engineers(2)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000491</span></td>
+      <td>2 <div class="bar" style="width:19px"></div></td>
+      <td>2</td>
+      <td>Service Ops Engineers(2)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000419</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>1</td>
+      <td>GCP Engineers(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000186</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>OS Engineering(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000259</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>OS Engineering(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000482</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>OS Engineering(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000510</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>OS Engineering(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000481</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>Cloud Business Office(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000561</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>Cloud Business Office(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000558</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>1</td>
+      <td>Service Ops Engineers(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000423</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>1</td>
+      <td>GCP Engineers(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000598</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>Digital Platform Support Team(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000597</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>Digital Platform Support Team(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000488</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>1</td>
+      <td>Service Ops Engineers(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000573</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>Digital Platform Support Team(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000556</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>1</td>
+      <td>Service Ops Engineers(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000082</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>0</td>
+      <td>Digital Platform Support Team(1)</td>
+    </tr>
+    <tr>
+      <td><span class="badge">P000568</span></td>
+      <td>1 <div class="bar" style="width:9px"></div></td>
+      <td>1</td>
+      <td>Service Ops Engineers(1)</td>
+    </tr>
+  </table>
+</div>
+
+<!-- Assignment Group Breakdown -->
+<div class="section">
+  <h2>👥 Tickets by Assignment Group</h2>
+  <table>
+    <tr><th>Assignment Group</th><th>Ticket Count</th></tr>
+    <tr><td>Digital Platform Support Team</td><td>265 <div class="bar" style="width:200px"></div></td></tr><tr><td style="font-weight:bold;color:#1a73e8">Service Ops Engineers</td><td>176 <div class="bar" style="width:132px"></div></td></tr><tr><td>Cloud Business Office</td><td>82 <div class="bar" style="width:61px"></div></td></tr><tr><td>Engineering Platform Automation</td><td>71 <div class="bar" style="width:53px"></div></td></tr><tr><td style="font-weight:bold;color:#1a73e8">GCP Engineers</td><td>70 <div class="bar" style="width:52px"></div></td></tr><tr><td>Solution Architecture Team</td><td>7 <div class="bar" style="width:5px"></div></td></tr><tr><td>OS Engineering</td><td>5 <div class="bar" style="width:3px"></div></td></tr><tr><td>Business Service Desk</td><td>5 <div class="bar" style="width:3px"></div></td></tr><tr><td>Engineering Platforms Triage</td><td>4 <div class="bar" style="width:3px"></div></td></tr><tr><td>Org Config Tasks</td><td>2 <div class="bar" style="width:1px"></div></td></tr><tr><td>Application Managed Services</td><td>1 <div class="bar" style="width:0px"></div></td></tr><tr><td>Odeon Engineers</td><td>1 <div class="bar" style="width:0px"></div></td></tr>
+  </table>
+  <p class="note">Bold blue = target teams (GCP Engineers, Service Ops Engineers)</p>
+</div>
+
+<!-- Task Type Breakdown -->
+<div class="section">
+  <h2>📋 Task Type Distribution</h2>
+  <div class="chart-wrap" style="height:220px"><canvas id="taskChart"></canvas></div>
+</div>
+
+<!-- pCode Tickets Table -->
+<div class="section">
+  <h2>🔍 All Tickets with pCode (highlighted = GCP Eng / SolOps)</h2>
+  <table>
+    <tr><th>Ticket #</th><th>pCode(s)</th><th>Assignment Group</th><th>State</th><th>Type</th><th>Description</th><th>Created</th></tr>
+    
+    <tr class=" team-row">
+      <td>REQ0138312</td>
+      <td><span class="badge">P000389</span> <span class="badge">P000419</span> <span class="badge">P000621</span></td>
+      <td>GCP Engineers</td>
+      <td>More Info Required</td>
+      <td>Request</td>
+      <td>QID-387198 - CVE-2026-31431 - Linux Kernel Local Privilege Escalation Vulnerability (Copy </td>
+      <td>2026-05-07</td>
+    </tr>
+    <tr class="">
+      <td>REQ0138022</td>
+      <td><span class="badge">P000186</span> <span class="badge">P000259</span> <span class="badge">P000389</span> <span class="badge">P000482</span> <span class="badge">P000510</span> <span class="badge">P000621</span></td>
+      <td>OS Engineering</td>
+      <td>More Info Required</td>
+      <td>Request</td>
+      <td>QID-387198 - CVE-2026-31431 - Linux Kernel Local Privilege Escalation Vulnerability (Copy </td>
+      <td>2026-05-05</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0137038</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - access request</td>
+      <td>2026-04-24</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0136841</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Access Request</td>
+      <td>2026-04-23</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0135290</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Access Request</td>
+      <td>2026-04-07</td>
+    </tr>
+    <tr class="">
+      <td>REQ0132363</td>
+      <td><span class="badge">P000483</span></td>
+      <td>Digital Platform Support Team</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>Access to p000483</td>
+      <td>2026-03-03</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0131798</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Unexpected Marketplace Charge</td>
+      <td>2026-02-24</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0130797</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Internal Data Audit</td>
+      <td>2026-02-11</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0130796</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>P000430 - Access Removal</td>
+      <td>2026-02-11</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0127820</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Access Request</td>
+      <td>2026-01-08</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0127350</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Access Request</td>
+      <td>2026-01-05</td>
+    </tr>
+    <tr class="">
+      <td>REQ0124824</td>
+      <td><span class="badge">P000483</span></td>
+      <td>Digital Platform Support Team</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>Request access to P000483 accounts</td>
+      <td>2025-12-02</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0122863</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - SA permissions updates</td>
+      <td>2025-11-07</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0122463</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Private Offer management permissions needd</td>
+      <td>2025-11-03</td>
+    </tr>
+    <tr class="">
+      <td>REQ0122272</td>
+      <td><span class="badge">P000481</span> <span class="badge">P000561</span></td>
+      <td>Cloud Business Office</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>Move Remaining Account P000561 to p000481</td>
+      <td>2025-10-31</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0121592</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Permission removals & report</td>
+      <td>2025-10-22</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0119372</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Add permission ach_viwers</td>
+      <td>2025-09-24</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0119203</td>
+      <td><span class="badge">P000558</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>access to uk-con-gcp-marlin-prd-042625 - p000558</td>
+      <td>2025-09-23</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0118973</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>access to uk-con-gcp-dev01-ach01 p000430</td>
+      <td>2025-09-19</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0118968</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Add permission ach_viwers</td>
+      <td>2025-09-19</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0118333</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>P000430 - add permissions to role in dev project</td>
+      <td>2025-09-10</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0118155</td>
+      <td><span class="badge">P000423</span></td>
+      <td>GCP Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>access to p000423</td>
+      <td>2025-09-09</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0118144</td>
+      <td><span class="badge">P000460</span></td>
+      <td>GCP Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>GCS compliance alert - p000460 OpenCloudforDeloitte-GCP (CSB_0001)</td>
+      <td>2025-09-09</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0118142</td>
+      <td><span class="badge">P000483</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>GCS compliance alert - p000483 PairD -  CMS GCP Support (CSB_0001)</td>
+      <td>2025-09-09</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0117860</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - GCP/VPN Access request</td>
+      <td>2025-09-03</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0116741</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Expand subnet ranges</td>
+      <td>2025-08-18</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0114674</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - GCP/VPN access request</td>
+      <td>2025-07-21</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0114264</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - permissions adjustment</td>
+      <td>2025-07-15</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0114248</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - GCP support cases</td>
+      <td>2025-07-15</td>
+    </tr>
+    <tr class=" team-row">
+      <td>REQ0112972</td>
+      <td><span class="badge">P000430</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td>p000430 - Add permission to viewer role & report</td>
+      <td>2025-07-01</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0048714</td>
+      <td><span class="badge">P000483</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000483 - PairD -  CMS GCP Support (CSB_0539)</td>
+      <td>2026-01-12</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0048676</td>
+      <td><span class="badge">P000576</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000576-Agentic AI Blueprint (CSB_0001)</td>
+      <td>2026-01-07</td>
+    </tr>
+    <tr class="">
+      <td>INC0048658</td>
+      <td><span class="badge">P000460</span></td>
+      <td>Digital Platform Support Team</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000460 OpenCloudforDeloitte-GCP (CSB_0001)</td>
+      <td>2026-01-05</td>
+    </tr>
+    <tr class="">
+      <td>INC0048657</td>
+      <td><span class="badge">P000598</span></td>
+      <td>Digital Platform Support Team</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000598 SR&TA Gemini Enterprise Consumer Production Project (CSB_0</td>
+      <td>2026-01-05</td>
+    </tr>
+    <tr class="">
+      <td>INC0048656</td>
+      <td><span class="badge">P000597</span></td>
+      <td>Digital Platform Support Team</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000597 UK T&T Gemini Enterprise Consumer Production Project (CSB_</td>
+      <td>2026-01-05</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0048576</td>
+      <td><span class="badge">P000491</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000491 Tax Data Science(CSB_0001)</td>
+      <td>2025-12-15</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0048572</td>
+      <td><span class="badge">P000483</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000483 PairD -  CMS GCP Support (CSB_0001)</td>
+      <td>2025-12-15</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0048570</td>
+      <td><span class="badge">P000483</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000483 PairD(CSB_0539)</td>
+      <td>2025-12-15</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0048568</td>
+      <td><span class="badge">P000488</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000488 Deloitte Nordics (CSB_0001)</td>
+      <td>2025-12-15</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0048490</td>
+      <td><span class="badge">P000576</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000576 Agentic AI Blueprint (CSB_0001)</td>
+      <td>2025-12-08</td>
+    </tr>
+    <tr class="">
+      <td>INC0048489</td>
+      <td><span class="badge">P000573</span></td>
+      <td>Digital Platform Support Team</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000573 Agentspace Enterprise 1 (CSB_0001)</td>
+      <td>2025-12-08</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0048486</td>
+      <td><span class="badge">P000556</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000556 Eagle GCP platform (CSB_0001)</td>
+      <td>2025-12-08</td>
+    </tr>
+    <tr class="">
+      <td>INC0048481</td>
+      <td><span class="badge">P000460</span></td>
+      <td>Digital Platform Support Team</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000460 OpenCloudforDeloitte-GCP (CSB_0001)</td>
+      <td>2025-12-08</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0047747</td>
+      <td><span class="badge">P000483</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000483 PairD -  CMS GCP Support (CSB_0001)</td>
+      <td>2025-10-08</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0047746</td>
+      <td><span class="badge">P000483</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alerts - p000483 PairD -  CMS GCP Support (CSB_0513)</td>
+      <td>2025-10-08</td>
+    </tr>
+    <tr class="">
+      <td>INC0047452</td>
+      <td><span class="badge">P000082</span></td>
+      <td>Digital Platform Support Team</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alert - p000082 Cloud Management Platform (CSB_0119)</td>
+      <td>2025-09-15</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0047427</td>
+      <td><span class="badge">P000483</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alert - p000483 PairD -  CMS GCP Support (CSB_0072)</td>
+      <td>2025-09-12</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0047388</td>
+      <td><span class="badge">P000568</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alert - p000568 National Highways (CSB_0001)</td>
+      <td>2025-09-09</td>
+    </tr>
+    <tr class=" team-row">
+      <td>INC0047381</td>
+      <td><span class="badge">P000491</span></td>
+      <td>Service Ops Engineers</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td>GCS compliance alert - p000491 Tax Data Science (CSB_0001)</td>
+      <td>2025-09-09</td>
+    </tr>
+  </table>
+</div>
+
+</div>
+
+<script>
+const months = ['2025-07', '2025-08', '2025-09', '2025-10', '2025-11', '2025-12', '2026-01', '2026-02', '2026-03', '2026-04', '2026-05'];
+const allData = [70, 96, 87, 86, 65, 33, 70, 77, 53, 77, 11];
+const teamData = [33, 25, 57, 25, 16, 10, 22, 19, 17, 21, 1];
+const pcodeData = [4, 1, 13, 4, 2, 9, 7, 3, 1, 3, 2];
+
+new Chart(document.getElementById('monthChart'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      { label: 'All Tickets', data: allData, backgroundColor: 'rgba(26,115,232,0.25)', borderColor: '#1a73e8', borderWidth: 1.5, type: 'bar' },
+      { label: 'GCP Eng + SolOps', data: teamData, backgroundColor: 'rgba(52,168,83,0.7)', borderColor: '#34a853', borderWidth: 1.5, type: 'line', fill: false, tension: 0.3, pointRadius: 4 },
+      { label: 'pCode Tickets', data: pcodeData, backgroundColor: 'rgba(234,67,53,0.7)', borderColor: '#ea4335', borderWidth: 1.5, type: 'line', fill: false, tension: 0.3, pointRadius: 4 }
+    ]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }
+});
+
+const taskLabels = ['Catalog Task', 'Requested Item', 'Request', 'Problem', 'Incident', 'Change Task', 'Change Request'];
+const taskVals = [27, 42, 445, 1, 36, 83, 91];
+new Chart(document.getElementById('taskChart'), {
+  type: 'doughnut',
+  data: {
+    labels: taskLabels,
+    datasets: [{ data: taskVals, backgroundColor: ['#1a73e8','#34a853','#fbbc04','#ea4335','#9c27b0','#00bcd4'] }]
+  },
+  options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+});
+</script>
+</body>
+</html>

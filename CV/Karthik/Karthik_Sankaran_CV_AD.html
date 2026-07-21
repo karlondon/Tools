@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Karthik Sankaran – CV</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #f0f0f0;
+      padding: 30px 20px;
+    }
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 50px 60px;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 4px solid #1b4f72;
+      padding-bottom: 20px;
+      margin-bottom: 26px;
+    }
+    .header-left h1 { font-size: 34px; color: #1b4f72; letter-spacing: 0.5px; }
+    .header-left .tagline { font-size: 14px; color: #444; margin-top: 5px; font-weight: 500; }
+    .header-right { text-align: right; font-size: 13px; color: #666; line-height: 1.9; }
+
+    /* Section headings */
+    h2 {
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #1b4f72;
+      border-bottom: 1.5px solid #d0e8f5;
+      padding-bottom: 5px;
+      margin: 30px 0 14px;
+    }
+
+    /* Summary */
+    .summary { line-height: 1.7; color: #2c2c2c; }
+
+    /* Stats bar */
+    .stats {
+      display: flex;
+      gap: 0;
+      margin: 20px 0 0;
+      border: 1px solid #d0e8f5;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .stat {
+      flex: 1;
+      text-align: center;
+      padding: 14px 10px;
+      border-right: 1px solid #d0e8f5;
+      background: #f7fbff;
+    }
+    .stat:last-child { border-right: none; }
+    .stat .num { font-size: 22px; font-weight: 700; color: #1b4f72; }
+    .stat .label { font-size: 11px; color: #666; margin-top: 2px; }
+
+    /* Competencies */
+    .competencies { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+    .competency {
+      padding: 8px 12px;
+      background: #eaf4fb;
+      border-left: 3px solid #1b4f72;
+      font-size: 12.5px;
+      line-height: 1.4;
+    }
+    .competency strong { color: #1b4f72; display: block; margin-bottom: 2px; }
+
+    /* Project cards */
+    .project {
+      border: 1px solid #e0eaf2;
+      border-radius: 5px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      position: relative;
+    }
+    .project-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .project-title { font-size: 14.5px; font-weight: 700; color: #1b4f72; }
+    .project-role { font-size: 12px; color: #fff; background: #1b4f72; padding: 2px 9px; border-radius: 10px; white-space: nowrap; margin-left: 10px; }
+    .project-client { font-size: 12.5px; color: #555; margin-bottom: 6px; font-style: italic; }
+    .project ul { padding-left: 18px; }
+    .project ul li { margin-bottom: 4px; line-height: 1.55; font-size: 13px; }
+    .project .impact {
+      display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;
+    }
+    .badge {
+      background: #e8f8f0;
+      border: 1px solid #27ae60;
+      color: #1e8449;
+      font-size: 11.5px;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+
+    /* Role block (non-project) */
+    .role { margin-bottom: 26px; }
+    .role-header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+    .role-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+    .role-org { font-size: 13px; color: #555; }
+    .role-date { font-size: 13px; color: #888; white-space: nowrap; margin-left: 12px; }
+    .sub-label {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+      color: #1b4f72; font-weight: 600; margin: 10px 0 5px;
+    }
+    ul { padding-left: 18px; }
+    ul li { margin-bottom: 5px; line-height: 1.55; }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }
+    th { background: #1b4f72; color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; }
+    td { padding: 7px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+    tr:nth-child(even) td { background: #f7fbff; }
+    .skills-table td:first-child { font-weight: 600; color: #1b4f72; width: 220px; }
+
+    /* Certs */
+    .certs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .cert {
+      font-size: 12.5px; padding: 5px 10px;
+      background: #f7fbff; border-left: 3px solid #1b4f72;
+    }
+
+    /* Education / interests */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page { box-shadow: none; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Karthik Sankaran</h1>
+      <div class="tagline">Associate Director &nbsp;|&nbsp; Head of Cloud Engineering &nbsp;|&nbsp; GCP &middot; Azure &middot; AWS &nbsp;|&nbsp; 30+ Years Experience</div>
+    </div>
+    <div class="header-right">
+      📧 karthik.a.sankaran@outlook.com<br>
+      📞 +44 747 130 2755<br>
+      📍 United Kingdom
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <h2>Executive Summary</h2>
+  <p class="summary">
+    Senior technology leader and <strong>Senior Manager at Deloitte</strong> with over <strong>30 years of experience</strong> delivering large-scale cloud transformation, infrastructure modernisation, and managed services programmes for global Financial Services, Retail, and Manufacturing clients. Proven track record of building and leading high-performing engineering teams, driving automation-led operational efficiency, and acting as a trusted advisor to C-suite stakeholders. Deep technical expertise across <strong>GCP, Azure, and AWS</strong>, combined with strong commercial acumen and a passion for engineering craft and innovation. Currently leading the GCP Engineering stream at Deloitte Cloud Managed Services on an interim basis, with responsibility for strategy, delivery, and team development.
+  </p>
+
+  <!-- Stats bar -->
+  <div class="stats">
+    <div class="stat"><div class="num">30+</div><div class="label">Years in Technology</div></div>
+    <div class="stat"><div class="num">95%</div><div class="label">Faster GCP Provisioning</div></div>
+    <div class="stat"><div class="num">50%</div><div class="label">Cost Reduction Delivered</div></div>
+    <div class="stat"><div class="num">£1.2M</div><div class="label">Azure Cost Savings (Accenture)</div></div>
+    <div class="stat"><div class="num">15,000</div><div class="label">Users — Cisco WebEx Rollout</div></div>
+  </div>
+
+  <!-- Core Competencies -->
+  <h2>Core Competencies</h2>
+  <div class="competencies">
+    <div class="competency"><strong>Technology Leadership</strong>Leading engineering teams, setting cloud strategy, interim head of GCP Engineering at Deloitte</div>
+    <div class="competency"><strong>Cloud Architecture</strong>GCP, Azure, AWS — multi-cloud design, landing zones, hybrid cloud, enterprise-scale IaC</div>
+    <div class="competency"><strong>Programme Delivery</strong>End-to-end delivery of complex cloud transformation and managed services programmes</div>
+    <div class="competency"><strong>DevOps & Automation</strong>CI/CD pipelines, GitHub Actions, Azure DevOps, Terraform, reusable automation frameworks</div>
+    <div class="competency"><strong>Stakeholder Management</strong>Trusted advisor to client C-suite; managing expectations across global, cross-functional teams</div>
+    <div class="competency"><strong>Commercial Acumen</strong>Delivering cost reduction, resource optimisation, and business value from technology investment</div>
+    <div class="competency"><strong>People & Team Development</strong>Mentoring engineers, growing team capability, supporting apprenticeship programmes since 2017</div>
+    <div class="competency"><strong>Security & Compliance</strong>Okta, IAM, Workload Identity Federation, Trend Micro, ITIL V4, cloud security standards</div>
+    <div class="competency"><strong>Governance & Process</strong>ITSM (ServiceNow), SLA management, School Governor, Scrum Master, audit-ready delivery</div>
+  </div>
+
+  <!-- Career History -->
+  <h2>Career History</h2>
+
+  <!-- Deloitte -->
+  <div class="role">
+    <div class="role-header">
+      <div>
+        <div class="role-title">Senior Manager – Solutions &nbsp;<span style="font-weight:400;font-size:13px;color:#555;">| previously Manager &amp; Senior Consultant</span></div>
+        <div class="role-org">Deloitte MCS &nbsp;|&nbsp; Cloud Managed Services</div>
+      </div>
+      <div class="role-date">Oct 2020 – Present</div>
+    </div>
+
+    <div class="sub-label">Leadership & Strategic Impact</div>
+    <ul>
+      <li>Appointed interim <strong>Head of GCP Engineering</strong> within Deloitte Cloud Managed Services — leading the engineering team, setting technical direction, and overseeing delivery quality across all GCP workstreams.</li>
+      <li>Led a smooth transition of GCP Engineering responsibilities from the ERDC team with minimal disruption to clients or operations.</li>
+      <li>Championing GCP standardisation across the CMS practice, defining engineering standards and guiding the GCP practice maturity roadmap.</li>
+      <li>Supporting the Deloitte Apprenticeship Programme and actively mentoring junior engineers and consultants.</li>
+      <li>Recognised by senior leadership for aligning delivery approach with Deloitte's Engineering CRAFT principles.</li>
+    </ul>
+  </div>
+
+  <!-- Key Projects -->
+  <h2>Key Projects & Achievements</h2>
+
+  <div class="project">
+    <div class="project-header">
+      <div class="project-title">GCP Project Vending Pipeline — Deloitte Cloud Managed Services</div>
+      <div class="project-role">Engineering Lead</div>
+    </div>
+    <div class="project-client">Deloitte Internal &amp; External Clients | 2024–Present</div>
+    <ul>
+      <li>Initiated and led the end-to-end design and delivery of a fully automated GCP project vending pipeline, now in production across Deloitte's managed cloud estate.</li>
+      <li>Integrated Okta group creation, user provisioning, and GitHub Actions workflows directly into the pipeline — eliminating manual steps and reducing human error.</li>
+      <li>Developed reusable automation scripts deployable across multiple clients, saving over 6 hours per engagement on reporting and data gathering tasks.</li>
+    </ul>
+    <div class="impact">
+      <span class="badge">95% faster provisioning (5 hrs → &lt;1 hr)</span>
+      <span class="badge">~50% operational cost reduction</span>
+      <span class="badge">Fully automated OKTA + GitHub Actions integration</span>
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-header">
+      <div class="project-title">West Brom Building Society — GCP Environment Build</div>
+      <div class="project-role">GCP Lead</div>
+    </div>
+    <div class="project-client">West Bromwich Building Society | 2024–Present</div>
+    <ul>
+      <li>Sole GCP technical lead supporting West Brom's non-production GCP environment, enabling their address validation tool API and Google SecOps instance.</li>
+      <li>Designed and implemented cross-cloud backup architecture, facilitating AWS-to-GCP backup pipelines for resilience and data sovereignty.</li>
+      <li>Acted as primary technical advisor, translating client requirements into GCP-native solutions and managing all engineering delivery.</li>
+    </ul>
+    <div class="impact">
+      <span class="badge">Multi-cloud (AWS + GCP) architecture</span>
+      <span class="badge">Google SecOps deployment</span>
+      <span class="badge">Client-facing technical leadership</span>
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-header">
+      <div class="project-title">Global Manufacturing — Azure Landing Zone &amp; Hybrid Cloud</div>
+      <div class="project-role">Azure Workstream Lead &amp; Architect</div>
+    </div>
+    <div class="project-client">Global Manufacturing Client | Deloitte</div>
+    <ul>
+      <li>Led Azure workstream and acted as Cloud Architect for enterprise-scale landing zone design based on Open Cloud Framework.</li>
+      <li>Architected hybrid cloud design and implementation across multiple global business unit sites.</li>
+      <li>Developed infrastructure as code using Terraform, deployed via Buildkite pipelines for repeatable, auditable delivery.</li>
+    </ul>
+    <div class="impact">
+      <span class="badge">Enterprise Landing Zone</span>
+      <span class="badge">Global multi-site delivery</span>
+      <span class="badge">Terraform + Buildkite IaC</span>
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-header">
+      <div class="project-title">Large Retail Bank UAE — Digital Banking Platform</div>
+      <div class="project-role">Azure Infrastructure DevOps Engineer</div>
+    </div>
+    <div class="project-client">UAE Retail Bank | Deloitte</div>
+    <ul>
+      <li>Designed and implemented Azure cloud infrastructure for a new digital banking platform using Terraform and Buildkite pipelines.</li>
+      <li>Delivered secure, scalable infrastructure to support digital banking services for a regulated financial institution.</li>
+    </ul>
+    <div class="impact">
+      <span class="badge">Financial Services cloud delivery</span>
+      <span class="badge">Azure DevOps</span>
+    </div>
+  </div>
+
+  <!-- Accenture -->
+  <div class="role" style="margin-top:10px;">
+    <div class="role-header">
+      <div>
+        <div class="role-title">Cloud Migration &amp; Implementation Delivery Associate Manager</div>
+        <div class="role-org">Accenture</div>
+      </div>
+      <div class="role-date">2016 – 2020</div>
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-header">
+      <div class="project-title">Global Insurance Broker — Azure Cloud Migration</div>
+      <div class="project-role">Data Centre Design Lead &amp; Azure SME</div>
+    </div>
+    <div class="project-client">Global Insurance Broker | Accenture</div>
+    <ul>
+      <li>Led the design and build of a large-scale, UK-first migration of financial applications and infrastructure to Microsoft Azure — one of the most significant cloud migrations in the UK financial services sector at the time.</li>
+      <li>Delivery lead for end-to-end migration of ecommerce environment from on-premises datacentre to Azure.</li>
+      <li>Led Azure Optimisation &amp; Redesign project — assessed and implemented measures to reduce cloud spend, delivering approximately <strong>£1.2 million in savings</strong>.</li>
+    </ul>
+    <div class="impact">
+      <span class="badge">£1.2M Azure cost savings</span>
+      <span class="badge">UK-first financial cloud migration</span>
+      <span class="badge">End-to-end delivery lead</span>
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-header">
+      <div class="project-title">UK Communications &amp; Media — Cisco WebEx Enterprise Rollout</div>
+      <div class="project-role">Technology Lead</div>
+    </div>
+    <div class="project-client">UK Communications &amp; Media Client | Accenture</div>
+    <ul>
+      <li>Led the technical release and enterprise-wide adoption of Cisco WebEx to <strong>15,000 users</strong>, managing cross-functional teams and stakeholder communications throughout.</li>
+    </ul>
+    <div class="impact">
+      <span class="badge">15,000-user rollout</span>
+      <span class="badge">Technical delivery lead</span>
+    </div>
+  </div>
+
+  <div class="project">
+    <div class="project-header">
+      <div class="project-title">Large UK Retail Bank — Cloud Enablement &amp; Architecture</div>
+      <div class="project-role">Delivery Lead &amp; Cloud Architect</div>
+    </div>
+    <div class="project-client">UK Retail Bank | Accenture</div>
+    <ul>
+      <li>Led cloud enablement for application stakeholders, developing cloud-native reference architectures and working directly with client architects on their cloud journey strategy.</li>
+    </ul>
+    <div class="impact">
+      <span class="badge">Cloud-native reference architectures</span>
+      <span class="badge">Stakeholder cloud enablement</span>
+    </div>
+  </div>
+
+  <!-- Earlier career -->
+  <h2>Earlier Career</h2>
+  <table>
+    <thead><tr><th>Role</th><th>Organisation</th><th>Period</th><th>Key Contribution</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>Consultant / Azure SME</td>
+        <td>Avanade, Singapore</td>
+        <td>2013–2015</td>
+        <td>Solution Architect for Azure-hosted Sitecore platform; SME for Government, Marina Bay Sands, and Fuji Xerox bids</td>
+      </tr>
+      <tr>
+        <td>Senior Analyst / Infrastructure Consultant</td>
+        <td>Avanade Pty, Australia</td>
+        <td>2011–2013</td>
+        <td>Led SCCM infrastructure readiness across 6 asset sites; VDI PoC infrastructure build and delivery</td>
+      </tr>
+      <tr>
+        <td>Executive / Release &amp; Config Manager</td>
+        <td>Barclays Capital Services, Singapore</td>
+        <td>2007–2011</td>
+        <td>PoC for LEH-to-Barclays SCCM migration; £150K infrastructure consolidation saving</td>
+      </tr>
+      <tr>
+        <td>Project Lead</td>
+        <td>Medsys E-Solutions, Dubai</td>
+        <td>2005–2007</td>
+        <td>Desktop migration lead for global bank in UAE; 1,000+ application repackaging; 14-country EMEA PoC</td>
+      </tr>
+      <tr>
+        <td>IT Consultant / Packaging SME</td>
+        <td>LogicaCMG, India</td>
+        <td>2004–2005</td>
+        <td>Developed Application Tracker Tool and automated MSI packaging tool; 300+ applications packaged</td>
+      </tr>
+      <tr>
+        <td>Software Engineer</td>
+        <td>HP Global Delivery Centre, India</td>
+        <td>2002–2004</td>
+        <td>Application repackaging for KPMG UK, Fidelity; Process Improvement Plan contributor</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Certifications -->
+  <h2>Professional Certifications</h2>
+  <div class="certs">
+    <div class="cert">☁️ Microsoft Certified: Azure Solutions Architect Expert</div>
+    <div class="cert">☁️ Microsoft Certified: DevOps Engineer Expert</div>
+    <div class="cert">☁️ Google Cloud Certified: Associate Cloud Engineer</div>
+    <div class="cert">☁️ AWS Certified: Solutions Architect Associate</div>
+    <div class="cert">🔒 MCSE: Cloud Platform and Infrastructure</div>
+    <div class="cert">🔒 MCSA: Cloud Platform</div>
+    <div class="cert">🔒 MS: Server Virtualisation with Hyper-V &amp; System Center</div>
+    <div class="cert">📋 ITIL V4 Foundation</div>
+    <div class="cert">📋 ITIL4 Specialist: Acquiring &amp; Managing Cloud Services</div>
+    <div class="cert">📋 Certified ScrumMaster®</div>
+  </div>
+
+  <!-- Education & Interests -->
+  <h2>Education &amp; Community</h2>
+  <div class="two-col">
+    <div>
+      <p style="font-size:13px;font-weight:600;color:#1b4f72;margin-bottom:6px;">Education</p>
+      <p><strong>Master's in Computer Applications (MCA)</strong></p>
+      <p style="font-size:12.5px;color:#555;">Madurai Kamaraj University, India — First Class Honours (1999–2002)</p>
+      <br>
+      <p><strong>BSc Mathematics</strong></p>
+      <p style="font-size:12.5px;color:#555;">Bharathidasan University, India — First Class Honours (1992–1995)</p>
+    </div>
+    <div>
+      <p style="font-size:13px;font-weight:600;color:#1b4f72;margin-bottom:6px;">Community &amp; Leadership</p>
+      <ul style="padding-left:16px;">
+        <li style="margin-bottom:6px;font-size:13px;"><strong>School Governor</strong> — Curriculum &amp; Student Committee, local school (2018–present)</li>
+        <li style="font-size:13px;"><strong>Apprenticeship Programme Champion</strong> — Supporting early-career technologists at Deloitte (2017–present)</li>
+      </ul>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

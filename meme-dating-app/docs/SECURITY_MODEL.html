@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Security Model — Meme Dating App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="topnav"><div class="inner">
+  <a href="index.html">Home</a>
+  <a href="ARCHITECTURE.html" class="">Architecture</a>
+  <a href="SECURITY_MODEL.html" class="active">Security Model</a>
+  <a href="IMPLEMENTATION_GUIDE.html" class="">Implementation Guide</a>
+</div></nav>
+<div class="wrap">
+<h1 id="meme-dating-app--security-model">Meme Dating App — Security
+Model</h1>
+<p>Dating apps handle some of the most sensitive data categories that
+exist: precise location, sexual orientation/preference, private photos,
+and private messages. A breach is not just a PR problem — it can put
+users at real physical risk. Treat security as a launch blocker, not a
+post-launch cleanup task.</p>
+<h2 id="1-threat-model">1. Threat Model</h2>
+<table>
+<thead>
+<tr>
+<th>Actor</th>
+<th>Motivation</th>
+<th>Example Attack</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Malicious user</td>
+<td>Harassment, stalking, scamming</td>
+<td>Fake profile, location deanonymization, catfishing, romance
+scams</td>
+</tr>
+<tr>
+<td>Competitor / scraper</td>
+<td>Data theft</td>
+<td>Scraping profiles/photos at scale via API abuse</td>
+</tr>
+<tr>
+<td>Criminal (external attacker)</td>
+<td>Financial gain, extortion</td>
+<td>Account takeover, data breach for blackmail (dating data is
+high-leverage for extortion)</td>
+</tr>
+<tr>
+<td>Insider</td>
+<td>Curiosity, malice</td>
+<td>Engineer/support agent browsing private messages or photos without
+cause</td>
+</tr>
+<tr>
+<td>Nation-state / advanced actor</td>
+<td>Surveillance</td>
+<td>Unlikely for MVP, but relevant if targeting sensitive populations
+(e.g., LGBTQ+ users in hostile jurisdictions)</td>
+</tr>
+<tr>
+<td>CSAM/exploitation actor</td>
+<td>Abuse of platform</td>
+<td>Uploading illegal content, grooming minors</td>
+</tr>
+</tbody>
+</table>
+<h2 id="2-identity--access-management">2. Identity &amp; Access
+Management</h2>
+<h3 id="21-user-authentication">2.1 User Authentication</h3>
+<ul>
+<li><strong>Firebase Auth</strong> for identity: phone number (SMS OTP)
+or email/social login. Phone verification is strongly recommended as the
+primary factor — raises the cost of mass fake-account creation.</li>
+<li>Enforce <strong>email/phone verification before profile
+visibility</strong> — unverified accounts cannot appear in the swipe
+deck.</li>
+<li><strong>Age gate</strong>: mandatory birthdate at signup, hard block
+under 18 (dating apps are 18+ only — Apple/Google will reject
+otherwise). Do not rely on self-attestation alone if budget allows a
+third-party age-verification/ID-check vendor for at least a sample or on
+report.</li>
+<li>Session tokens: short-lived Firebase ID tokens (1 hour) + refresh
+tokens; revoke refresh tokens on logout, password change, or suspicious
+activity.</li>
+</ul>
+<h3 id="22-service-to-service-iam">2.2 Service-to-Service IAM</h3>
+<ul>
+<li>Every Cloud Run service gets its <strong>own dedicated service
+account</strong> with least-privilege IAM bindings (e.g., Chat Service
+can write to <code>chats/*</code> Firestore collection only, not
+<code>profiles/*</code>).</li>
+<li>No service uses the default Compute Engine service account.</li>
+<li>Use <strong>Workload Identity Federation</strong> for CI/CD (Cloud
+Build/GitHub Actions) instead of long-lived JSON key files.</li>
+<li>VPC Service Controls around the project to prevent data exfiltration
+to unauthorized GCP projects.</li>
+</ul>
+<h3 id="23-internal-employeeadmin-access">2.3 Internal (Employee/Admin)
+Access</h3>
+<ul>
+<li>Admin/support console requires SSO + mandatory MFA (Google Workspace
++ a hardware key or authenticator app).</li>
+<li><strong>All access to raw user data (messages, photos, precise
+location) by employees is logged and requires a documented
+reason</strong> (support ticket ID) — build an audit trail (Cloud Audit
+Logs), not just access control.</li>
+<li>Principle of least privilege: support agents get a redacted view
+(e.g., can see "user reported for harassment" context) without needing
+full message history unless escalated.</li>
+</ul>
+<h2 id="3-data-protection">3. Data Protection</h2>
+<h3 id="31-encryption">3.1 Encryption</h3>
+<ul>
+<li><strong>In transit</strong>: TLS 1.3 everywhere — client↔︎LB, and
+service↔︎service within GCP (Cloud Run supports this by default within
+the VPC boundary; enforce via Cloud Armor/LB config).</li>
+<li><strong>At rest</strong>: Firestore and Cloud Storage are encrypted
+at rest by default (Google-managed keys). For an extra layer on the most
+sensitive fields (precise geolocation, private photos), use
+<strong>Cloud KMS customer-managed encryption keys (CMEK)</strong> so
+Google's own operational access is also gated by your key policy.</li>
+<li><strong>Chat messages</strong>: consider client-side encryption
+(E2E) for message bodies as a differentiator/trust signal — even if not
+full E2E at MVP, encrypt message content at the application layer with a
+key not directly tied to the raw Firestore document, so a
+Firestore-level breach doesn't equal plaintext message leakage.</li>
+</ul>
+<h3 id="32-location-privacy-critical-for-dating-apps">3.2 Location
+Privacy (Critical for Dating Apps)</h3>
+<p>This is the single most important dating-app-specific control —
+multiple dating apps have been publicly shown to leak precise user
+location, enabling stalking.</p>
+<ul>
+<li><strong>Never send precise lat/long to the client for other
+users.</strong> Only send a coarse distance ("3 miles away") or a
+fuzzed/truncated geohash.</li>
+<li>Store precise location server-side only, used internally for
+candidate ranking; round/fuzz before any value leaves the backend.</li>
+<li>Add randomized jitter (e.g., ±0.5–1 mile) to displayed distance,
+re-randomized periodically, to prevent trilateration attacks (repeated
+distance queries from fake moved positions to triangulate exact
+location).</li>
+<li>Rate-limit and monitor for the trilateration pattern specifically:
+many profile-view requests for the same target from the "attacker"
+account, or an attacker account whose reported location changes
+unnaturally fast.</li>
+</ul>
+<h3 id="33-photomeme-content">3.3 Photo/Meme Content</h3>
+<ul>
+<li>Strip <strong>EXIF metadata</strong> (which can contain GPS
+coordinates, device info) from all uploaded images server-side before
+storage — do this unconditionally, never trust the client to have done
+it.</li>
+<li>Signed, time-limited URLs for private media (e.g., photos not yet
+public/matched) rather than public Cloud Storage buckets.</li>
+<li><strong>CSAM detection is mandatory, not optional</strong>:
+integrate Google's CSAI Match API (or equivalent) on every image upload
+before it becomes visible to any other user. Report confirmed matches to
+NCMEC per legal obligation (US) — consult legal counsel on
+jurisdiction-specific reporting requirements before launch.</li>
+</ul>
+<h3 id="34-pii-minimization">3.4 PII Minimization</h3>
+<ul>
+<li>Collect only what's needed: don't require full legal name, exact
+address, etc.</li>
+<li>Support <strong>account deletion that actually deletes</strong> (or
+irreversibly anonymizes) data within a committed SLA (e.g., 30 days),
+including backups — required for GDPR/CCPA compliance and increasingly
+expected by users of sensitive apps.</li>
+<li>Data retention policy: define explicit TTLs for swipe logs,
+rejected/unmatched profile views, and moderation queue items rather than
+retaining indefinitely.</li>
+</ul>
+<h2 id="4-application-layer-security">4. Application-Layer Security</h2>
+<h3 id="41-api-security">4.1 API Security</h3>
+<ul>
+<li>All endpoints require a valid Firebase Auth JWT; validate signature,
+expiry, and audience on every request at the API Gateway layer (don't
+trust individual services to re-implement this correctly).</li>
+<li><strong>Rate limiting per user AND per IP</strong> on: swipe
+actions, message sends, profile views, signup/OTP requests (prevents
+scraping, spam, and OTP-bombing abuse).</li>
+<li>Input validation and output encoding on all user-generated text
+(bios, chat messages) to prevent stored XSS if any web surface exists
+(e.g., admin panel rendering user content).</li>
+<li>CSRF protection on any web-based admin/support tooling.</li>
+</ul>
+<h3 id="42-abuse--trust-safety">4.2 Abuse &amp; Trust Safety</h3>
+<ul>
+<li><strong>Block/report is a day-one feature, not a
+fast-follow.</strong> Blocking must be immediate and bidirectional
+(blocked user can't see or message the blocker, and vice versa) and must
+survive re-matching logic.</li>
+<li>Shadow-ban capability for accounts under investigation (reduce their
+visibility without alerting them, pending review).</li>
+<li>Automated fake-account signals: device fingerprint reuse, disposable
+phone number/email detection, velocity checks (accounts created per
+device/IP per hour).</li>
+<li>Text moderation (toxicity/harassment classifier) on chat messages
+and bios, with a human review queue for edge cases — don't rely on pure
+automation for account bans, which are high-stakes
+false-positive-sensitive actions.</li>
+</ul>
+<h3 id="43-payment-security">4.3 Payment Security</h3>
+<ul>
+<li>No card data ever touches your backend — Play Billing / StoreKit
+handle PCI scope entirely.</li>
+<li>Server-side receipt validation only (never trust client-reported
+purchase state) via Play Developer API / App Store Server API before
+granting entitlements.</li>
+</ul>
+<h2 id="5-infrastructure-security">5. Infrastructure Security</h2>
+<ul>
+<li><strong>Cloud Armor</strong> WAF rules (OWASP Top 10 rule set) in
+front of the Load Balancer.</li>
+<li><strong>VPC Service Controls</strong> to create a service perimeter
+around Firestore/Storage/BigQuery — prevents data exfiltration even if a
+credential leaks.</li>
+<li><strong>Secret Manager</strong> for all API keys/secrets; no secrets
+in source, container images, or environment variable literals in
+Terraform state.</li>
+<li><strong>Binary Authorization</strong> on Cloud Run: only allow
+deployment of container images signed/built by your CI pipeline,
+blocking unauthorized image deploys.</li>
+<li>Dependency scanning (Cloud Build integration with a SCA tool, or
+GitHub Dependabot) on both backend and Flutter dependencies.</li>
+<li>Regular <strong>penetration testing</strong> before major launches —
+dating apps are a high-value target class; budget for at least one
+third-party pentest pre-GA.</li>
+</ul>
+<h2 id="6-compliance-checklist">6. Compliance Checklist</h2>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Applies When</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GDPR</td>
+<td>Any EU users</td>
+<td>DPA with GCP, data subject access/deletion requests, lawful basis
+for processing, EU data residency if required</td>
+</tr>
+<tr>
+<td>CCPA/CPRA</td>
+<td>California users</td>
+<td>Privacy policy disclosures, opt-out of data sale (you're not selling
+data — say so explicitly), deletion rights</td>
+</tr>
+<tr>
+<td>COPPA</td>
+<td>Any minor could sign up</td>
+<td>Hard 18+ age gate, no data collection from under-13s (should be
+entirely blocked)</td>
+</tr>
+<tr>
+<td>Apple App Store Guideline 1.2 (UGC)</td>
+<td>Always, for UGC apps</td>
+<td>Report/block mechanism, content moderation, ability to filter
+objectionable content, 24-hour moderation response capability</td>
+</tr>
+<tr>
+<td>Google Play Dating/Social Policy</td>
+<td>Always</td>
+<td>Similar UGC + safety requirements, plus Play's own age/verification
+expectations</td>
+</tr>
+<tr>
+<td>CSAM reporting (NCMEC, US)</td>
+<td>Always, any image upload</td>
+<td>Automated detection + mandatory reporting pipeline (Section
+3.3)</td>
+</tr>
+<tr>
+<td>State-level dating safety laws</td>
+<td>US — e.g., some states require ID verification or safety disclosures
+for dating apps</td>
+<td>Check current requirements in your launch states before GA</td>
+</tr>
+</tbody>
+</table>
+<h2 id="7-incident-response">7. Incident Response</h2>
+<ul>
+<li>Define an <strong>incident response runbook</strong> before launch:
+who's on call, escalation path, user notification templates for a
+breach.</li>
+<li>Log retention sufficient for forensic investigation (Cloud Audit
+Logs, application logs) — balance against the PII minimization principle
+above (retain access logs longer than raw content where possible).</li>
+<li>Pre-drafted breach notification process meeting GDPR's 72-hour
+requirement if EU users are in scope.</li>
+</ul>
+<h2 id="8-security-ownership-summary">8. Security Ownership Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Primary Control</th>
+<th>Owner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Network edge</td>
+<td>Cloud Armor, Load Balancer TLS</td>
+<td>Platform/Infra</td>
+</tr>
+<tr>
+<td>AuthN/AuthZ</td>
+<td>Firebase Auth, IAM least privilege</td>
+<td>Backend</td>
+</tr>
+<tr>
+<td>Data at rest</td>
+<td>Firestore/Storage encryption, CMEK</td>
+<td>Platform/Infra</td>
+</tr>
+<tr>
+<td>Location privacy</td>
+<td>Server-side fuzzing, geohash truncation</td>
+<td>Backend (Match Engine)</td>
+</tr>
+<tr>
+<td>Content safety</td>
+<td>CSAM scan, moderation pipeline</td>
+<td>Trust &amp; Safety</td>
+</tr>
+<tr>
+<td>Payments</td>
+<td>Play Billing/StoreKit + server validation</td>
+<td>Backend (Billing)</td>
+</tr>
+<tr>
+<td>Mobile client</td>
+<td>Secure storage, cert pinning</td>
+<td>Mobile</td>
+</tr>
+<tr>
+<td>Compliance</td>
+<td>Privacy policy, deletion SLAs, reporting</td>
+<td>Legal + Backend</td>
+</tr>
+</tbody>
+</table>
+</div>
+</body>
+</html>

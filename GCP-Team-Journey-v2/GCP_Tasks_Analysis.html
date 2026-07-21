@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GCP Engineers — Task Ticket Analysis</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4fb;color:#222}
+header{background:linear-gradient(135deg,#1a73e8 0%,#0d47a1 100%);color:#fff;padding:36px 48px}
+header h1{font-size:1.9rem;font-weight:700;margin-bottom:6px}
+header p{opacity:.82;font-size:.95rem}
+.container{max-width:1280px;margin:0 auto;padding:32px 24px}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:32px}
+.kpi{background:#fff;border-radius:12px;padding:22px 18px;box-shadow:0 2px 10px rgba(0,0,0,.07);text-align:center}
+.kpi .num{font-size:2.6rem;font-weight:800;color:#1a73e8;line-height:1}
+.kpi .lbl{font-size:.78rem;color:#777;margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
+.section{background:#fff;border-radius:12px;padding:26px 28px;margin-bottom:26px;box-shadow:0 2px 10px rgba(0,0,0,.07)}
+.section h2{font-size:1rem;color:#1a73e8;border-bottom:2px solid #e8f0fe;padding-bottom:10px;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:.86rem}
+th{background:#e8f0fe;color:#1565c0;padding:9px 11px;text-align:left;font-weight:600}
+td{padding:7px 11px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+tr:hover td{background:#f5f8ff}
+.team-row td{background:#edf7ed}
+.team-row:hover td{background:#d6f0d6}
+.badge{display:inline-block;background:#1a73e8;color:#fff;border-radius:20px;padding:2px 10px;font-size:.75rem;margin:1px;font-weight:500}
+.badge-green{background:#34a853}
+.bar{display:inline-block;height:13px;border-radius:3px;vertical-align:middle;margin-left:6px}
+.chart-wrap{position:relative;height:260px}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.pcode-list{margin-bottom:14px;line-height:2}
+.note{font-size:.78rem;color:#999;margin-top:8px}
+@media(max-width:700px){.two-col{grid-template-columns:1fr}header{padding:24px 20px}.container{padding:16px 12px}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+<header>
+  <h1>📊 GCP Engineers — Task Ticket Analysis</h1>
+  <p>Source: task.xlsx &nbsp;|&nbsp; Generated 08 May 2026 16:07 &nbsp;|&nbsp; Covering 2025-07 → 2026-05</p>
+</header>
+<div class="container">
+
+<!-- KPI Cards -->
+<div class="kpi-grid">
+  <div class="kpi"><div class="num">69</div><div class="lbl">Total Tickets</div></div>
+  <div class="kpi"><div class="num">7</div><div class="lbl">Tickets with pCode</div></div>
+  <div class="kpi"><div class="num">6</div><div class="lbl">Unique pCodes (Clients)</div></div>
+  <div class="kpi"><div class="num">69</div><div class="lbl">GCP Eng / SolOps</div></div>
+  <div class="kpi"><div class="num">11</div><div class="lbl">Months Active</div></div>
+  <div class="kpi"><div class="num">3</div><div class="lbl">Engineers Involved</div></div>
+</div>
+
+<!-- pCode Summary -->
+<div class="section">
+  <h2>🏷️ Unique Client pCodes Identified — 6 Clients</h2>
+  <div class="pcode-list"><span class="badge badge-green">P000389</span> <span class="badge badge-green">P000419</span> <span class="badge badge-green">P000423</span> <span class="badge badge-green">P000430</span> <span class="badge badge-green">P000460</span> <span class="badge badge-green">P000621</span></div>
+  <p class="note">pCodes extracted from ticket short descriptions (pattern: P + 3–6 digits). Each pCode represents a distinct client/project.</p>
+</div>
+
+<!-- Monthly Trend -->
+<div class="section">
+  <h2>📈 Monthly Ticket Volume Trend</h2>
+  <div class="chart-wrap"><canvas id="monthChart"></canvas></div>
+  <p class="note">Blue bars = all tickets · Green line = GCP Eng / SolOps team · Red line = tickets referencing a pCode</p>
+</div>
+
+<!-- pCode Analysis -->
+<div class="section">
+  <h2>🔢 Ticket Count per pCode (Client)</h2>
+  <table>
+    <thead><tr><th>pCode</th><th>Total Tickets</th><th>Team Tickets</th><th>Handled By</th></tr></thead>
+    <tbody><tr>
+      <td><span class="badge">P000430</span></td>
+      <td>4 <span class="bar" style="width:180px;background:#1a73e8"></span></td>
+      <td>4</td>
+      <td style="font-size:.82rem;color:#555">GCP Engineers (4)</td>
+    </tr><tr>
+      <td><span class="badge">P000389</span></td>
+      <td>1 <span class="bar" style="width:45px;background:#1a73e8"></span></td>
+      <td>1</td>
+      <td style="font-size:.82rem;color:#555">GCP Engineers (1)</td>
+    </tr><tr>
+      <td><span class="badge">P000419</span></td>
+      <td>1 <span class="bar" style="width:45px;background:#1a73e8"></span></td>
+      <td>1</td>
+      <td style="font-size:.82rem;color:#555">GCP Engineers (1)</td>
+    </tr><tr>
+      <td><span class="badge">P000621</span></td>
+      <td>1 <span class="bar" style="width:45px;background:#1a73e8"></span></td>
+      <td>1</td>
+      <td style="font-size:.82rem;color:#555">GCP Engineers (1)</td>
+    </tr><tr>
+      <td><span class="badge">P000423</span></td>
+      <td>1 <span class="bar" style="width:45px;background:#1a73e8"></span></td>
+      <td>1</td>
+      <td style="font-size:.82rem;color:#555">GCP Engineers (1)</td>
+    </tr><tr>
+      <td><span class="badge">P000460</span></td>
+      <td>1 <span class="bar" style="width:45px;background:#1a73e8"></span></td>
+      <td>1</td>
+      <td style="font-size:.82rem;color:#555">GCP Engineers (1)</td>
+    </tr></tbody>
+  </table>
+</div>
+
+<!-- Charts row -->
+<div class="two-col">
+  <div class="section">
+    <h2>📋 Task Type Distribution</h2>
+    <div class="chart-wrap" style="height:220px"><canvas id="taskChart"></canvas></div>
+  </div>
+  <div class="section">
+    <h2>✅ Ticket State Breakdown</h2>
+    <div class="chart-wrap" style="height:220px"><canvas id="stateChart"></canvas></div>
+  </div>
+</div>
+
+<!-- Assignment Group -->
+<div class="section">
+  <h2>👥 Tickets by Assignment Group</h2>
+  <table>
+    <thead><tr><th>Assignment Group</th><th>Ticket Count</th></tr></thead>
+    <tbody><tr><td style="color:#1a73e8;font-weight:600">GCP Engineers</td><td>69 <span class="bar" style="width:180px;background:#1a73e8"></span></td></tr></tbody>
+  </table>
+  <p class="note">Blue = target teams (GCP Engineers, Service Ops Engineers, Solutions Operations)</p>
+</div>
+
+<!-- Top Assignees -->
+<div class="section">
+  <h2>🧑‍💻 Top Engineers by Ticket Count</h2>
+  <table>
+    <thead><tr><th>Engineer</th><th>Tickets</th></tr></thead>
+    <tbody><tr><td>Jonny Walker (TECH)</td><td>47 <span class="bar" style="width:120px;background:#34a853"></span></td></tr><tr><td>Karthik Sankaran (TECH)</td><td>13 <span class="bar" style="width:33px;background:#34a853"></span></td></tr><tr><td>Suseel Raj (TECH)</td><td>9 <span class="bar" style="width:22px;background:#34a853"></span></td></tr></tbody>
+  </table>
+</div>
+
+<!-- pCode tickets detail -->
+<div class="section">
+  <h2>🔍 pCode Tickets Detail (7 tickets — green = target team)</h2>
+  <table>
+    <thead><tr><th>Ticket #</th><th>pCode(s)</th><th>Group</th><th>Assigned To</th><th>State</th><th>Type</th><th>Description</th><th>Created</th></tr></thead>
+    <tbody><tr class="team-row">
+      <td>REQ0138312</td>
+      <td><span class="badge">P000389</span> <span class="badge">P000419</span> <span class="badge">P000621</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>More Info Required</td>
+      <td>Request</td>
+      <td style="max-width:300px">QID-387198 - CVE-2026-31431 - Linux Kernel Local Privilege Escalation Vulnerability (Copy Fail) - mu</td>
+      <td>2026-05-07</td>
+    </tr><tr class="team-row">
+      <td>REQ0122463</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">p000430 - Private Offer management permissions needd</td>
+      <td>2025-11-03</td>
+    </tr><tr class="team-row">
+      <td>REQ0118155</td>
+      <td><span class="badge">P000423</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">access to p000423</td>
+      <td>2025-09-09</td>
+    </tr><tr class="team-row">
+      <td>REQ0118144</td>
+      <td><span class="badge">P000460</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">GCS compliance alert - p000460 OpenCloudforDeloitte-GCP (CSB_0001)</td>
+      <td>2025-09-09</td>
+    </tr><tr class="team-row">
+      <td>REQ0116741</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">p000430 - Expand subnet ranges</td>
+      <td>2025-08-18</td>
+    </tr><tr class="team-row">
+      <td>REQ0114264</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">p000430 - permissions adjustment</td>
+      <td>2025-07-15</td>
+    </tr><tr class="team-row">
+      <td>REQ0114248</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">p000430 - GCP support cases</td>
+      <td>2025-07-15</td>
+    </tr></tbody>
+  </table>
+</div>
+
+<!-- All tickets -->
+<div class="section">
+  <h2>📄 All Tickets (69 total)</h2>
+  <table>
+    <thead><tr><th>Ticket #</th><th>pCode(s)</th><th>Group</th><th>Assigned To</th><th>State</th><th>Type</th><th>Description</th><th>Created</th></tr></thead>
+    <tbody><tr class="team-row">
+      <td>SCTASK0012718</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed Complete</td>
+      <td>Catalog Task</td>
+      <td style="max-width:300px">Clean up infrastructure in account</td>
+      <td>2026-02-18</td>
+    </tr><tr class="team-row">
+      <td>SCTASK0012717</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed Complete</td>
+      <td>Catalog Task</td>
+      <td style="max-width:300px">Tooling off-boarding</td>
+      <td>2026-02-18</td>
+    </tr><tr class="team-row">
+      <td>SCTASK0012716</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed Complete</td>
+      <td>Catalog Task</td>
+      <td style="max-width:300px">Tooling agent uninstall</td>
+      <td>2026-02-18</td>
+    </tr><tr class="team-row">
+      <td>SCTASK0012715</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed Complete</td>
+      <td>Catalog Task</td>
+      <td style="max-width:300px">Account data retention</td>
+      <td>2026-02-18</td>
+    </tr><tr class="team-row">
+      <td>SCTASK0012714</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed Complete</td>
+      <td>Catalog Task</td>
+      <td style="max-width:300px">Disable Billing</td>
+      <td>2026-02-16</td>
+    </tr><tr class="team-row">
+      <td>REQ0138312</td>
+      <td><span class="badge">P000389</span> <span class="badge">P000419</span> <span class="badge">P000621</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>More Info Required</td>
+      <td>Request</td>
+      <td style="max-width:300px">QID-387198 - CVE-2026-31431 - Linux Kernel Local Privilege Escalation Vulnerability (Copy Fail) - mu</td>
+      <td>2026-05-07</td>
+    </tr><tr class="team-row">
+      <td>REQ0137367</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">FW: West Brom: Update the Onboarding Access Tracker - Access Request</td>
+      <td>2026-04-28</td>
+    </tr><tr class="team-row">
+      <td>REQ0136175</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Request for screenshots of users in Okta groups</td>
+      <td>2026-04-16</td>
+    </tr><tr class="team-row">
+      <td>REQ0136054</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:Requirement for Static IP for Cloud Function</td>
+      <td>2026-04-15</td>
+    </tr><tr class="team-row">
+      <td>REQ0136040</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Reset user account</td>
+      <td>2026-04-15</td>
+    </tr><tr class="team-row">
+      <td>REQ0135928</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Requirement for Static IP for Cloud Function</td>
+      <td>2026-04-14</td>
+    </tr><tr class="team-row">
+      <td>REQ0135783</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Adding user to group</td>
+      <td>2026-04-13</td>
+    </tr><tr class="team-row">
+      <td>REQ0135377</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">General Request - Request</td>
+      <td>2026-04-07</td>
+    </tr><tr class="team-row">
+      <td>REQ0135221</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Please add roles/firebase.admin to dcs02_admin group. </td>
+      <td>2026-04-02</td>
+    </tr><tr class="team-row">
+      <td>REQ0135215</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Provision service accounts for production</td>
+      <td>2026-04-02</td>
+    </tr><tr class="team-row">
+      <td>REQ0135081</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">General Request - Request</td>
+      <td>2026-04-01</td>
+    </tr><tr class="team-row">
+      <td>REQ0134858</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:WB SecOps GCP IAM</td>
+      <td>2026-03-31</td>
+    </tr><tr class="team-row">
+      <td>REQ0133784</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">FW: Require Okta admin group display name(s) for detection rule</td>
+      <td>2026-03-19</td>
+    </tr><tr class="team-row">
+      <td>REQ0133550</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">The Project team needs additonal access for them to work</td>
+      <td>2026-03-17</td>
+    </tr><tr class="team-row">
+      <td>REQ0133414</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">WB GCP backup feature - POC</td>
+      <td>2026-03-16</td>
+    </tr><tr class="team-row">
+      <td>REQ0133090</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Request for GCP service account permission changes</td>
+      <td>2026-03-11</td>
+    </tr><tr class="team-row">
+      <td>REQ0132486</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">GCP Project Information &amp; Admin Permissions for Google SecOps</td>
+      <td>2026-03-04</td>
+    </tr><tr class="team-row">
+      <td>REQ0132414</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Please create a new service account called 'SecOps-CICD-Integration-Admin'.</td>
+      <td>2026-03-03</td>
+    </tr><tr class="team-row">
+      <td>REQ0132319</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">GCP project quota</td>
+      <td>2026-03-03</td>
+    </tr><tr class="team-row">
+      <td>REQ0132293</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">GCP support: dev-proj-cbils-analysis-289557</td>
+      <td>2026-03-03</td>
+    </tr><tr class="team-row">
+      <td>REQ0131478</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">BigQuery Static IP setup in project uk-con-gcp-dev-gatdemo</td>
+      <td>2026-02-19</td>
+    </tr><tr class="team-row">
+      <td>REQ0129948</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">PairD costs overview export</td>
+      <td>2026-01-30</td>
+    </tr><tr class="team-row">
+      <td>REQ0128621</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>More Info Required</td>
+      <td>Request</td>
+      <td style="max-width:300px">Bi-monthly tooling review actions: GCP in Tenable and Prisma </td>
+      <td>2026-01-16</td>
+    </tr><tr class="team-row">
+      <td>REQ0128369</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">CMS Initial Enquiry - SRS computer vision pilot</td>
+      <td>2026-01-14</td>
+    </tr><tr class="team-row">
+      <td>REQ0127674</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">CMS Initial Enquiry - West Brom GCP SecOps</td>
+      <td>2026-01-07</td>
+    </tr><tr class="team-row">
+      <td>REQ0127336</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Monthly PairD export of costs for all PairD subscriptions for December 2025</td>
+      <td>2026-01-05</td>
+    </tr><tr class="team-row">
+      <td>REQ0126140</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">CMS Initial Enquiry - Mobile Lightbox</td>
+      <td>2025-12-16</td>
+    </tr><tr class="team-row">
+      <td>REQ0124222</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">PairD</td>
+      <td>2025-11-25</td>
+    </tr><tr class="team-row">
+      <td>REQ0124200</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Request to close the "yhcr-prd-bradfor-bia-core" Google Cloud Project and remove it from the "yhcr-d</td>
+      <td>2025-11-24</td>
+    </tr><tr class="team-row">
+      <td>REQ0122572</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Unable to access Google SecOps via GC Platform</td>
+      <td>2025-11-04</td>
+    </tr><tr class="team-row">
+      <td>REQ0122463</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">p000430 - Private Offer management permissions needd</td>
+      <td>2025-11-03</td>
+    </tr><tr class="team-row">
+      <td>REQ0122309</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">PairD - finance export</td>
+      <td>2025-10-31</td>
+    </tr><tr class="team-row">
+      <td>REQ0122056</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">PairD - Google Workspace Assured Controls add-on enabled</td>
+      <td>2025-10-29</td>
+    </tr><tr class="team-row">
+      <td>REQ0121157</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Vertex AI - Google SecOps SOAR Integration</td>
+      <td>2025-10-17</td>
+    </tr><tr class="team-row">
+      <td>REQ0120617</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">GCP credits balance</td>
+      <td>2025-10-10</td>
+    </tr><tr class="team-row">
+      <td>REQ0119919</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Export of the September costs for all PairD environments</td>
+      <td>2025-10-01</td>
+    </tr><tr class="team-row">
+      <td>REQ0119897</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Access to GCP apps in Okta</td>
+      <td>2025-10-01</td>
+    </tr><tr class="team-row">
+      <td>REQ0118901</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Replenish CIR reserve Google cloud projects</td>
+      <td>2025-09-18</td>
+    </tr><tr class="team-row">
+      <td>REQ0118155</td>
+      <td><span class="badge">P000423</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">access to p000423</td>
+      <td>2025-09-09</td>
+    </tr><tr class="team-row">
+      <td>REQ0118144</td>
+      <td><span class="badge">P000460</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">GCS compliance alert - p000460 OpenCloudforDeloitte-GCP (CSB_0001)</td>
+      <td>2025-09-09</td>
+    </tr><tr class="team-row">
+      <td>REQ0117989</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:SecOps Demo Env - Account provision</td>
+      <td>2025-09-05</td>
+    </tr><tr class="team-row">
+      <td>REQ0117180</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:SecOps Demo Env - Account provision</td>
+      <td>2025-08-22</td>
+    </tr><tr class="team-row">
+      <td>REQ0117135</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:Cloud run policy change</td>
+      <td>2025-08-22</td>
+    </tr><tr class="team-row">
+      <td>REQ0117134</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:Cloud run policy change</td>
+      <td>2025-08-22</td>
+    </tr><tr class="team-row">
+      <td>REQ0117076</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">CMS Initial Enquiry - Data Insights Monitor - Phase 2</td>
+      <td>2025-08-21</td>
+    </tr><tr class="team-row">
+      <td>REQ0116741</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">p000430 - Expand subnet ranges</td>
+      <td>2025-08-18</td>
+    </tr><tr class="team-row">
+      <td>REQ0115421</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Monthly export of costs for July</td>
+      <td>2025-07-30</td>
+    </tr><tr class="team-row">
+      <td>REQ0114879</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:Adding Users to GCP Projects (Part of DME AI agents Hackathon)</td>
+      <td>2025-07-23</td>
+    </tr><tr class="team-row">
+      <td>REQ0114751</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:Adding Users to GCP Projects (Part of DME AI agents Hackathon)</td>
+      <td>2025-07-22</td>
+    </tr><tr class="team-row">
+      <td>REQ0114749</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:Adding Users to GCP Projects (Part of DME AI agents Hackathon)</td>
+      <td>2025-07-22</td>
+    </tr><tr class="team-row">
+      <td>REQ0114650</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:Adding Users to GCP Projects (Part of DME AI agents Hackathon)</td>
+      <td>2025-07-21</td>
+    </tr><tr class="team-row">
+      <td>REQ0114649</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:Adding Users to GCP Projects (Part of DME AI agents Hackathon)</td>
+      <td>2025-07-21</td>
+    </tr><tr class="team-row">
+      <td>REQ0114648</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">Adding Users to GCP Projects (Part of DME AI agents Hackathon)</td>
+      <td>2025-07-21</td>
+    </tr><tr class="team-row">
+      <td>REQ0114478</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:API Enablement Request</td>
+      <td>2025-07-18</td>
+    </tr><tr class="team-row">
+      <td>REQ0114477</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:URGENT:  Plausibility statement</td>
+      <td>2025-07-18</td>
+    </tr><tr class="team-row">
+      <td>REQ0114468</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Suseel Raj (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:URGENT:  Plausibility statement</td>
+      <td>2025-07-18</td>
+    </tr><tr class="team-row">
+      <td>REQ0114264</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">p000430 - permissions adjustment</td>
+      <td>2025-07-15</td>
+    </tr><tr class="team-row">
+      <td>REQ0114248</td>
+      <td><span class="badge">P000430</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">p000430 - GCP support cases</td>
+      <td>2025-07-15</td>
+    </tr><tr class="team-row">
+      <td>REQ0113257</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">RE:Credit Details on GCP Labs Billing</td>
+      <td>2025-07-03</td>
+    </tr><tr class="team-row">
+      <td>REQ0113192</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Request</td>
+      <td style="max-width:300px">CMS Initial Enquiry - National Highways CCTV analytics - POC</td>
+      <td>2025-07-02</td>
+    </tr><tr class="team-row">
+      <td>INC0047313</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Karthik Sankaran (TECH)</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td style="max-width:300px">GKE unsupported Master node version</td>
+      <td>2025-09-02</td>
+    </tr><tr class="team-row">
+      <td>INC0047229</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed</td>
+      <td>Incident</td>
+      <td style="max-width:300px">EOL/Obsolete Operating System: Ubuntu 20.04 Detected</td>
+      <td>2025-08-21</td>
+    </tr><tr class="team-row">
+      <td>CHG0040454</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed Complete</td>
+      <td>Change Request</td>
+      <td style="max-width:300px">Remove EOL/Obsolete Operating System: Ubuntu 20.04</td>
+      <td>2025-08-21</td>
+    </tr><tr class="team-row">
+      <td>CHG0040229</td>
+      <td><span style="color:#aaa">—</span></td>
+      <td>GCP Engineers</td>
+      <td>Jonny Walker (TECH)</td>
+      <td>Closed Complete</td>
+      <td>Change Request</td>
+      <td style="max-width:300px">OpenVPN instance rebuild with newer OS</td>
+      <td>2025-07-16</td>
+    </tr></tbody>
+  </table>
+</div>
+
+</div>
+<script>
+const months = ["2025-07", "2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05"];
+const allData = [15, 7, 5, 6, 4, 1, 5, 6, 9, 10, 1];
+const teamData = [15, 7, 5, 6, 4, 1, 5, 6, 9, 10, 1];
+const pcodeData = [2, 1, 2, 0, 1, 0, 0, 0, 0, 0, 1];
+
+new Chart(document.getElementById('monthChart'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      {label:'All Tickets',data:allData,backgroundColor:'rgba(26,115,232,0.22)',borderColor:'#1a73e8',borderWidth:1.5,order:2},
+      {label:'GCP Eng / SolOps',data:teamData,type:'line',borderColor:'#34a853',backgroundColor:'rgba(52,168,83,0.1)',borderWidth:2,pointRadius:5,fill:true,tension:0.3,order:1},
+      {label:'pCode Tickets',data:pcodeData,type:'line',borderColor:'#ea4335',backgroundColor:'transparent',borderWidth:2,pointRadius:5,fill:false,tension:0.3,order:0}
+    ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top'}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}
+});
+
+new Chart(document.getElementById('taskChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ["Catalog Task", "Request", "Incident", "Change Request"],
+    datasets: [{data:[5, 60, 2, 2],backgroundColor:['#1a73e8','#34a853','#fbbc04','#ea4335','#9c27b0','#00bcd4','#ff7043']}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+});
+
+new Chart(document.getElementById('stateChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ["Closed Complete", "More Info Required", "Closed"],
+    datasets: [{data:[7, 2, 60],backgroundColor:['#34a853','#1a73e8','#fbbc04','#ea4335','#9e9e9e','#00bcd4']}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hub WE ↔ NE DC Traffic Routing — Root Cause & Fix</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #4f8ef7;
+    --accent2: #7c5af5;
+    --green: #3ecf8e;
+    --red: #f55a4e;
+    --yellow: #f5a623;
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --code-bg: #12141f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem 1rem;
+  }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* Header */
+  .page-header {
+    border-left: 4px solid var(--accent);
+    padding: 1.5rem 2rem;
+    background: var(--surface);
+    border-radius: 0 12px 12px 0;
+    margin-bottom: 2rem;
+  }
+  .page-header h1 { font-size: 1.8rem; color: #fff; margin-bottom: 0.3rem; }
+  .page-header .meta { color: var(--muted); font-size: 0.9rem; }
+
+  /* Executive Summary */
+  .exec-summary {
+    background: linear-gradient(135deg, #1a1d27, #1e2235);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+  }
+  .exec-summary h2 { color: var(--accent); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; }
+  .exec-summary p { color: var(--text); font-size: 1rem; }
+  .highlight { color: #fff; font-weight: 600; }
+
+  /* Alert box */
+  .alert {
+    border-radius: 8px;
+    padding: 1rem 1.2rem;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+  }
+  .alert-red { background: rgba(245,90,78,0.12); border-left: 3px solid var(--red); }
+  .alert-yellow { background: rgba(245,166,35,0.12); border-left: 3px solid var(--yellow); }
+  .alert-green { background: rgba(62,207,142,0.12); border-left: 3px solid var(--green); }
+  .alert-blue { background: rgba(79,142,247,0.12); border-left: 3px solid var(--accent); }
+  .alert-icon { font-size: 1.2rem; margin-top: 1px; flex-shrink: 0; }
+
+  /* Sections */
+  section { margin-bottom: 2.5rem; }
+  h2.section-title {
+    font-size: 1.2rem;
+    color: #fff;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  h2.section-title .num {
+    background: var(--accent2);
+    color: #fff;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem;
+    flex-shrink: 0;
+  }
+  h3 { font-size: 1rem; color: var(--accent); margin: 1.2rem 0 0.6rem; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; margin: 1rem 0; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    background: var(--surface);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  thead tr { background: var(--surface2); }
+  th { padding: 0.7rem 1rem; text-align: left; color: var(--muted); font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 0.65rem 1rem; border-top: 1px solid var(--border); color: var(--text); vertical-align: top; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .wins { color: var(--green); font-weight: 700; }
+  .loses { color: var(--red); font-weight: 700; }
+  .tag {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+  .tag-red { background: rgba(245,90,78,0.2); color: var(--red); }
+  .tag-green { background: rgba(62,207,142,0.2); color: var(--green); }
+  .tag-yellow { background: rgba(245,166,35,0.2); color: var(--yellow); }
+  .tag-blue { background: rgba(79,142,247,0.2); color: var(--accent); }
+
+  /* Code blocks */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.2rem 1.4rem;
+    overflow-x: auto;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 1.6;
+    color: #c9d1d9;
+    margin: 0.8rem 0;
+  }
+  code {
+    background: rgba(79,142,247,0.12);
+    color: var(--accent);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.88em;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+  }
+  pre code { background: none; color: inherit; padding: 0; font-size: inherit; }
+
+  /* Fix cards */
+  .fix-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.4rem 1.6rem;
+    margin-bottom: 1.2rem;
+  }
+  .fix-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+  }
+  .fix-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.25rem 0.7rem;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .badge-critical { background: rgba(245,90,78,0.2); color: var(--red); border: 1px solid var(--red); }
+  .badge-conditional { background: rgba(245,166,35,0.2); color: var(--yellow); border: 1px solid var(--yellow); }
+  .fix-card h3 { margin: 0; color: #fff; font-size: 1rem; }
+  .fix-card p { color: var(--muted); font-size: 0.92rem; margin-bottom: 0.8rem; }
+
+  /* Flow diagram */
+  .flow {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    font-family: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    font-size: 0.85rem;
+    line-height: 2;
+    color: #c9d1d9;
+  }
+  .flow .step-we { color: #4f8ef7; }
+  .flow .step-ne { color: #7c5af5; }
+  .flow .step-fw { color: var(--green); }
+  .flow .step-peer { color: var(--yellow); }
+
+  /* Summary table priority column */
+  .p1 { color: var(--red); font-weight: 700; }
+  .p2 { color: var(--yellow); font-weight: 700; }
+
+  /* Footer */
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.82rem; text-align: center; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <h1>Hub WE ↔ NE DC Traffic Routing — Root Cause &amp; Fix</h1>
+    <div class="meta">Date: 2026-05-14 &nbsp;·&nbsp; Analysis: read-only Azure + PA NGFW config dump &nbsp;·&nbsp; Tenant: 2a5c48c2-ebf9-4f92-89e5-18336e0787d2</div>
+  </div>
+
+  <!-- Executive Summary -->
+  <div class="exec-summary">
+    <h2>Executive Summary</h2>
+    <p>
+      DC1/DC2 (WE) ↔ DC03/DC04 (NE) traffic <span class="highlight">bypasses the Palo Alto firewalls</span> and flows
+      directly via Global VNet Peering. This is caused by a <span class="highlight">route specificity conflict</span>:
+      the VNet peering system routes (<code>/22</code>) are more specific than the UDR entries in the
+      AD subnet route tables (<code>/16</code> or <code>/8</code>), so Azure's longest-prefix-match picks the
+      peering route and bypasses the NGFW entirely.
+    </p>
+    <div class="alert alert-red" style="margin-top:1rem">
+      <span class="alert-icon">🚨</span>
+      <span>The firewalls never see this traffic — confirmed by zero DC-to-DC hits in PA traffic logs on both PRD-LIN-NGFW-1 (WE) and PRD-LIN-NGFW-3 (NE).</span>
+    </div>
+  </div>
+
+  <!-- Environment -->
+  <section>
+    <h2 class="section-title"><span class="num">1</span> Environment Confirmed</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Item</th><th>West Europe (WE)</th><th>North Europe (NE)</th></tr></thead>
+        <tbody>
+          <tr><td>VNet address space</td><td><code>10.36.0.0/22</code></td><td><code>10.36.128.0/22</code></td></tr>
+          <tr><td>NGFW name</td><td>PRD-LIN-NGFW-1</td><td>PRD-LIN-NGFW-3</td></tr>
+          <tr><td>NGFW internal IP (eth1/2 DMZBE)</td><td><code>10.36.0.38</code></td><td><code>10.36.128.38</code></td></tr>
+          <tr><td>NGFW Azure VNet router (next-hop)</td><td><code>10.36.0.33</code></td><td><code>10.36.128.33</code></td></tr>
+          <tr><td>AD route table</td><td><code>OCG-WE-SHUB-ROUTETAB-AD</code></td><td><code>OCG-NE-SHUB-ROUTETAB-AD</code></td></tr>
+          <tr><td>AD subnet</td><td><code>OCG-WE-SHUB-PRD-SNT-AD</code></td><td><code>OCG-NE-SHUB-PRD-SNT-AD</code></td></tr>
+          <tr><td>PAN-OS version</td><td colspan="2">11.1.10-h9 (both)</td></tr>
+          <tr><td>Active IPSec tunnels</td><td><span class="tag tag-red">0 — STRIPPED</span></td><td><span class="tag tag-red">0 — STRIPPED</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Root Cause -->
+  <section>
+    <h2 class="section-title"><span class="num">2</span> Root Cause — Detailed</h2>
+
+    <div class="alert alert-blue">
+      <span class="alert-icon">ℹ️</span>
+      <span>Azure uses <strong>longest-prefix-match</strong>. The most specific matching route wins, regardless of whether it is a UDR or a system/peering route.</span>
+    </div>
+
+    <h3>WE AD Subnet → NE DC (e.g. 10.36.128.70 — NE DC03)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Route Source</th><th>Prefix</th><th>Next-hop</th><th>Specificity</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>UDR <code>OCG-WE-SHUB-ROUTE-To-ADDS-9</code></td>
+            <td><code>10.0.0.0/8</code> → WE NGFW <code>10.36.0.38</code></td>
+            <td>VirtualAppliance</td>
+            <td><code>/8</code></td>
+            <td><span class="loses">❌ LOSES</span></td>
+          </tr>
+          <tr>
+            <td>System (VNet Global Peering)</td>
+            <td><code>10.36.128.0/22</code> → peering</td>
+            <td>VNetGlobalPeering</td>
+            <td><code>/22</code></td>
+            <td><span class="wins">✅ WINS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert alert-red">
+      <span class="alert-icon">⚡</span>
+      <span>Traffic goes direct via peering — WE NGFW is bypassed entirely.</span>
+    </div>
+
+    <h3>NE AD Subnet → WE DC (e.g. 10.36.0.70 — WE DC1)</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Route Source</th><th>Prefix</th><th>Next-hop</th><th>Specificity</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>UDR <code>OCG-NE-SHUB-ROUTE-To-ADDS-7</code></td>
+            <td><code>10.36.0.0/16</code> → NE NGFW <code>10.36.128.38</code></td>
+            <td>VirtualAppliance</td>
+            <td><code>/16</code></td>
+            <td><span class="loses">❌ LOSES</span></td>
+          </tr>
+          <tr>
+            <td>System (VNet Global Peering)</td>
+            <td><code>10.36.0.0/22</code> → peering</td>
+            <td>VNetGlobalPeering</td>
+            <td><code>/22</code></td>
+            <td><span class="wins">✅ WINS</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="alert alert-red">
+      <span class="alert-icon">⚡</span>
+      <span>Traffic goes direct via peering — NE NGFW is bypassed entirely.</span>
+    </div>
+
+    <h3>Secondary confirmation — NGFW FIB lookups</h3>
+    <p style="color:var(--muted); margin-bottom:0.8rem; font-size:0.93rem">
+      Even on the rare occasion traffic does reach an NGFW (from a non-AD subnet), it is dropped because
+      neither NGFW has a static route for the opposite region's VNet:
+    </p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>NGFW</th><th>Destination</th><th>FIB Result</th><th>Verdict</th></tr></thead>
+        <tbody>
+          <tr><td>WE (PRD-LIN-NGFW-1)</td><td><code>10.36.128.70</code> (NE DC03)</td><td>eth1/1 → <code>10.36.0.1</code> (internet)</td><td><span class="tag tag-red">DROPPED</span></td></tr>
+          <tr><td>NE (PRD-LIN-NGFW-3)</td><td><code>10.36.0.70</code> (WE DC1)</td><td>eth1/1 → <code>10.36.128.1</code> (internet)</td><td><span class="tag tag-red">DROPPED</span></td></tr>
+          <tr><td>WE (PRD-LIN-NGFW-1)</td><td><code>10.4.1.210</code> (GEHODC01)</td><td>eth1/1 → <code>10.36.0.1</code> (internet)</td><td><span class="tag tag-red">DROPPED</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>VNet Peering State</h3>
+    <div class="alert alert-yellow">
+      <span class="alert-icon">⚠️</span>
+      <span>Both sides of the WE↔NE Global Peering have <strong>allowForwardedTraffic: false</strong> and <strong>allowGatewayTransit: false</strong>. This does not affect hub-to-hub DC traffic (source is within the hub VNet), but it <strong>will block spoke-sourced traffic</strong> transiting the cross-region peering.</span>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Peering name</th><th>allowGatewayTransit</th><th>allowForwardedTraffic</th><th>useRemoteGateways</th><th>State</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>OCG-Peer-OCG-WE-SHUB-PRD-VNET-To-OCG-NE-SHUB-PRD-VNET</code></td>
+            <td><span class="tag tag-red">false</span></td>
+            <td><span class="tag tag-red">false</span></td>
+            <td><span class="tag tag-red">false</span></td>
+            <td><span class="tag tag-green">Connected</span></td>
+          </tr>
+          <tr>
+            <td><code>OCG-Peer-OCG-NE-SHUB-PRD-VNET-To-OCG-WE-SHUB-PRD-VNET</code></td>
+            <td><span class="tag tag-red">false</span></td>
+            <td><span class="tag tag-red">false</span></td>
+            <td><span class="tag tag-red">false</span></td>
+            <td><span class="tag tag-green">Connected</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Fixes -->
+  <section>
+    <h2 class="section-title"><span class="num">3</span> Fixes Required</h2>
+
+    <!-- Fix 1 -->
+    <div class="fix-card">
+      <div class="fix-card-header">
+        <span class="fix-badge badge-critical">🔴 P1 — Critical</span>
+        <h3>Fix 1 — Add /22 UDR entries in both AD Route Tables</h3>
+      </div>
+      <p>
+        Add a <code>/22</code> route for the opposite region's VNet (same prefix length as the peering system route).
+        UDRs take priority over system routes at equal specificity, so this will override the peering route and
+        force traffic through the NGFW.
+      </p>
+
+      <h3>WE AD Route Table (<code>OCG-WE-SHUB-ROUTETAB-AD</code> · RG: <code>OCG-WE-SHUB-RG-VNETS</code>)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Route name</td><td><code>OCG-WE-SHUB-ROUTE-To-NGFW-NE-HUB</code></td></tr>
+            <tr><td>Address prefix</td><td><code>10.36.128.0/22</code></td></tr>
+            <tr><td>Next-hop type</td><td>VirtualAppliance</td></tr>
+            <tr><td>Next-hop IP</td><td><code>10.36.0.38</code> (WE NGFW DMZBE)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code>az network route-table route create \
+  --resource-group OCG-WE-SHUB-RG-VNETS \
+  --route-table-name OCG-WE-SHUB-ROUTETAB-AD \
+  --name OCG-WE-SHUB-ROUTE-To-NGFW-NE-HUB \
+  --address-prefix 10.36.128.0/22 \
+  --next-hop-type VirtualAppliance \
+  --next-hop-ip-address 10.36.0.38</code></pre>
+
+      <h3>NE AD Route Table (<code>OCG-NE-SHUB-ROUTETAB-AD</code> · RG: <code>OCG-NE-SHUB-RG-VNETS</code>)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Route name</td><td><code>OCG-NE-SHUB-ROUTE-To-NGFW-WE-HUB</code></td></tr>
+            <tr><td>Address prefix</td><td><code>10.36.0.0/22</code></td></tr>
+            <tr><td>Next-hop type</td><td>VirtualAppliance</td></tr>
+            <tr><td>Next-hop IP</td><td><code>10.36.128.38</code> (NE NGFW DMZBE)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code>az network route-table route create \
+  --resource-group OCG-NE-SHUB-RG-VNETS \
+  --route-table-name OCG-NE-SHUB-ROUTETAB-AD \
+  --name OCG-NE-SHUB-ROUTE-To-NGFW-WE-HUB \
+  --address-prefix 10.36.0.0/22 \
+  --next-hop-type VirtualAppliance \
+  --next-hop-ip-address 10.36.128.38</code></pre>
+    </div>
+
+    <!-- Fix 2 -->
+    <div class="fix-card">
+      <div class="fix-card-header">
+        <span class="fix-badge badge-critical">🔴 P1 — Critical</span>
+        <h3>Fix 2 — Add inter-region static routes on both PA NGFWs</h3>
+      </div>
+      <p>
+        Fix 1 will direct traffic to the NGFW — but without a route for the opposite region,
+        the NGFW will drop it to the internet default. These routes must be added via Panorama or PA CLI (admin required).
+      </p>
+
+      <h3>WE NGFW — PRD-LIN-NGFW-1 (<code>10.36.0.172</code>)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Route name</td><td><code>NE-HUB-VNet</code></td></tr>
+            <tr><td>Destination</td><td><code>10.36.128.0/17</code></td></tr>
+            <tr><td>Next-hop IP</td><td><code>10.36.0.33</code></td></tr>
+            <tr><td>Interface</td><td><code>ethernet1/2</code> (DMZBE)</td></tr>
+            <tr><td>Metric</td><td>10</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code>set vr default routing-table ip static-route NE-HUB-VNet \
+  nexthop ip-address 10.36.0.33 interface ethernet1/2 \
+  destination 10.36.128.0/17 metric 10</code></pre>
+
+      <h3>NE NGFW — PRD-LIN-NGFW-3 (<code>10.36.128.172</code>)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Value</th></tr></thead>
+          <tbody>
+            <tr><td>Route name</td><td><code>WE-HUB-VNet</code></td></tr>
+            <tr><td>Destination</td><td><code>10.36.0.0/17</code></td></tr>
+            <tr><td>Next-hop IP</td><td><code>10.36.128.33</code></td></tr>
+            <tr><td>Interface</td><td><code>ethernet1/2</code> (DMZBE)</td></tr>
+            <tr><td>Metric</td><td>10</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <pre><code>set vr default routing-table ip static-route WE-HUB-VNet \
+  nexthop ip-address 10.36.128.33 interface ethernet1/2 \
+  destination 10.36.0.0/17 metric 10</code></pre>
+    </div>
+
+    <!-- Fix 3 -->
+    <div class="fix-card">
+      <div class="fix-card-header">
+        <span class="fix-badge badge-conditional">🟡 P2 — Conditional</span>
+        <h3>Fix 3 — Enable allowForwardedTraffic on WE↔NE Peering</h3>
+      </div>
+      <p>
+        <strong>Required only</strong> if spoke VNets (UK, DE, SP, etc. peered to WE Hub) need to reach the NE Hub
+        or NE spoke VNets via the cross-region peering. When a spoke DC sends traffic through the WE Hub NGFW to NE,
+        the source IP is from the spoke VNet (outside the hub VNet space) — Azure blocks this at the peering when
+        <code>allowForwardedTraffic</code> is <code>false</code>.
+      </p>
+      <pre><code># WE → NE side
+az network vnet peering update \
+  --resource-group OCG-WE-SHUB-RG-VNETS \
+  --vnet-name OCG-WE-SHUB-PRD-VNET \
+  --name OCG-Peer-OCG-WE-SHUB-PRD-VNET-To-OCG-NE-SHUB-PRD-VNET \
+  --set allowForwardedTraffic=true
+
+# NE → WE side
+az network vnet peering update \
+  --resource-group OCG-NE-SHUB-RG-VNETS \
+  --vnet-name OCG-NE-SHUB-PRD-VNET \
+  --name OCG-Peer-OCG-NE-SHUB-PRD-VNET-To-OCG-WE-SHUB-PRD-VNET \
+  --set allowForwardedTraffic=true</code></pre>
+    </div>
+
+    <!-- Fix 4 -->
+    <div class="fix-card">
+      <div class="fix-card-header">
+        <span class="fix-badge badge-critical">🔴 P1 — Critical (separate issue)</span>
+        <h3>Fix 4 — Restore IPSec Tunnels &amp; Branch Routes on Both NGFWs</h3>
+      </div>
+      <p>
+        Both NGFWs have <strong>zero IPSec tunnels</strong> (<code>num_ipsec=0</code>) — all tunnel interfaces,
+        IKE gateways, IPSec profiles and branch static routes were removed by the project revert.
+        All branch site DCs (UK, IE, SP, PT, DE/GE) are broken for AD replication.
+        The Azure UDR entries for these networks exist and point to the correct NGFWs — but the NGFWs
+        have no tunnels to forward them into.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Region</th><th>Example prefixes in UDR</th><th>NGFW route</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Germany/DE</td><td><code>10.4.0.0/16</code></td><td>Missing</td><td><span class="tag tag-red">BROKEN</span></td></tr>
+            <tr><td>UK</td><td><code>10.0.0.0/16</code>, <code>10.1.0.0/16</code>, <code>10.2.0.0/16</code> …</td><td>Missing</td><td><span class="tag tag-red">BROKEN</span></td></tr>
+            <tr><td>Spain/Portugal</td><td><code>10.3.0.0/16</code>, <code>10.9.0.0/16</code></td><td>Missing</td><td><span class="tag tag-red">BROKEN</span></td></tr>
+            <tr><td>Finland/Sweden</td><td><code>10.188.0.0/16</code>, <code>10.59.0.0/16</code> …</td><td>Missing</td><td><span class="tag tag-red">BROKEN</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-yellow" style="margin-top:0.8rem">
+        <span class="alert-icon">💡</span>
+        <div>
+          <strong>Recovery path (in order of preference):</strong><br>
+          1. <strong>Panorama</strong> — Managed Devices → device group → Config → Audit → restore pre-project commit<br>
+          2. Config XML backup taken before the project start date<br>
+          3. PA CLI with admin role: <code>show config running | match "static-route|ike|ipsec|tunnel"</code>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Summary table -->
+  <section>
+    <h2 class="section-title"><span class="num">4</span> Summary of Actions</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Priority</th><th>Action</th><th>Owner</th><th>Impact</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="p1">🔴 P1</span></td>
+            <td>Add <code>10.36.128.0/22</code> UDR to <code>OCG-WE-SHUB-ROUTETAB-AD</code> → WE NGFW <code>10.36.0.38</code></td>
+            <td>Azure admin (Hub sub)</td>
+            <td>Fixes WE DC → NE DC via firewall</td>
+          </tr>
+          <tr>
+            <td><span class="p1">🔴 P1</span></td>
+            <td>Add <code>10.36.0.0/22</code> UDR to <code>OCG-NE-SHUB-ROUTETAB-AD</code> → NE NGFW <code>10.36.128.38</code></td>
+            <td>Azure admin (Hub sub)</td>
+            <td>Fixes NE DC → WE DC via firewall</td>
+          </tr>
+          <tr>
+            <td><span class="p1">🔴 P1</span></td>
+            <td>Add <code>10.36.128.0/17</code> static route on WE NGFW <code>ethernet1/2</code></td>
+            <td>PA admin / Panorama</td>
+            <td>Enables WE NGFW to forward to NE VNet</td>
+          </tr>
+          <tr>
+            <td><span class="p1">🔴 P1</span></td>
+            <td>Add <code>10.36.0.0/17</code> static route on NE NGFW <code>ethernet1/2</code></td>
+            <td>PA admin / Panorama</td>
+            <td>Enables NE NGFW to forward to WE VNet</td>
+          </tr>
+          <tr>
+            <td><span class="p2">🟡 P2</span></td>
+            <td>Enable <code>allowForwardedTraffic=true</code> on WE↔NE peering (both sides)</td>
+            <td>Azure admin (Hub sub)</td>
+            <td>Required if spoke VNets need cross-region reachability</td>
+          </tr>
+          <tr>
+            <td><span class="p1">🔴 P1</span></td>
+            <td>Restore IPSec tunnels + branch static routes on both NGFWs from Panorama</td>
+            <td>PA admin / Panorama</td>
+            <td>Fixes all branch DC replication (UK/IE/SP/PT/DE/GE)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Traffic flow after fix -->
+  <section>
+    <h2 class="section-title"><span class="num">5</span> Traffic Flow After Fix</h2>
+    <div class="flow">
+      <div class="step-we">WE DC (10.36.0.x)</div>
+      <div>&nbsp;&nbsp;↓ [UDR /22 overrides peering system route]</div>
+      <div class="step-fw">&nbsp;&nbsp;→ WE NGFW (10.36.0.38) — inspected</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;↓ [static route 10.36.128.0/17 via eth1/2 → 10.36.0.33]</div>
+      <div class="step-peer">&nbsp;&nbsp;&nbsp;&nbsp;→ Azure VNet router → Global VNet Peering</div>
+      <div class="step-ne">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ NE VNet → NE DC (10.36.128.x) ✅</div>
+      <br>
+      <div class="step-ne">NE DC (10.36.128.x)</div>
+      <div>&nbsp;&nbsp;↓ [UDR /22 overrides peering system route]</div>
+      <div class="step-fw">&nbsp;&nbsp;→ NE NGFW (10.36.128.38) — inspected</div>
+      <div>&nbsp;&nbsp;&nbsp;&nbsp;↓ [static route 10.36.0.0/17 via eth1/2 → 10.36.128.33]</div>
+      <div class="step-peer">&nbsp;&nbsp;&nbsp;&nbsp;→ Azure VNet router → Global VNet Peering</div>
+      <div class="step-we">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;→ WE VNet → WE DC (10.36.0.x) ✅</div>
+    </div>
+    <div class="alert alert-green" style="margin-top:1rem">
+      <span class="alert-icon">✅</span>
+      <span>Return traffic follows the symmetric path. Both directions traverse their respective region's NGFW — matching the intended design. DC traffic will appear in PA firewall logs once fixes are applied.</span>
+    </div>
+  </section>
+
+  <!-- RPC 1722 Explanation -->
+  <section>
+    <h2 class="section-title"><span class="num">6</span> Why RPC 1722 Occurs Even When Traffic Flows via VNet Peering</h2>
+
+    <div class="alert alert-blue">
+      <span class="alert-icon">❓</span>
+      <span><strong>Question:</strong> <em>repadmin /replsummary on DC1/DC2 shows DC03/DC04 with error 1722 "RPC server unavailable" — yet traffic appears to be flowing via VNet Global Peering and not hitting the NGFWs at all. Why?</em></span>
+    </div>
+
+    <h3>Short Answer</h3>
+    <p style="color:var(--muted); font-size:0.93rem; margin-bottom:1rem">
+      The NSGs are <strong>not blocking</strong> the traffic. The 1722 errors are <strong>stale — they reflect the period when
+      the NGFW had no routes and was actively dropping all inter-DC traffic</strong>. Peering-based connectivity between
+      the hub DCs is permitted end-to-end. But the errors will not clear until a forced replication retry succeeds.
+    </p>
+
+    <h3>NSG Analysis — Both AD Subnets Allow DC-to-DC Traffic</h3>
+    <p style="color:var(--muted); font-size:0.93rem; margin-bottom:0.6rem">Both AD NSGs were inspected. The allow rules are explicit and correct:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>NSG</th><th>Rule</th><th>Priority</th><th>Source (confirmed)</th><th>Destination (confirmed)</th><th>Ports</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><code>OCG-WE-SHUB-NSG-AD-01</code></td>
+            <td><code>ADDS-To-ADDS-Inbound</code></td>
+            <td>100</td>
+            <td><code>10.36.128.70</code>, <code>10.36.128.71</code> (NE DCs) explicitly listed</td>
+            <td><code>10.36.0.70</code>, <code>10.36.0.71</code></td>
+            <td>All</td>
+            <td><span class="tag tag-green">Allow ✅</span></td>
+          </tr>
+          <tr>
+            <td><code>OCG-NE-SHUB-NSG-AD-01</code></td>
+            <td><code>ADDS-To-ADDS-Inbound</code></td>
+            <td>100</td>
+            <td><code>10.36.0.70</code>, <code>10.36.0.71</code> (WE DCs) explicitly listed</td>
+            <td><code>10.36.128.70</code>, <code>10.36.128.71</code></td>
+            <td>All</td>
+            <td><span class="tag tag-green">Allow ✅</span></td>
+          </tr>
+          <tr>
+            <td>Both</td>
+            <td><code>VNET-CDP</code></td>
+            <td>4088</td>
+            <td><code>VirtualNetwork</code> tag (includes peered NE/WE VNet)</td>
+            <td>Any</td>
+            <td>All</td>
+            <td><span class="tag tag-green">Allow ✅</span></td>
+          </tr>
+          <tr>
+            <td>Both</td>
+            <td><code>Deny-TCP-Inbound</code></td>
+            <td>4092</td>
+            <td>Any</td>
+            <td>Any</td>
+            <td>TCP</td>
+            <td><span class="tag tag-red">Deny — never reached for DC traffic</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="alert alert-green">
+      <span class="alert-icon">✅</span>
+      <span>The <code>VNET-CDP</code> rule at priority 4088 catches <em>all</em> traffic from peered VNets (including NE VNet <code>10.36.128.0/22</code>) before the blanket Deny-TCP at 4092. The explicit rule 100 also covers DC-to-DC IPs on all ports. <strong>NSG is not blocking RPC.</strong></span>
+    </div>
+
+    <h3>The Real Cause — Three Compounding Factors</h3>
+
+    <div class="fix-card" style="border-top:3px solid var(--red)">
+      <div class="fix-card-header">
+        <span class="fix-badge badge-critical">Factor 1</span>
+        <h3>NGFW was actively dropping all inter-DC traffic during the broken period</h3>
+      </div>
+      <p>
+        After the project revert, both NGFWs had zero IPSec tunnels and zero routes for the opposite region.
+        The UDR on the WE AD subnet (<code>10.0.0.0/8</code> → WE NGFW) is <em>less specific</em> than the
+        peering system route (<code>10.36.128.0/22</code>), so <strong>hub DC-to-hub DC traffic bypasses the NGFW
+        via peering</strong>. This is the correct path for basic IP connectivity.
+      </p>
+      <p>
+        However, during the window when the NGFW routes were misconfigured (or when other subnets use a more
+        specific UDR that does force traffic through the NGFW), those connections were <strong>TCP RST / timed out</strong>.
+        AD replication's RPC sessions were torn down. The DCs marked their replication partners as failed.
+      </p>
+    </div>
+
+    <div class="fix-card" style="border-top:3px solid var(--yellow)">
+      <div class="fix-card-header">
+        <span class="fix-badge badge-conditional">Factor 2</span>
+        <h3>repadmin /replsummary shows the LAST attempt result, not current connectivity</h3>
+      </div>
+      <p>
+        <code>repadmin /replsummary</code> reports the <em>last recorded replication outcome</em> for each partner DC.
+        If the last attempt failed (error 1722 — TCP connection refused/timeout from the NGFW drop period), that
+        error persists in the output until a <strong>new successful replication cycle completes</strong>.
+        The command is not a live connectivity test.
+      </p>
+      <div class="flow" style="line-height:1.8; font-size:0.82rem">
+        <div>repadmin /replsummary output:</div>
+        <div style="color:var(--red)">  DC03  Last attempt @ 2026-05-13 14:32 FAILED, result 1722 (RPC server unavailable)</div>
+        <div style="color:var(--muted)">  ↑ This timestamp is from when NGFW was dropping traffic — not from right now</div>
+        <div style="color:var(--muted)">  The peering path is now working, but no new successful attempt has cleared this entry yet</div>
+      </div>
+    </div>
+
+    <div class="fix-card" style="border-top:3px solid var(--accent)">
+      <div class="fix-card-header">
+        <span class="fix-badge" style="background:rgba(79,142,247,0.2);color:var(--accent);border:1px solid var(--accent)">Factor 3</span>
+        <h3>AD replication has exponential back-off — it won't retry immediately</h3>
+      </div>
+      <p>
+        After a replication failure, Windows AD uses an <strong>exponential back-off retry schedule</strong>.
+        Following persistent failures the retry interval grows to up to <strong>2 hours</strong> for cross-site
+        replication. During this window, even though connectivity is restored, the DC will not attempt replication
+        again until the timer expires. <code>repadmin /replsummary</code> continues to show the old 1722 error.
+      </p>
+    </div>
+
+    <h3>Packet-Level Proof — Why Peering Path Works for Hub DCs</h3>
+    <div class="flow" style="line-height:1.9; font-size:0.82rem">
+      <div><strong>DC1 (10.36.0.70, WE AD subnet) → DC03 (10.36.128.70, NE AD subnet)</strong></div>
+      <br>
+      <div class="step-we">① DC1 sends TCP SYN → 10.36.128.70:135 (RPC Endpoint Mapper)</div>
+      <div>&nbsp;&nbsp; WE AD subnet route lookup for 10.36.128.70:</div>
+      <div style="color:var(--red)">&nbsp;&nbsp;&nbsp;&nbsp; UDR: 10.0.0.0/8 → NGFW 10.36.0.38  (/8, LOSES)</div>
+      <div class="step-peer">&nbsp;&nbsp;&nbsp;&nbsp; System peering route: 10.36.128.0/22 → VNetGlobalPeering  (/22, WINS ✅)</div>
+      <div class="step-fw">&nbsp;&nbsp;&nbsp;&nbsp; → Packet goes DIRECT via peering to NE VNet (NGFW not involved)</div>
+      <br>
+      <div>&nbsp;&nbsp; NE AD NSG inbound: Rule 100 src=10.36.0.70 dst=10.36.128.70 → <span class="wins">ALLOW ✅</span></div>
+      <div class="step-ne">② DC03 receives SYN, responds SYN-ACK → 10.36.0.70</div>
+      <div>&nbsp;&nbsp; NE AD subnet route lookup for 10.36.0.70:</div>
+      <div style="color:var(--red)">&nbsp;&nbsp;&nbsp;&nbsp; UDR: 10.36.0.0/16 → NGFW 10.36.128.38  (/16, LOSES)</div>
+      <div class="step-peer">&nbsp;&nbsp;&nbsp;&nbsp; System peering route: 10.36.0.0/22 → VNetGlobalPeering  (/22, WINS ✅)</div>
+      <div class="step-fw">&nbsp;&nbsp;&nbsp;&nbsp; → Response goes DIRECT via peering to WE VNet (NGFW not involved)</div>
+      <br>
+      <div>&nbsp;&nbsp; WE AD NSG inbound: Rule 100 src=10.36.128.70 dst=10.36.0.70 → <span class="wins">ALLOW ✅</span></div>
+      <div class="step-we">③ Three-way handshake completes. RPC session on port 135 established.</div>
+      <div class="step-we">④ RPC Endpoint Mapper returns dynamic port (e.g. 49200). New TCP session on that port — same routing, same NSG allows all ports. ✅</div>
+      <div class="step-we">⑤ AD replication RPC session fully established. Data flows. ✅</div>
+    </div>
+
+    <div class="alert alert-yellow" style="margin-top:1rem">
+      <span class="alert-icon">⚠️</span>
+      <span><strong>Important caveat:</strong> This symmetric peering path only applies to <em>hub-to-hub</em> DC traffic (IPs within <code>10.36.0.0/22</code> ↔ <code>10.36.128.0/22</code>). Spoke-to-hub or branch-to-hub DC replication still fails because those paths DO go through the NGFW (per the UDRs), and the NGFW has no IPSec tunnels or branch routes.</span>
+    </div>
+
+    <h3>Immediate Actions to Clear the 1722 Errors</h3>
+    <div class="fix-card">
+      <div class="fix-card-header">
+        <span class="fix-badge badge-critical">Run on DC1 and DC2</span>
+        <h3>Force AD replication retry now</h3>
+      </div>
+      <p>Run these commands from DC1 (and DC2) to immediately trigger replication rather than waiting for the back-off timer:</p>
+      <pre><code># Force sync with all partners, force even if disabled, push changes, resync all naming contexts
+repadmin /syncall /AdeP
+
+# Check current (live) replication status — not cached summary
+repadmin /showrepl
+
+# If DC03/DC04 still show 1722 after /syncall, run connectivity test first:
+portqry -n DC03-FQDN-or-IP -e 135
+portqry -n DC03-FQDN-or-IP -r 49152:65535
+
+# Or use built-in:
+dcdiag /test:replications /v</code></pre>
+      <div class="alert alert-blue" style="margin-top:0.8rem">
+        <span class="alert-icon">💡</span>
+        <div>
+          <strong>Expected outcome:</strong> After <code>repadmin /syncall /AdeP</code>, the replication should succeed
+          (hub-to-hub via peering). A subsequent <code>repadmin /replsummary</code> will show the <em>last attempt time</em>
+          updated to now with no error code, clearing the 1722 entries for DC03/DC04.
+        </div>
+      </div>
+    </div>
+
+    <h3>Why the Fix from Section 3 is Still Required</h3>
+    <div class="alert alert-red">
+      <span class="alert-icon">🚨</span>
+      <div>
+        Even though hub DC-to-hub DC traffic currently works via peering (and the 1722 errors are stale), the
+        <strong>UDR fix (Fix 1) and NGFW static route fix (Fix 2) are still mandatory</strong> for two reasons:
+        <ol style="margin-top:0.5rem; padding-left:1.5rem; line-height:2">
+          <li><strong>Security policy violation</strong> — DC-to-DC traffic is bypassing the Palo Alto NGFW entirely. No inspection, no logging, no security policy enforcement on inter-hub DC replication traffic.</li>
+          <li><strong>Spoke DC replication is still broken</strong> — UK, DE, IE, SP/PT branch DCs route through the NGFW (per the more specific UDRs in the AD route table), and the NGFW drops that traffic. Those 1722 errors are real and ongoing, not stale.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Generated by Cline · 2026-05-14 · Hub subscription OCG-Sub-SHUB (c2ba6ed5-c485-4e36-aed6-596d71024c36) · Read-only analysis
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jonny Walker – CV</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      font-size: 14px;
+      color: #1a1a1a;
+      background: #f4f4f4;
+      padding: 30px 20px;
+    }
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 50px 55px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+
+    /* Header */
+    .header { border-bottom: 3px solid #1a5276; padding-bottom: 18px; margin-bottom: 24px; }
+    .header h1 { font-size: 32px; color: #1a5276; letter-spacing: 1px; }
+    .header .tagline { font-size: 14px; color: #555; margin-top: 4px; font-weight: 500; }
+    .header .contact { margin-top: 8px; font-size: 13px; color: #777; }
+    .header .contact span { margin-right: 20px; }
+
+    /* Section headings */
+    h2 {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #1a5276;
+      border-bottom: 1px solid #d5e8f5;
+      padding-bottom: 5px;
+      margin: 28px 0 14px;
+    }
+
+    /* Competencies */
+    .competencies { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 24px; }
+    .competency { padding: 7px 12px; background: #eaf4fb; border-left: 3px solid #1a5276; font-size: 13px; }
+    .competency strong { color: #1a5276; }
+
+    /* Job block */
+    .job { margin-bottom: 28px; }
+    .job-header { display: flex; justify-content: space-between; align-items: baseline; }
+    .job-title { font-size: 15px; font-weight: 700; color: #1a1a1a; }
+    .job-company { font-size: 13px; color: #555; margin-top: 2px; }
+    .job-date { font-size: 13px; color: #888; white-space: nowrap; margin-left: 12px; }
+
+    .sub-section { margin-top: 12px; }
+    .sub-section h4 {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #1a5276;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    ul { padding-left: 18px; }
+    ul li { margin-bottom: 5px; line-height: 1.55; }
+
+    /* Achievements table */
+    table { width: 100%; border-collapse: collapse; margin-top: 6px; font-size: 13px; }
+    th { background: #1a5276; color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; }
+    td { padding: 7px 12px; border-bottom: 1px solid #e0e0e0; vertical-align: top; }
+    tr:nth-child(even) td { background: #f7fbff; }
+
+    /* Skills table */
+    .skills-table td:first-child { font-weight: 600; color: #1a5276; width: 200px; }
+
+    /* Education */
+    .education p { font-size: 14px; }
+    .education span { color: #555; font-size: 13px; }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .page { box-shadow: none; padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="header">
+    <h1>Jonny Walker</h1>
+    <div class="tagline">Engineering Manager &nbsp;|&nbsp; Cloud &amp; DevOps &nbsp;|&nbsp; People Leadership &nbsp;|&nbsp; Deloitte UK</div>
+    <div class="contact">
+      <span>📧 [email]</span>
+      <span>📍 [location]</span>
+      <span>🔗 [LinkedIn]</span>
+    </div>
+  </div>
+
+  <!-- Summary -->
+  <h2>Professional Summary</h2>
+  <p style="line-height:1.65;">
+    Technically deep Engineering Manager and Senior Consultant at Deloitte, with a proven record of leading cloud engineering teams, driving strategic automation initiatives, and delivering measurable business outcomes for enterprise clients. Experienced in mentoring and growing engineers, shaping team capability, and translating complex technical problems into scalable solutions. Combines hands-on GCP/DevOps expertise with strong stakeholder engagement, process improvement, and a people-first leadership style.
+  </p>
+
+  <!-- Core Competencies -->
+  <h2>Core Competencies</h2>
+  <div class="competencies">
+    <div class="competency"><strong>People Leadership &amp; Mentoring</strong> — Building team capability, coaching engineers, identifying and closing skill gaps</div>
+    <div class="competency"><strong>Technical Strategy &amp; Delivery</strong> — Cloud architecture, automation, IaC, CI/CD at enterprise scale</div>
+    <div class="competency"><strong>Client &amp; Stakeholder Engagement</strong> — Acting as trusted technical advisor, managing expectations and requirements</div>
+    <div class="competency"><strong>Process Improvement</strong> — Identifying inefficiencies, designing better workflows, driving adoption</div>
+    <div class="competency"><strong>Operational Excellence</strong> — SLA management, security &amp; compliance, ITSM, observability</div>
+  </div>
+
+  <!-- Experience -->
+  <h2>Experience</h2>
+
+  <!-- Role 1 -->
+  <div class="job">
+    <div class="job-header">
+      <div>
+        <div class="job-title">Senior Consultant – Cloud Managed Services (GCP)</div>
+        <div class="job-company">Deloitte UK</div>
+      </div>
+      <div class="job-date">July 2024 – Present</div>
+    </div>
+
+    <div class="sub-section">
+      <h4>Team Leadership &amp; Development</h4>
+      <ul>
+        <li>Identified a capability gap within the GCP workstream and proactively recruited and onboarded a colleague into the team, increasing resilience and reducing single points of failure.</li>
+        <li>Actively mentor and upskill team members across GCP tooling, automation pipelines, and operational processes — improving team-wide confidence and reducing dependency on senior individuals.</li>
+        <li>Coach the team on updated onboarding and enquiry-handling workflows, driving consistency and professionalism in client-facing processes.</li>
+        <li>Recognised as a knowledge leader; consistently sought out by peers for guidance on GCP architecture, security, and DevOps tooling.</li>
+      </ul>
+    </div>
+
+    <div class="sub-section">
+      <h4>Strategic Delivery &amp; Client Outcomes</h4>
+      <ul>
+        <li><strong>Spearheaded</strong> the end-to-end design and delivery of a fully automated GCP account provisioning pipeline, now in production use — reducing provisioning time by <strong>85%</strong> (from 30–40 minutes to 6 minutes 20 seconds) and cutting estimated operational costs by <strong>50%</strong>.</li>
+        <li>Self-initiated learning of Dynatrace and <strong>led the full observability implementation</strong> across multiple client GCP accounts — delivering a centralised monitoring and alerting stack from scratch, including Kubernetes operator configuration, Pub/Sub log routing, and Slack alerting integration.</li>
+        <li>Designed a centralised multi-account logging architecture eliminating duplicate infrastructure across client environments.</li>
+        <li>Developed and delivered CI/CD pipelines for infrastructure automation including Terraform modules (S3-to-GCS Storage Transfer), secrets management, and deployment documentation.</li>
+      </ul>
+    </div>
+
+    <div class="sub-section">
+      <h4>Stakeholder &amp; Client Engagement</h4>
+      <ul>
+        <li>Served as direct point of contact for client requirements including Workload Identity Federation setup, service account creation, and Okta group management.</li>
+        <li>Produced technical documentation for key solutions used by both internal teams and client stakeholders — including storage transfer deployment, GCP project creation, OS policies, Trend Micro integration, and patch management.</li>
+      </ul>
+    </div>
+
+    <div class="sub-section">
+      <h4>Security, Compliance &amp; Operations</h4>
+      <ul>
+        <li>Led Okta integration with GCP accounts including Google Workspace configuration, push groups, Workload Identity Federations, and service accounts.</li>
+        <li>Managed and triaged tickets across GCP and AWS environments via ServiceNow, maintaining SLA adherence and timely resolution of client-facing issues.</li>
+        <li>Integrated Trend Micro via GitHub Actions workflows and OS Policy assignments for automated VM agent deployment.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Role 2 -->
+  <div class="job">
+    <div class="job-header">
+      <div>
+        <div class="job-title">Analyst – Cloud Engineering</div>
+        <div class="job-company">Deloitte UK</div>
+      </div>
+      <div class="job-date">December 2021 – December 2023</div>
+    </div>
+
+    <div class="sub-section">
+      <h4>Team Lead &amp; Technical Ownership</h4>
+      <ul>
+        <li><strong>Led a team of three engineers</strong> (with no prior Terraform experience) in the design, development, and deployment of reusable GCP Terraform modules including OpenShift, RHEL Linux image builds, Compute Engine, and Cloud Storage.</li>
+        <li>Managed the full delivery lifecycle — from requirements gathering and architecture through to testing and production deployment.</li>
+        <li>Conducted code reviews and approved merge requests, maintaining engineering quality and best practices across the team.</li>
+        <li>Delivered training sessions on Terraform concepts to junior team members, accelerating their onboarding and technical capability.</li>
+      </ul>
+    </div>
+
+    <div class="sub-section">
+      <h4>Engineering Delivery</h4>
+      <ul>
+        <li>Architected and developed Terraform modules for AWS (Lambda, DynamoDB, DocumentDB, RDS MySQL, S3, CloudWatch, SNS, ECR, ECS, Macie, Comprehend) and GCP, used both internally and by external clients.</li>
+        <li>Took full ownership of an AWS Lambda orchestration project, integrating CloudWatch monitoring and SNS alerting end-to-end.</li>
+        <li>Created comprehensive documentation establishing deployment and usage standards across UK-based cloud teams.</li>
+      </ul>
+    </div>
+
+    <div class="sub-section">
+      <h4>Culture &amp; Inclusion</h4>
+      <ul>
+        <li>Trusted to lead mental health awareness campaigns and pride celebrations — demonstrating commitment to psychological safety and inclusive team culture.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Key Achievements -->
+  <h2>Key Achievements</h2>
+  <table>
+    <thead>
+      <tr><th>Achievement</th><th>Impact</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>85% reduction in GCP provisioning time</td><td>30–40 min → 6 min 20 sec; scaled client onboarding capacity</td></tr>
+      <tr><td>50% reduction in estimated operational costs</td><td>Via intelligent automation and pipeline design</td></tr>
+      <tr><td>Led team of 3 to deliver GCP Terraform module suite</td><td>From zero knowledge to production-ready delivery</td></tr>
+      <tr><td>Full Dynatrace observability stack, self-initiated</td><td>Multi-account monitoring, alerting, and log aggregation</td></tr>
+      <tr><td>Grew GCP team capability</td><td>Identified gap, recruited, onboarded, and mentored colleague</td></tr>
+      <tr><td>Cross-functional process improvement</td><td>Documented and drove adoption of improved onboarding workflows</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Education -->
+  <h2>Education</h2>
+  <div class="education">
+    <p><strong>BSc Computer Science</strong> &nbsp;|&nbsp; <span>Queen's University Belfast</span></p>
+  </div>
+
+  <!-- Technical Skills -->
+  <h2>Technical Skills</h2>
+  <table class="skills-table">
+    <tbody>
+      <tr><td>Cloud</td><td>GCP (Compute Engine, GKE, Cloud Functions, Pub/Sub, Cloud Storage, KMS, IAM, Networking), AWS</td></tr>
+      <tr><td>Infrastructure as Code</td><td>Terraform</td></tr>
+      <tr><td>CI/CD &amp; DevOps</td><td>GitHub Actions, Azure DevOps Pipelines</td></tr>
+      <tr><td>Security &amp; Identity</td><td>Okta, Workload Identity Federation, Google Workspace, Trend Micro, GCP IAM</td></tr>
+      <tr><td>Observability</td><td>Dynatrace, GCP Cloud Monitoring, Centralised Log Aggregation, Slack Alerting</td></tr>
+      <tr><td>Scripting</td><td>Python, Bash/Shell</td></tr>
+      <tr><td>ITSM &amp; Delivery</td><td>ServiceNow, Kanban, Jira</td></tr>
+      <tr><td>Operating Systems</td><td>Linux, Windows</td></tr>
+    </tbody>
+  </table>
+
+</div>
+</body>
+</html>

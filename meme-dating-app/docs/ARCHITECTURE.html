@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Architecture — Meme Dating App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="topnav"><div class="inner">
+  <a href="index.html">Home</a>
+  <a href="ARCHITECTURE.html" class="active">Architecture</a>
+  <a href="SECURITY_MODEL.html" class="">Security Model</a>
+  <a href="IMPLEMENTATION_GUIDE.html" class="">Implementation Guide</a>
+</div></nav>
+<div class="wrap">
+<h1 id="meme-dating-app--architecture">Meme Dating App —
+Architecture</h1>
+<h2 id="1-overview">1. Overview</h2>
+<p>A meme-based dating app matches users on shared humor rather than (or
+in addition to) traditional swiping-on-photos. Users build profiles
+around memes they post/react to, swipe on other users' meme feeds, and
+match when there's mutual interest. The architecture below assumes:</p>
+<ul>
+<li><strong>Mobile clients</strong>: Flutter (single codebase → iOS +
+Android)</li>
+<li><strong>Cloud</strong>: Google Cloud Platform</li>
+<li><strong>Scale target</strong>: MVP → 50k users, designed to scale to
+millions without a rewrite</li>
+</ul>
+<h2 id="2-high-level-diagram">2. High-Level Diagram</h2>
+<pre><code>                         ┌─────────────────────────┐
+                         │   iOS App / Android App   │
+                         │   (Flutter, one codebase) │
+                         └────────────┬──────────────┘
+                                      │ HTTPS/WSS (TLS 1.3)
+                                      ▼
+                         ┌─────────────────────────┐
+                         │   Cloud Load Balancer     │
+                         │   + Cloud Armor (WAF)     │
+                         └────────────┬──────────────┘
+                                      ▼
+                         ┌─────────────────────────┐
+                         │   API Gateway             │
+                         │   (JWT validation,        │
+                         │    rate limiting)         │
+                         └────────────┬──────────────┘
+                                      ▼
+        ┌────────────────┬──────────────────────┬───────────────────┐
+        ▼                ▼                      ▼                   ▼
+ ┌─────────────┐  ┌──────────────┐     ┌─────────────────┐  ┌──────────────┐
+ │ Profile Svc │  │ Match Engine  │     │  Chat Service    │  │ Media Svc     │
+ │ (Cloud Run) │  │ (Cloud Run)   │     │  (Cloud Run +    │  │ (Cloud Run)   │
+ │             │  │               │     │   Pub/Sub)       │  │               │
+ └──────┬──────┘  └───────┬──────┘      └────────┬─────────┘  └──────┬───────┘
+        │                 │                      │                   │
+        ▼                 ▼                      ▼                   ▼
+ ┌─────────────┐  ┌──────────────┐     ┌─────────────────┐  ┌──────────────┐
+ │  Firestore   │  │  Firestore /  │     │   Firestore      │  │ Cloud Storage │
+ │  (profiles)  │  │  Memorystore  │     │   (messages)      │  │ (meme images/ │
+ │              │  │  (swipe deck, │     │   + FCM push      │  │  video)       │
+ │              │  │   geo index)  │     │                   │  │               │
+ └─────────────┘  └──────────────┘     └─────────────────┘  └──────┬───────┘
+                                                                     ▼
+                                                          ┌─────────────────────┐
+                                                          │ Moderation Pipeline  │
+                                                          │ Cloud Functions →    │
+                                                          │ Vision API SafeSearch│
+                                                          │ + CSAM hash match +  │
+                                                          │ Text moderation      │
+                                                          └─────────────────────┘
+
+ Supporting services (cross-cutting):
+ - Firebase Auth (identity, phone/email/social login)
+ - Cloud KMS + Secret Manager (encryption keys, secrets)
+ - Cloud Storage + Cloud CDN (meme asset delivery)
+ - BigQuery + Firebase Analytics (product analytics)
+ - Cloud Logging / Monitoring / Error Reporting (observability)
+ - Cloud Build + Fastlane (CI/CD, app store delivery)
+ - Play Billing / StoreKit + Cloud Functions (payments, receipt validation)</code></pre>
+<h2 id="3-component-breakdown">3. Component Breakdown</h2>
+<h3 id="31-mobile-clients">3.1 Mobile Clients</h3>
+<ul>
+<li><strong>Framework</strong>: Flutter — one codebase for iOS and
+Android, native performance, mature ecosystem for camera/gallery access
+(needed for meme creation/upload).</li>
+<li><strong>State management</strong>: Riverpod or Bloc.</li>
+<li><strong>Local storage</strong>: Secure device keystore (iOS Keychain
+/ Android Keystore) for tokens; no PII cached unencrypted on disk.</li>
+<li><strong>Push</strong>: Firebase Cloud Messaging (FCM) SDK handles
+both platforms.</li>
+</ul>
+<h3 id="32-edge--gateway">3.2 Edge / Gateway</h3>
+<ul>
+<li><strong>Cloud Load Balancer</strong> (HTTPS) terminates TLS, fronts
+all backend traffic.</li>
+<li><strong>Cloud Armor</strong> provides WAF rules + DDoS protection,
+geo-fencing if launching region-by-region.</li>
+<li><strong>API Gateway</strong> (or Cloud Endpoints) validates Firebase
+Auth JWTs, applies per-user rate limits, routes to backend
+services.</li>
+</ul>
+<h3 id="33-backend-services-cloud-run">3.3 Backend Services (Cloud
+Run)</h3>
+<p>Stateless, containerized microservices, each with its own
+least-privilege service account:</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Responsibility</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Profile Service</td>
+<td>CRUD for user profiles, meme galleries, preferences</td>
+</tr>
+<tr>
+<td>Match Engine</td>
+<td>Swipe processing, mutual-like detection, geo-based candidate
+ranking</td>
+</tr>
+<tr>
+<td>Chat Service</td>
+<td>Message send/receive, conversation state, typing indicators</td>
+</tr>
+<tr>
+<td>Media Service</td>
+<td>Signed upload URLs, meme post-processing (thumbnailing, format
+conversion)</td>
+</tr>
+<tr>
+<td>Moderation Service</td>
+<td>Orchestrates Vision API + text moderation + human review queue</td>
+</tr>
+<tr>
+<td>Notification Service</td>
+<td>Composes and sends FCM pushes for matches/messages</td>
+</tr>
+<tr>
+<td>Billing Service</td>
+<td>Validates Play Billing / StoreKit receipts, manages
+subscriptions/boosts</td>
+</tr>
+</tbody>
+</table>
+<p>Why Cloud Run over GKE: no cluster to manage, scales to zero (cost
+control pre-launch), scales up automatically under load — revisit GKE
+only if you need sidecars/service mesh at scale.</p>
+<h3 id="34-data-layer">3.4 Data Layer</h3>
+<ul>
+<li><strong>Firestore</strong> (primary datastore): user profiles,
+matches, chat messages, swipe history. Native mobile SDKs give offline
+support and realtime listeners for chat — avoids building a custom
+WebSocket layer for MVP.</li>
+<li><strong>Memorystore (Redis)</strong>: swipe-deck caching,
+session/rate-limit counters, "who's online" presence.</li>
+<li><strong>Cloud SQL (Postgres) — optional, add when needed</strong>:
+if/when you need complex relational queries (e.g., geo-radius search
+with PostGIS at scale, or financial reporting), introduce Cloud SQL
+alongside Firestore rather than forcing everything into one store.</li>
+<li><strong>Cloud Storage</strong>: original meme uploads, served
+through <strong>Cloud CDN</strong> for low-latency delivery.</li>
+<li><strong>BigQuery</strong>: analytics export from Firestore (via
+scheduled export or Dataflow) for product metrics, cohort analysis.</li>
+</ul>
+<h3 id="35-meme-content-pipeline">3.5 Meme Content Pipeline</h3>
+<ol type="1">
+<li>Client requests a signed upload URL from Media Service.</li>
+<li>Client uploads directly to Cloud Storage (bypasses backend for the
+large binary transfer).</li>
+<li>Cloud Storage finalize event triggers a Cloud Function.</li>
+<li>Function calls Vision API SafeSearch + CSAM hash-matching (Google's
+CSAI Match, mandatory for any UGC image app) + text moderation on
+captions.</li>
+<li>Passes → asset marked "approved", becomes visible; CDN cache
+warmed.</li>
+<li>Flags → asset quarantined, routed to human moderation queue; user
+notified if rejected.</li>
+</ol>
+<h3 id="36-matching-engine-design">3.6 Matching Engine Design</h3>
+<ul>
+<li>Store user location as a <strong>geohash</strong>, truncated in
+precision to avoid exposing exact coordinates (see Security Model).</li>
+<li>Candidate generation: query Firestore/Redis for users within geohash
+neighbors + preference filters (age range, gender preference).</li>
+<li>Ranking: simple score initially (recency, mutual meme-tag overlap,
+distance) — swap in a learned ranking model later without changing the
+API contract.</li>
+<li>Swipe writes are append-only events (Pub/Sub topic) consumed
+asynchronously to update match state — keeps the swipe API latency low
+even if downstream processing lags.</li>
+</ul>
+<h3 id="37-payments">3.7 Payments</h3>
+<ul>
+<li>Use <strong>Google Play Billing</strong> and <strong>Apple
+StoreKit</strong> exclusively for any in-app purchase (boosts,
+super-likes, subscriptions) — both platforms require this and reject
+apps that route around it.</li>
+<li>Backend never touches card data. Cloud Function validates purchase
+receipts server-side against Play Developer API / App Store Server API
+before unlocking entitlements.</li>
+</ul>
+<h3 id="38-cicd">3.8 CI/CD</h3>
+<ul>
+<li><strong>Cloud Build</strong>: builds/tests backend containers on
+push, deploys to Cloud Run (staging → prod with manual promotion
+gate).</li>
+<li><strong>Fastlane</strong>: automates iOS/Android build signing and
+upload to TestFlight / Play Internal Testing, then production
+tracks.</li>
+<li><strong>Terraform</strong>: all GCP infra (IAM, Cloud Run services,
+networking, Firestore indexes) defined as code, reviewed via PR.</li>
+</ul>
+<h2 id="4-why-these-choices-trade-offs">4. Why These Choices
+(Trade-offs)</h2>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Alternative considered</th>
+<th>Why this choice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Flutter over native Swift/Kotlin</td>
+<td>Two native codebases</td>
+<td>Half the engineering cost/time for MVP; native gap is negligible for
+this app's feature set</td>
+</tr>
+<tr>
+<td>Cloud Run over GKE</td>
+<td>Kubernetes cluster</td>
+<td>No ops overhead, scales to zero, sufficient for microservices at
+this scale</td>
+</tr>
+<tr>
+<td>Firestore over Cloud SQL as primary store</td>
+<td>Postgres from day one</td>
+<td>Realtime listeners + offline sync are built-in, ideal for chat/swipe
+UX; add Cloud SQL later only if relational needs emerge</td>
+</tr>
+<tr>
+<td>Firebase Auth over custom auth</td>
+<td>Rolling your own auth service</td>
+<td>Handles phone/social/email login, MFA, and token issuance correctly
+out of the box — auth is not where you want to innovate</td>
+</tr>
+<tr>
+<td>Direct-to-Storage upload over proxying through backend</td>
+<td>Uploading through API service</td>
+<td>Keeps large binary traffic off your compute layer, cheaper and
+faster</td>
+</tr>
+</tbody>
+</table>
+<h2 id="5-scaling-path">5. Scaling Path</h2>
+<ol type="1">
+<li><strong>MVP (0–50k users)</strong>: as described above, single
+region (e.g., <code>us-central1</code>), Cloud Run min instances =
+0.</li>
+<li><strong>Growth (50k–1M)</strong>: Cloud Run min instances &gt; 0 to
+avoid cold starts, add Memorystore for hot-path caching, introduce read
+replicas / Cloud SQL for reporting.</li>
+<li><strong>Scale (1M+)</strong>: multi-region deployment, Firestore
+multi-region mode, CDN edge caching tuned, consider dedicated matching
+service with a real ranking model (Vertex AI).</li>
+</ol>
+</div>
+</body>
+</html>

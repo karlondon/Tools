@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Implementation Guide — Meme Dating App</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav class="topnav"><div class="inner">
+  <a href="index.html">Home</a>
+  <a href="ARCHITECTURE.html" class="">Architecture</a>
+  <a href="SECURITY_MODEL.html" class="">Security Model</a>
+  <a href="IMPLEMENTATION_GUIDE.html" class="active">Implementation Guide</a>
+</div></nav>
+<div class="wrap">
+<h1 id="meme-dating-app--step-by-step-implementation-guide">Meme Dating
+App — Step-by-Step Implementation Guide</h1>
+<p>This guide walks from an empty GCP project to a published iOS +
+Android app. It assumes a small team (1-4 engineers) and sequences work
+so each phase produces something testable.</p>
+<hr />
+<h2 id="phase-0--foundations-week-1">Phase 0 — Foundations (Week 1)</h2>
+<ol type="1">
+<li><p><strong>Legal/business setup first</strong> (blocks app store
+approval later, so start now):</p>
+<ul>
+<li>Register a business entity if you don't have one (required for Apple
+Developer Program's org account and for payment processor/tax
+purposes).</li>
+<li>Draft a Privacy Policy and Terms of Service (required by both app
+stores before submission — use a lawyer or a reputable generator, then
+have counsel review given the sensitive data involved; see
+<code>SECURITY_MODEL.md</code> §6).</li>
+<li>Apple Developer Program enrollment ($99/yr) — can take a few days
+for org verification, start immediately.</li>
+<li>Google Play Console account ($25 one-time) + complete the "Dating"
+category declaration and required Data Safety form.</li>
+</ul></li>
+<li><p><strong>GCP project setup</strong>:</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> projects create meme-dating-app-prod <span class="at">--organization</span><span class="op">=</span>YOUR_ORG_ID</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> config set project meme-dating-app-prod</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">gcloud</span> services enable run.googleapis.com firestore.googleapis.com <span class="dt">\</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  storage.googleapis.com vision.googleapis.com secretmanager.googleapis.com <span class="dt">\</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  cloudkms.googleapis.com pubsub.googleapis.com identitytoolkit.googleapis.com <span class="dt">\</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  cloudbuild.googleapis.com armor.googleapis.com</span></code></pre></div>
+<ul>
+<li>Create separate <code>dev</code>, <code>staging</code>,
+<code>prod</code> GCP projects from day one — never build features
+against a single shared project you later have to split.</li>
+</ul></li>
+<li><p><strong>Repo structure</strong>:</p>
+<pre><code>meme-dating-app/
+  mobile/            # Flutter app
+  backend/
+    profile-service/
+    match-service/
+    chat-service/
+    media-service/
+    moderation-service/
+    billing-service/
+  infra/             # Terraform
+  docs/              # this folder</code></pre></li>
+<li><p><strong>Terraform bootstrap</strong>: define the three
+environments' core resources (project, Firestore in Native mode, Cloud
+Storage buckets, service accounts) as code from the start — do not
+click-ops in the console for anything beyond initial
+exploration.</p></li>
+</ol>
+<hr />
+<h2 id="phase-1--identity--data-foundations-weeks-2-3">Phase 1 —
+Identity &amp; Data Foundations (Weeks 2-3)</h2>
+<ol type="1">
+<li><strong>Enable Firebase</strong> on top of the GCP project (Firebase
+is a layer on GCP, same project).</li>
+<li><strong>Firebase Auth</strong>: enable Phone and Email/Password
+providers. Configure App Check (see Security) to block API abuse from
+non-genuine app instances.</li>
+<li><strong>Firestore schema</strong> (start simple, iterate):
+<pre><code>users/{uid}
+  - displayName, birthdate, genderPrefs, bio
+  - geohash (server-set only, never client-writable)
+  - createdAt, verifiedAt, status (active/shadow-banned/deleted)
+users/{uid}/memes/{memeId}
+  - storagePath, caption, tags[], moderationStatus, createdAt
+swipes/{swipeId}
+  - swiperUid, targetUid, action (like/pass/superlike), createdAt
+matches/{matchId}
+  - userIds[2], createdAt, lastMessageAt
+matches/{matchId}/messages/{messageId}
+  - senderUid, body (encrypted), createdAt, readAt
+reports/{reportId}
+  - reporterUid, targetUid, reason, status, createdAt</code></pre></li>
+<li><strong>Firestore Security Rules</strong>: write rules that deny by
+default; a user can only read/write their own <code>users/{uid}</code>
+doc directly, everything else (swipes, matches, moderation status) goes
+through backend services using the Admin SDK — this is what actually
+enforces the access model, not just backend code.</li>
+<li>Deploy Firestore indexes needed for the match engine's geohash +
+preference queries.</li>
+</ol>
+<hr />
+<h2 id="phase-2--core-backend-services-weeks-3-6">Phase 2 — Core Backend
+Services (Weeks 3-6)</h2>
+<p>Build and deploy each as an independent Cloud Run service. Suggested
+order (each unblocks the next):</p>
+<ol type="1">
+<li><strong>Profile Service</strong> — CRUD for
+<code>users/{uid}</code>, enforces age gate (18+) and required-field
+validation server-side (never trust client validation alone).</li>
+<li><strong>Media Service</strong> — issues signed Cloud Storage upload
+URLs; on finalize, triggers the moderation pipeline (Cloud Function →
+Vision SafeSearch + CSAM hash match). Only marks a meme visible after
+passing.</li>
+<li><strong>Match Engine</strong> — swipe endpoint writes to a Pub/Sub
+topic (<code>swipes</code>); a subscriber computes mutual likes and
+creates <code>matches/{matchId}</code>. Candidate-deck endpoint queries
+Firestore by geohash neighbors + preference filters, excludes
+already-swiped and blocked users.</li>
+<li><strong>Chat Service</strong> — uses Firestore realtime listeners
+directly from the client for read (with security rules scoping access to
+match participants only) and a Cloud Run endpoint for send (so you can
+enforce moderation/rate-limits server-side on write).</li>
+<li><strong>Notification Service</strong> — Cloud Function triggered on
+new match/message documents, sends FCM push.</li>
+<li><strong>Billing Service</strong> — validates Play/App Store receipts
+server-side, grants entitlements (boosts, super-likes, subscription
+tier) in Firestore.</li>
+</ol>
+<p>For each service: containerize (Dockerfile), deploy via
+<code>gcloud run deploy</code>, wire into Cloud Build for CI, attach its
+own least-privilege service account (per <code>SECURITY_MODEL.md</code>
+§2.2).</p>
+<hr />
+<h2 id="phase-3--api-gateway--edge-week-6">Phase 3 — API Gateway &amp;
+Edge (Week 6)</h2>
+<ol type="1">
+<li>Deploy <strong>Cloud Load Balancer</strong> with managed SSL
+certificate in front of Cloud Run services (or use Cloud Run's built-in
+domain mapping for simplicity at MVP scale, upgrading to full LB when
+you need Cloud Armor rules).</li>
+<li>Configure <strong>Cloud Armor</strong>: enable OWASP rule set,
+rate-limit rules per endpoint (especially OTP request and swipe
+endpoints).</li>
+<li>Set up <strong>API Gateway</strong> (or a lightweight
+Express/Fastify middleware layer if simpler for your stack) to validate
+Firebase ID tokens on every request before it reaches backend
+services.</li>
+</ol>
+<hr />
+<h2 id="phase-4--mobile-app-weeks-4-10-parallel-with-backend">Phase 4 —
+Mobile App (Weeks 4-10, parallel with backend)</h2>
+<ol type="1">
+<li><strong>Scaffold Flutter app</strong>:
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="ex">flutter</span> create meme_dating_app</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> meme_dating_app</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="ex">flutter</span> pub add firebase_core firebase_auth cloud_firestore firebase_storage <span class="dt">\</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  firebase_messaging flutter_riverpod go_router cached_network_image</span></code></pre></div></li>
+<li><strong>Connect Firebase</strong>: run
+<code>flutterfire configure</code> to wire up iOS/Android Firebase
+config automatically.</li>
+<li><strong>Build core screens</strong> in this order (each is
+independently testable):
+<ul>
+<li>Onboarding: phone/email auth, age gate, basic profile creation</li>
+<li>Meme upload/gallery: camera + gallery picker, upload via signed
+URL</li>
+<li>Swipe deck: card stack UI, calls Match Engine's candidate
+endpoint</li>
+<li>Match list + chat: Firestore realtime listeners for messages</li>
+<li>Settings: block/report, account deletion, notification
+preferences</li>
+</ul></li>
+<li><strong>Platform-specific setup</strong>:
+<ul>
+<li>iOS: configure <code>Info.plist</code> permissions (camera, photo
+library, location — with clear usage-description strings, required by
+Apple review), push notification capability + APNs key uploaded to
+Firebase.</li>
+<li>Android: configure <code>AndroidManifest.xml</code> permissions,
+notification channel setup for FCM.</li>
+</ul></li>
+<li><strong>App Check</strong>: integrate Firebase App Check
+(DeviceCheck on iOS, Play Integrity on Android) so backend can reject
+requests not originating from your genuine app build — closes off a
+major API-abuse vector.</li>
+<li><strong>Certificate pinning</strong> (recommended before GA) to
+harden against MITM on public wifi, common in dating-app threat
+models.</li>
+</ol>
+<hr />
+<h2
+id="phase-5--trust--safety-features-weeks-8-10-do-not-skipdefer">Phase 5
+— Trust &amp; Safety Features (Weeks 8-10, do not skip/defer)</h2>
+<p>Both app stores will reject a dating/UGC app without these — build
+alongside core features, not after:</p>
+<ol type="1">
+<li>Block user (immediate, bidirectional) and report user (with reason
+categories) flows in both mobile UI and backend.</li>
+<li>Human moderation queue (even a simple internal admin tool backed by
+a <code>reports</code> collection) with an SLA to act within 24 hours,
+per Apple's UGC guideline.</li>
+<li>Shadow-ban capability in Profile Service
+(<code>status: shadow-banned</code> excludes user from candidate decks
+without notifying them).</li>
+<li>In-app safety resources (e.g., link to safety tips, emergency
+resources) — increasingly expected in dating app review.</li>
+</ol>
+<hr />
+<h2 id="phase-6--testing--hardening-weeks-10-12">Phase 6 — Testing &amp;
+Hardening (Weeks 10-12)</h2>
+<ol type="1">
+<li><strong>Automated tests</strong>: unit tests per backend service,
+widget tests for critical Flutter screens, integration test for the full
+swipe→match→chat flow against the <code>staging</code> project.</li>
+<li><strong>Load testing</strong>: simulate swipe/chat traffic against
+staging Cloud Run services (e.g., with <code>k6</code> or Locust) to
+validate autoscaling config before real users hit it.</li>
+<li><strong>Security review</strong>:
+<ul>
+<li>Run through <code>SECURITY_MODEL.md</code> as a checklist.</li>
+<li>Commission a third-party penetration test if budget allows, focused
+on location privacy (trilateration) and auth/session handling.</li>
+<li>Verify Firestore Security Rules with the Firebase emulator's rules
+test suite — this is the actual enforcement layer, test it
+explicitly.</li>
+</ul></li>
+<li><strong>Privacy/compliance pass</strong>: confirm account deletion
+actually removes data within your stated SLA, confirm Play Store Data
+Safety form and Apple Privacy Nutrition Label accurately reflect real
+data collection (mismatches are a common rejection/removal reason).</li>
+</ol>
+<hr />
+<h2 id="phase-7--app-store-submission-weeks-12-13">Phase 7 — App Store
+Submission (Weeks 12-13)</h2>
+<ol type="1">
+<li><strong>Fastlane setup</strong> for both platforms to automate
+build/sign/upload:
+<div class="sourceCode" id="cb5"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> mobile/ios <span class="kw">&amp;&amp;</span> <span class="ex">fastlane</span> init</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> mobile/android <span class="kw">&amp;&amp;</span> <span class="ex">fastlane</span> init</span></code></pre></div></li>
+<li><strong>iOS (App Store Connect)</strong>:
+<ul>
+<li>Upload build via Fastlane/Xcode, fill out App Privacy details, age
+rating (17+ typically required for dating apps due to mature
+content/UGC).</li>
+<li>Provide demo account credentials for reviewers (dating apps commonly
+get manual review — expect this and prep a reviewer note explaining
+moderation approach).</li>
+</ul></li>
+<li><strong>Android (Play Console)</strong>:
+<ul>
+<li>Complete Data Safety section, Content Rating questionnaire, and the
+Dating apps policy declaration.</li>
+<li>Submit to Internal Testing → Closed Testing (get real users through
+a beta) → Production.</li>
+</ul></li>
+<li>Expect <strong>1-3 rounds of review feedback</strong> on a first
+dating-app submission, commonly around: age verification adequacy,
+report/block visibility, or privacy disclosure completeness. Budget 2-4
+weeks of buffer beyond initial submission.</li>
+</ol>
+<hr />
+<h2 id="phase-8--launch--post-launch-ongoing">Phase 8 — Launch &amp;
+Post-Launch (Ongoing)</h2>
+<ol type="1">
+<li><strong>Observability</strong>: dashboards in Cloud Monitoring for
+API latency/error rate per service, Firebase Crashlytics for mobile
+crash reporting, alerting on moderation queue backlog and swipe/match
+error rates.</li>
+<li><strong>Analytics</strong>: Firebase Analytics events for onboarding
+funnel, swipe/match/chat engagement, exported to BigQuery for deeper
+analysis.</li>
+<li><strong>On-call rotation</strong> for the moderation queue (trust
+&amp; safety response time is both a compliance and retention issue) and
+for production incidents.</li>
+<li><strong>Iterate on matching</strong>: once you have swipe/match
+data, consider a Vertex AI-based ranking model to replace the initial
+heuristic ranker in Match Engine — swap-in only, keep the API contract
+stable.</li>
+</ol>
+<hr />
+<h2 id="rough-timeline-summary">Rough Timeline Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Duration</th>
+<th>Key Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0. Foundations</td>
+<td>Week 1</td>
+<td>GCP projects, legal docs, repo scaffolding</td>
+</tr>
+<tr>
+<td>1. Identity &amp; Data</td>
+<td>Weeks 2-3</td>
+<td>Auth working, Firestore schema + rules deployed</td>
+</tr>
+<tr>
+<td>2. Backend Services</td>
+<td>Weeks 3-6</td>
+<td>All Cloud Run services deployed to staging</td>
+</tr>
+<tr>
+<td>3. API Gateway/Edge</td>
+<td>Week 6</td>
+<td>LB + Cloud Armor + token validation live</td>
+</tr>
+<tr>
+<td>4. Mobile App</td>
+<td>Weeks 4-10 (parallel)</td>
+<td>Flutter app feature-complete against staging</td>
+</tr>
+<tr>
+<td>5. Trust &amp; Safety</td>
+<td>Weeks 8-10 (parallel)</td>
+<td>Block/report/moderation live</td>
+</tr>
+<tr>
+<td>6. Testing &amp; Hardening</td>
+<td>Weeks 10-12</td>
+<td>Load-tested, security-reviewed</td>
+</tr>
+<tr>
+<td>7. Store Submission</td>
+<td>Weeks 12-13</td>
+<td>Submitted to both stores</td>
+</tr>
+<tr>
+<td>8. Launch</td>
+<td>Week 14+</td>
+<td>Live, monitored, iterating</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total: ~3-3.5 months</strong> to first public release for a
+small team, assuming no major review rejections. Add buffer for app
+store review cycles, which are the least controllable variable in this
+timeline.</p>
+</div>
+</body>
+</html>

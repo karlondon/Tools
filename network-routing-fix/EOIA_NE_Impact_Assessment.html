@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EOIA NE Implementation — Impact Assessment vs Current Environment State</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: #2e3350;
+    --accent: #4f8ef7;
+    --accent2: #7c5af5;
+    --green: #3ecf8e;
+    --red: #f55a4e;
+    --yellow: #f5a623;
+    --orange: #f5874e;
+    --text: #e2e8f0;
+    --muted: #8892a4;
+    --code-bg: #12141f;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; padding: 2rem 1rem; }
+  .container { max-width: 1150px; margin: 0 auto; }
+
+  .page-header { border-left: 4px solid var(--orange); padding: 1.5rem 2rem; background: var(--surface); border-radius: 0 12px 12px 0; margin-bottom: 2rem; }
+  .page-header h1 { font-size: 1.7rem; color: #fff; margin-bottom: 0.3rem; }
+  .page-header .meta { color: var(--muted); font-size: 0.88rem; }
+
+  .exec-box { background: linear-gradient(135deg, #1a1d27, #1e2235); border: 1px solid var(--border); border-top: 3px solid var(--orange); border-radius: 10px; padding: 1.5rem 2rem; margin-bottom: 2rem; }
+  .exec-box h2 { color: var(--orange); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.8rem; }
+
+  .alert { border-radius: 8px; padding: 1rem 1.2rem; margin: 0.8rem 0; font-size: 0.93rem; display: flex; align-items: flex-start; gap: 0.8rem; }
+  .alert-red { background: rgba(245,90,78,0.12); border-left: 3px solid var(--red); }
+  .alert-yellow { background: rgba(245,166,35,0.12); border-left: 3px solid var(--yellow); }
+  .alert-orange { background: rgba(245,135,78,0.12); border-left: 3px solid var(--orange); }
+  .alert-green { background: rgba(62,207,142,0.12); border-left: 3px solid var(--green); }
+  .alert-blue { background: rgba(79,142,247,0.12); border-left: 3px solid var(--accent); }
+  .alert-icon { font-size: 1.2rem; margin-top: 1px; flex-shrink: 0; }
+
+  section { margin-bottom: 2.5rem; }
+  h2.section-title { font-size: 1.15rem; color: #fff; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.6rem; }
+  h2.section-title .num { background: var(--accent2); color: #fff; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; flex-shrink: 0; }
+  h3 { font-size: 0.98rem; color: var(--accent); margin: 1.2rem 0 0.5rem; }
+
+  .table-wrap { overflow-x: auto; margin: 0.8rem 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; background: var(--surface); border-radius: 8px; overflow: hidden; }
+  thead tr { background: var(--surface2); }
+  th { padding: 0.65rem 0.9rem; text-align: left; color: var(--muted); font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.5px; }
+  td { padding: 0.6rem 0.9rem; border-top: 1px solid var(--border); color: var(--text); vertical-align: top; font-size: 0.87rem; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  .tag { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; white-space: nowrap; }
+  .tag-red { background: rgba(245,90,78,0.2); color: var(--red); }
+  .tag-green { background: rgba(62,207,142,0.2); color: var(--green); }
+  .tag-yellow { background: rgba(245,166,35,0.2); color: var(--yellow); }
+  .tag-orange { background: rgba(245,135,78,0.2); color: var(--orange); }
+  .tag-blue { background: rgba(79,142,247,0.2); color: var(--accent); }
+  .tag-grey { background: rgba(136,146,164,0.2); color: var(--muted); }
+
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem 1.2rem; overflow-x: auto; font-family: 'Cascadia Code','Fira Code','Consolas',monospace; font-size: 0.83rem; line-height: 1.6; color: #c9d1d9; margin: 0.7rem 0; }
+  code { background: rgba(79,142,247,0.12); color: var(--accent); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.86em; font-family: 'Cascadia Code','Fira Code','Consolas',monospace; }
+  pre code { background: none; color: inherit; padding: 0; }
+
+  .risk-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1.3rem 1.5rem; margin-bottom: 1rem; }
+  .risk-card.blocker { border-top: 3px solid var(--red); }
+  .risk-card.high { border-top: 3px solid var(--orange); }
+  .risk-card.medium { border-top: 3px solid var(--yellow); }
+  .risk-card.ok { border-top: 3px solid var(--green); }
+  .risk-header { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.8rem; flex-wrap: wrap; }
+  .risk-badge { font-size: 0.72rem; font-weight: 700; padding: 0.2rem 0.65rem; border-radius: 20px; text-transform: uppercase; }
+  .badge-blocker { background: rgba(245,90,78,0.2); color: var(--red); border: 1px solid var(--red); }
+  .badge-high { background: rgba(245,135,78,0.2); color: var(--orange); border: 1px solid var(--orange); }
+  .badge-medium { background: rgba(245,166,35,0.2); color: var(--yellow); border: 1px solid var(--yellow); }
+  .badge-ok { background: rgba(62,207,142,0.2); color: var(--green); border: 1px solid var(--green); }
+  .risk-card h3 { margin: 0; color: #fff; font-size: 0.97rem; }
+  .risk-card p { color: var(--muted); font-size: 0.91rem; margin: 0.5rem 0 0.7rem; }
+
+  .flow { background: var(--code-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.6rem; font-family: 'Cascadia Code','Fira Code','Consolas',monospace; font-size: 0.82rem; line-height: 2; color: #c9d1d9; }
+
+  .zone-pill { display: inline-block; padding: 0.1rem 0.45rem; border-radius: 4px; font-size: 0.76rem; font-weight: 700; }
+  .zone-fe { background: rgba(245,90,78,0.2); color: var(--red); }
+  .zone-be { background: rgba(62,207,142,0.2); color: var(--green); }
+
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.82rem; text-align: center; }
+  ol li { margin-bottom: 0.4rem; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-header">
+    <h1>EOIA NE Implementation — Impact Assessment vs Current Environment State</h1>
+    <div class="meta">
+      Date: 2026-05-14 &nbsp;·&nbsp; RFC: FW EOIA NE_FINAL_v4 &nbsp;·&nbsp; Firewall: PRD-LIN-NGFW-3 (10.36.128.172) &nbsp;·&nbsp;
+      Analysis against: known routing issues, zero IPSec tunnels, AD replication 1722 state, missing routes file
+    </div>
+  </div>
+
+  <!-- Executive Summary -->
+  <div class="exec-box">
+    <h2>Executive Summary — Go / No-Go Assessment</h2>
+    <p style="margin-bottom:0.8rem">
+      The EOIA NE change plan (RFC v4) is a <strong>well-structured 3-day phased implementation</strong> covering
+      FW static routes, Azure gateway route table next-hop corrections, NAT policy, and security profile groups.
+      However, <strong>the current environment has pre-existing defects</strong> that will cause several EOIA steps
+      to either fail silently, produce incorrect behaviour, or amplify existing outages.
+    </p>
+    <div class="alert alert-red">
+      <span class="alert-icon">🚫</span>
+      <div><strong>RECOMMENDATION: Conditional NO-GO for Day 1 in current state.</strong><br>
+      Two blocker conditions must be resolved before Day 1 proceeds. Day 2 and Day 3 are conditionally safe
+      once Day 1 blockers are cleared and the environment is stabilised.</div>
+    </div>
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap:0.8rem; margin-top:1rem">
+      <div style="background:rgba(245,90,78,0.1);border:1px solid var(--red);border-radius:8px;padding:0.9rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--red)">2</div>
+        <div style="font-size:0.82rem;color:var(--muted)">Blocker issues</div>
+      </div>
+      <div style="background:rgba(245,135,78,0.1);border:1px solid var(--orange);border-radius:8px;padding:0.9rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--orange)">3</div>
+        <div style="font-size:0.82rem;color:var(--muted)">High-risk issues</div>
+      </div>
+      <div style="background:rgba(245,166,35,0.1);border:1px solid var(--yellow);border-radius:8px;padding:0.9rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--yellow)">4</div>
+        <div style="font-size:0.82rem;color:var(--muted)">Medium risks</div>
+      </div>
+      <div style="background:rgba(62,207,142,0.1);border:1px solid var(--green);border-radius:8px;padding:0.9rem;text-align:center">
+        <div style="font-size:1.8rem;font-weight:700;color:var(--green)">3</div>
+        <div style="font-size:0.82rem;color:var(--muted)">Safe / low risk</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Current State Snapshot -->
+  <section>
+    <h2 class="section-title"><span class="num">1</span> Current Environment State (Pre-EOIA)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Component</th><th>Current State</th><th>Impact on EOIA</th></tr></thead>
+        <tbody>
+          <tr><td>NE NGFW IPSec tunnels</td><td><span class="tag tag-red">0 tunnels — STRIPPED</span></td><td>All branch routes (UK/IE/SP/PT/DE) are black-holed at NGFW. EOIA Day 1 adds 10.0.0.0/8 → eth1/2 which will EXPOSE this gap.</td></tr>
+          <tr><td>NE NGFW static routes for WE</td><td><span class="tag tag-red">MISSING — no 10.36.0.0/17 route</span></td><td>Hub-to-hub DC traffic is currently via peering (bypassing NGFW). After Day 1 route adds, traffic will hit NGFW and be dropped unless WE route is added.</td></tr>
+          <tr><td>AD DC replication (hub WE↔NE)</td><td><span class="tag tag-yellow">Working via VNet peering — stale 1722 errors in repadmin</span></td><td>EOIA Day 1 Azure route changes redirect DC traffic through NGFW. Without WE route on NGFW, replication will genuinely break (not just stale errors).</td></tr>
+          <tr><td>AD DC replication (branch sites)</td><td><span class="tag tag-red">BROKEN — 1722 errors are real and ongoing</span></td><td>EOIA Day 1 10.0.0.0/8 supernet route adds will not fix branch replication — no IPSec tunnels exist to carry branch traffic.</td></tr>
+          <tr><td>Security rules zone assignment</td><td><span class="tag tag-red">17 rules with wrong zones (DMZFE↔DMZBE mismatch)</span></td><td>After Day 1 route change, traffic moves from eth1/1 (DMZFE) to eth1/2 (DMZBE). Rules with wrong zones will stop matching — silent traffic block.</td></tr>
+          <tr><td>Gateway route table next-hops</td><td><span class="tag tag-red">10.36.128.6 (untrust eth1/1) — incorrect</span></td><td>EOIA Day 1 Azure routes fix this. Correct change — but must happen AFTER NGFW routes and DMZBE NSG are in place.</td></tr>
+          <tr><td>DMZBE NSG inbound for on-prem</td><td><span class="tag tag-red">Missing — no Allow-OnPrem-VPN-Inbound rule</span></td><td>EOIA correctly identifies this as CRITICAL Step 1.1. Must be applied before route change.</td></tr>
+          <tr><td>NAT policy (No-NAT-Internal)</td><td><span class="tag tag-red">MISSING — internal traffic will be source-NATted</span></td><td>EOIA Day 2 adds this. Until then, if Day 1 goes ahead, internal→internal traffic via NGFW will appear to come from eth1/1 public IP.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Blocker Issues -->
+  <section>
+    <h2 class="section-title"><span class="num">2</span> Blocker Issues — Must Resolve Before Day 1</h2>
+
+    <div class="risk-card blocker">
+      <div class="risk-header">
+        <span class="risk-badge badge-blocker">🚫 BLOCKER 1</span>
+        <h3>Security rules have wrong zone assignments — traffic will be silently blocked after Day 1</h3>
+      </div>
+      <p>
+        The <strong>Missing routes on NE Palo Alto.xlsx</strong> file identifies 17 security rules where the
+        source zone is <span class="zone-fe">DMZFE</span> (untrust/eth1/1) but traffic will arrive on
+        <span class="zone-be">DMZBE</span> (trust/eth1/2) after the Day 1 route change — or vice versa.
+        PAN-OS matches security rules on zone, not interface. After Day 1, traffic arrives on eth1/2 (DMZBE)
+        but the rules expect DMZFE — <strong>no rule matches → default deny → silent drop</strong>.
+      </p>
+      <div class="alert alert-red">
+        <span class="alert-icon">⚡</span>
+        <span>This is the single biggest risk. Implementing Day 1 routes WITHOUT fixing zones first will cause
+        widespread connectivity failures that look like routing issues but are actually policy drops at the NGFW.</span>
+      </div>
+      <h3>Affected Rules (from Missing routes file)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Rule Name</th><th>Current Src Zone</th><th>Current Dst Zone</th><th>Required after Day 1</th><th>Risk</th><th>Advisory</th></tr></thead>
+          <tbody>
+            <tr><td>25</td><td><code>TCP-UDP_3389</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Remove — legacy, not in use</td></tr>
+            <tr><td>33</td><td><code>ODEONAD-To-ODEONCOM</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Remove — legacy odeon.ad domain</td></tr>
+            <tr><td>38</td><td><code>ADDS-To-ADDS-Global-Out</code></td><td><span class="zone-be">DMZBE</span></td><td><span class="zone-fe">DMZFE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Remove — not in use</td></tr>
+            <tr><td>37</td><td><code>ADDS-To-ADDS-Global-In</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Remove — not in use</td></tr>
+            <tr><td>29</td><td><code>Europe-to-PAW-inbound-RDP</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Update zones for DR failover</td></tr>
+            <tr><td>20</td><td><code>CDP_Access_Rule</code></td><td><span class="zone-be">DMZBE</span></td><td><span class="zone-fe">DMZFE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Update — DR CA failover</td></tr>
+            <tr><td>36</td><td><code>ADDS-To-ADDS-Global_UKI_Out</code></td><td><span class="zone-be">DMZBE</span></td><td><span class="zone-fe">DMZFE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-yellow">MEDIUM</span></td><td><strong>Active — 77M hits. Breaks UKI DC→UKI communication after Day 1</strong></td></tr>
+            <tr><td>35</td><td><code>ADDS-To-ADDS-Global_UKI_In</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-yellow">MEDIUM</span></td><td><strong>Active — 485M hits. Breaks UKI→NE DC communication after Day 1</strong></td></tr>
+            <tr><td>90</td><td><code>Default-Deny</code></td><td><span class="zone-be">DMZBE</span></td><td><span class="zone-fe">DMZFE</span></td><td>Both → Both</td><td><span class="tag tag-grey">LOW</span></td><td>Update to catch-all — DMZBE/DMZFE both zones</td></tr>
+            <tr><td>13</td><td><code>Vista BO_HO Access to ODC ADFS</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Zero hits — clarify and remove</td></tr>
+            <tr><td>26</td><td><code>PAW_Powershell_access</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Remove — zero hits, bypass NSG concern</td></tr>
+            <tr><td>32</td><td><code>SCCM to odeon.ad</code></td><td><span class="zone-be">DMZBE</span></td><td><span class="zone-fe">DMZFE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Remove — zero hits, legacy POC</td></tr>
+            <tr><td>44</td><td><code>VPN_DSP_RDP_access</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Update — zero hits, DR DSP access</td></tr>
+            <tr><td>64</td><td><code>ANSDC-Sony-Outbound</code></td><td><span class="zone-be">DMZBE</span></td><td><span class="zone-fe">DMZFE</span></td><td>DMZBE → DMZFE ✅</td><td><span class="tag tag-yellow">MEDIUM</span></td><td>Correct after Day 1 — Automic→internet stays DMZBE→DMZFE</td></tr>
+            <tr><td>65</td><td><code>AFTP-Outbound-Updated</code></td><td><span class="zone-be">DMZBE</span></td><td><span class="zone-fe">DMZFE</span></td><td>DMZBE → DMZFE ✅</td><td><span class="tag tag-yellow">MEDIUM</span></td><td>Correct after Day 1 — Automic AFTP→internet stays DMZBE→DMZFE</td></tr>
+            <tr><td>21</td><td><code>Remote User Access to ODC Infra</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-yellow">MEDIUM</span></td><td>276 hits — P2S VPN to infra. After Day 1 VPN arrives on DMZBE, this breaks.</td></tr>
+            <tr><td>31</td><td><code>UKI-To-ADDS-ADClient</code></td><td><span class="zone-fe">DMZFE</span></td><td><span class="zone-be">DMZBE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-yellow">MEDIUM</span></td><td>Update or remove — port 5986 from UKI ranges</td></tr>
+            <tr><td>28</td><td><code>PAW-To-RODC</code></td><td><span class="zone-be">DMZBE</span></td><td><span class="zone-fe">DMZFE</span></td><td>DMZBE → DMZBE</td><td><span class="tag tag-grey">LOW</span></td><td>Remove — RDP from PAW3 to RODC, 4 hits in 2021 only</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="alert alert-orange" style="margin-top:0.8rem">
+        <span class="alert-icon">🔧</span>
+        <div>
+          <strong>Pre-requisite action:</strong> Before Day 1, all rules listed above must have their zones corrected
+          to reflect the post-Day-1 state (<code>DMZBE</code> → <code>DMZBE</code> for internal/VPN, <code>DMZBE</code>
+          → <code>DMZFE</code> for internet-bound). Rules flagged "remove" should be disabled first (not deleted) to
+          allow rollback. Commit these zone changes as a <strong>separate, pre-EOIA commit</strong> with its own
+          change ticket and snapshot.
+        </div>
+      </div>
+    </div>
+
+    <div class="risk-card blocker">
+      <div class="risk-header">
+        <span class="risk-badge badge-blocker">🚫 BLOCKER 2</span>
+        <h3>NE NGFW has zero IPSec tunnels — 10.0.0.0/8 supernet route will expose the gap</h3>
+      </div>
+      <p>
+        EOIA Day 1 adds <code>10.0.0.0/8 → 10.36.128.33 (eth1/2)</code> as a supernet catch-all.
+        <strong>This is correct design</strong> — but in the current state, both NGFWs have zero IPSec tunnels
+        (all removed by the project revert). The route will be installed, traffic from all 10.x.x.x sources will
+        arrive on eth1/2 — but the NGFW has nowhere to send branch traffic. All UK, IE, SP/PT, DE/GE branch
+        site traffic will hit the NGFW and be dropped (no tunnel interfaces, no branch static routes).
+      </p>
+      <p>
+        The existing situation (branch traffic drops) will not be <em>made worse</em> by Day 1, but it will
+        <strong>not be fixed either</strong>. More critically, branch-originated traffic that was previously
+        being silently dropped at the NGFW will now arrive on the <em>correct interface (eth1/2/DMZBE)</em>
+        but still be dropped — and the security policy zone checks (post-zone-fix) may generate new deny logs
+        that are misleading.
+      </p>
+      <div class="alert alert-yellow">
+        <span class="alert-icon">⚠️</span>
+        <div>
+          <strong>Recommended pre-condition:</strong> Restore IPSec tunnel configuration from Panorama
+          pre-project backup before Day 1. Without this, the EOIA monitoring gap (48hrs between Day 1 and Day 2)
+          will show branch replication still broken — which may block the Day 2 go/no-go decision.
+          If Panorama restore cannot be completed before Day 1, the team must accept that branch site connectivity
+          will remain broken through the EOIA window and document this explicitly as a known exception.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- High Risk Issues -->
+  <section>
+    <h2 class="section-title"><span class="num">3</span> High-Risk Issues</h2>
+
+    <div class="risk-card high">
+      <div class="risk-header">
+        <span class="risk-badge badge-high">⚠️ HIGH 1</span>
+        <h3>Hub DC replication (WE↔NE) will genuinely break at Day 1 step 1.8 unless WE route is pre-added to NE NGFW</h3>
+      </div>
+      <p>
+        Currently, WE DC ↔ NE DC traffic bypasses the NGFW via VNet Global Peering (peering route /22 beats UDR /16).
+        After EOIA Day 1 step 1.8, the Azure GATEWAY2025 route table gains explicit /32 host routes for DC3
+        (<code>10.36.128.70/32</code>) and DC4 (<code>10.36.128.71/32</code>) pointing to eth1/2 (<code>10.36.128.38</code>).
+        Traffic arriving FROM on-prem/ExpressRoute destined to DC03/DC04 will now correctly reach the NGFW on eth1/2.
+        However, the return traffic from DC03/DC04 destined to WE DCs (<code>10.36.0.x</code>) will hit the NGFW
+        which still has <strong>no route for 10.36.0.0/17 (WE VNet)</strong>.
+      </p>
+      <div class="flow" style="font-size:0.8rem; line-height:1.8">
+        <div style="color:var(--red)">AFTER Day 1 step 1.8 (without WE route fix):</div>
+        <div>On-prem/ExpressRoute → DC03 (10.36.128.70) → <span style="color:var(--green)">arrives on eth1/2 ✅</span></div>
+        <div>DC03 reply → 10.36.0.70 (WE DC1) → NGFW route lookup:</div>
+        <div style="color:var(--red)">&nbsp;&nbsp; 10.36.0.0/17 = NO ROUTE → falls to default 0.0.0.0/0 → eth1/1 (internet) → DROPPED ❌</div>
+      </div>
+      <div class="alert alert-orange">
+        <span class="alert-icon">🔧</span>
+        <span><strong>Fix:</strong> Add <code>10.36.0.0/17 → 10.36.128.33 (eth1/2)</code> as a static route on NE NGFW
+        as part of Day 1 step 1.4/1.5 (alongside the other supernet routes). This is already documented in the
+        previous routing fix analysis — it should be included in the RFC Day 1 route list explicitly.</span>
+      </div>
+    </div>
+
+    <div class="risk-card high">
+      <div class="risk-header">
+        <span class="risk-badge badge-high">⚠️ HIGH 2</span>
+        <h3>Day 2 NAT change (No-NAT-Internal) is scheduled for TODAY (14 May) — Day 1 monitoring gap was not observed</h3>
+      </div>
+      <p>
+        The RFC schedule shows Day 1 was <strong>12 May 2026</strong> and Day 2 is <strong>14 May 2026 (today)</strong>.
+        The phased plan requires a 48-hour monitoring gap between Day 1 and Day 2 to validate routing changes.
+        If Day 1 has already been applied, the AD replication 1722 errors and branch connectivity failures we are
+        investigating NOW are potentially a consequence of Day 1 route changes interacting with the pre-existing
+        zero-IPSec-tunnel state.
+      </p>
+      <p>
+        The monitoring gap review step (G1/step 2.1) requires: <em>"Confirm no regressions from static route
+        changes. Proceed only if Day 1 is validated as stable."</em> Given the open 1722 errors and branch
+        connectivity failures, <strong>Day 2 should be deferred</strong> until Day 1 is confirmed stable.
+      </p>
+      <div class="alert alert-red">
+        <span class="alert-icon">🚫</span>
+        <span><strong>Day 2 NAT change should NOT proceed today</strong> until: (a) hub DC replication is confirmed
+        working (run <code>repadmin /syncall /AdeP</code> and verify success), (b) zone mismatches are resolved,
+        (c) branch connectivity status is documented as known-exception or fixed.</span>
+      </div>
+    </div>
+
+    <div class="risk-card high">
+      <div class="risk-header">
+        <span class="risk-badge badge-high">⚠️ HIGH 3</span>
+        <h3>AD replication monitoring during the EOIA gaps will be unreliable given existing stale 1722 state</h3>
+      </div>
+      <p>
+        Both monitoring gaps (G1 and G2) require checking <code>repadmin /replsummary</code> for AD replication
+        health as a go/no-go gate. However, as established in the routing analysis:
+      </p>
+      <ul style="color:var(--muted); font-size:0.91rem; padding-left:1.5rem; margin:0.5rem 0">
+        <li>Hub DC 1722 errors are <strong>stale</strong> — they reflect historical failures, not current state</li>
+        <li>Branch DC 1722 errors are <strong>genuine and ongoing</strong> — and will remain until IPSec tunnels are restored</li>
+        <li><code>repadmin /replsummary</code> will show failures regardless of whether the EOIA changes are causing them</li>
+      </ul>
+      <div class="alert alert-yellow">
+        <span class="alert-icon">💡</span>
+        <div>
+          <strong>Recommended monitoring approach during EOIA gaps:</strong><br>
+          Use <code>repadmin /showrepl /csv</code> output <em>timestamped at the point of the change</em> as baseline.
+          Any 1722 errors with last-attempt timestamps <em>after</em> Day 1 completion time indicate EOIA-caused failures.
+          Pre-existing errors (timestamps before Day 1) should be documented as known pre-existing and excluded from
+          go/no-go gates. Supplement with <code>dcdiag /test:replications</code> for live connectivity assessment.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Medium Risk -->
+  <section>
+    <h2 class="section-title"><span class="num">4</span> Medium-Risk Issues</h2>
+
+    <div class="risk-card medium">
+      <div class="risk-header">
+        <span class="risk-badge badge-medium">🟡 MEDIUM 1</span>
+        <h3>ADDS-To-ADDS-Global_UKI_In/Out rules have 400M+ hits — zone change will interrupt active UKI replication</h3>
+      </div>
+      <p>
+        Rules <code>ADDS-To-ADDS-Global_UKI_In</code> (485M hits) and <code>ADDS-To-ADDS-Global_UKI_Out</code>
+        (77M hits) are <strong>actively used</strong> for UKI ↔ NE DC communication. After Day 1,
+        UKI traffic arrives on eth1/2 (DMZBE) but these rules currently have DMZFE as source zone.
+        Zone fix must be applied before Day 1 or these will break during the implementation window.
+        The zone change itself will briefly interrupt active sessions (PA policy commits cause session clear
+        for affected flows).
+      </p>
+      <div class="alert alert-yellow">
+        <span class="alert-icon">⚠️</span>
+        <span>Schedule the zone fix commit during a low-traffic window. Run <code>repadmin /syncall</code> immediately
+        after to force replication recovery. Inform SOC of expected brief traffic interruption.</span>
+      </div>
+    </div>
+
+    <div class="risk-card medium">
+      <div class="risk-header">
+        <span class="risk-badge badge-medium">🟡 MEDIUM 2</span>
+        <h3>No-NAT-Internal rule (Day 2) references only /27 subnets — broader internal sources may still be NATted</h3>
+      </div>
+      <p>
+        The Day 2 No-NAT-Internal rule specifies source as <code>10.36.128.64/27</code> (AD subnet) and
+        <code>10.36.128.96/27</code> (PAW subnet). After Day 1, traffic from ALL internal 10.x.x.x sources
+        routes via eth1/2. If any internal source outside those two /27s has internet-destined traffic that
+        also needs to reach internal destinations, the Internet_NAT rule below will match first for those
+        sources — creating incorrect source NAT on internal sessions.
+      </p>
+      <div class="alert alert-yellow">
+        <span class="alert-icon">⚠️</span>
+        <span>Consider broadening the No-NAT-Internal source to <code>10.0.0.0/8</code> to cover all internal
+        RFC1918 sources, not just the two hub subnets. Validate that this doesn't affect legitimate internet
+        NAT for hub VMs.</span>
+      </div>
+    </div>
+
+    <div class="risk-card medium">
+      <div class="risk-header">
+        <span class="risk-badge badge-medium">🟡 MEDIUM 3</span>
+        <h3>RFC schedule shows Day 1 was 12 May — Day 2 was 14 May — timeline appears compressed vs current issues</h3>
+      </div>
+      <p>
+        If Day 1 route changes have already been applied on 12 May 2026, the existing connectivity issues
+        (RPC 1722 on hub DCs, branch DC failures) are occurring <em>in the Day 1 → Day 2 monitoring gap</em>.
+        The RFC go/no-go gate for Day 2 (step 2.1) explicitly requires these to be resolved.
+        The implementation date for Day 2 in the NAT sheet shows <em>today (14 May)</em> — which means
+        the decision to proceed or defer needs to be made imminently.
+      </p>
+    </div>
+
+    <div class="risk-card medium">
+      <div class="risk-header">
+        <span class="risk-badge badge-medium">🟡 MEDIUM 4</span>
+        <h3>WE EOIA RFC (v4) not yet assessed — WE environment has the same stripped NGFW state as NE</h3>
+      </div>
+      <p>
+        The <code>RFC - FW EOIA WE_FINAL_v4.xlsx</code> file also exists and is not yet assessed.
+        WE NGFW (PRD-LIN-NGFW-1) is in an identical stripped state to NE — zero IPSec tunnels, no inter-region
+        routes. WE EOIA changes will have the same blocker conditions. Any WE Day 1 scheduled around the
+        same dates will compound the NE issues if both are in-flight simultaneously.
+      </p>
+    </div>
+  </section>
+
+  <!-- Safe Items -->
+  <section>
+    <h2 class="section-title"><span class="num">5</span> Safe / Low-Risk Items (proceed as planned)</h2>
+
+    <div class="risk-card ok">
+      <div class="risk-header">
+        <span class="risk-badge badge-ok">✅ SAFE 1</span>
+        <h3>DMZBE NSG changes (Step 1.1) — correct, critical, apply first</h3>
+      </div>
+      <p>
+        The RFC correctly identifies <code>Allow-OnPrem-VPN-Inbound</code> and <code>Allow-OnPrem-VPN-Outbound</code>
+        rules on <code>OCG-NE-SHUB-NSG-DMZBE-01</code> as CRITICAL pre-requisites. These NSG changes are
+        non-disruptive before route changes and correctly ordered in the plan. No issues with this step.
+      </p>
+    </div>
+
+    <div class="risk-card ok">
+      <div class="risk-header">
+        <span class="risk-badge badge-ok">✅ SAFE 2</span>
+        <h3>Day 3 security profile groups — safe, no connectivity impact</h3>
+      </div>
+      <p>
+        Creating new profile groups (<code>Strict-Internet-Profile</code> and <code>Alert-Internal-VPN-Profile</code>)
+        and assigning them to policies changes inspection behaviour only — not routing or zone matching.
+        The main profile change switches from BLOCK to ALERT mode for internal/VPN traffic, which reduces
+        the risk of false-positive drops. This is a well-designed change and safe to proceed once Day 1 and
+        Day 2 are validated.
+      </p>
+    </div>
+
+    <div class="risk-card ok">
+      <div class="risk-header">
+        <span class="risk-badge badge-ok">✅ SAFE 3</span>
+        <h3>Non-RFC1918 static routes (SonyFTP, AFTP, UKI ExpressRoute, Visolit) — low risk additions</h3>
+      </div>
+      <p>
+        The specific host/public IP routes added in Day 1 step 1.5 (173.251.241.30/32, 173.0.93.197/32,
+        213.205.135.238/32, 62.232.203.118/32, 84.17.200.0/22) are more specific than the default route
+        and simply redirect these specific destinations via eth1/2 instead of eth1/1. These will have
+        no impact until corresponding security rules match — and those rules (ANSDC-Sony-Outbound,
+        AFTP-Outbound-Updated) already have correct DMZBE→DMZFE zone assignments.
+      </p>
+    </div>
+  </section>
+
+  <!-- Recommended Pre-EOIA Checklist -->
+  <section>
+    <h2 class="section-title"><span class="num">6</span> Recommended Pre-EOIA Checklist (Before Day 1 or Day 2 Proceeds)</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Priority</th><th>Action</th><th>Owner</th><th>Blocks</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-red">P0 — NOW</span></td>
+            <td>Defer Day 2 NAT change today until hub DC replication is confirmed stable and zone fixes are applied</td>
+            <td>Change manager</td>
+            <td>Day 2 go/no-go</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-red">P0 — NOW</span></td>
+            <td>Run <code>repadmin /syncall /AdeP</code> on DC1 and DC2 to force hub DC replication retry. Verify success before any EOIA proceed decision.</td>
+            <td>AD team</td>
+            <td>Day 1/2 go/no-go</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-red">P1 — Before Day 1</span></td>
+            <td>Fix all 17 security rule zone mismatches on NE NGFW (Missing routes xlsx). Disable (not delete) legacy rules. Commit as separate pre-EOIA change with snapshot.</td>
+            <td>PA admin</td>
+            <td>Day 1 BLOCKER</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-red">P1 — Before Day 1</span></td>
+            <td>Add <code>10.36.0.0/17 → 10.36.128.33 (eth1/2)</code> to NE NGFW Day 1 route list (WE Hub VNet route)</td>
+            <td>PA admin</td>
+            <td>Hub DC replication post-Day-1</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-red">P1 — Before Day 1</span></td>
+            <td>Restore IPSec tunnel config from Panorama pre-project backup on both NGFWs, OR formally document branch connectivity as known-broken exception in change ticket</td>
+            <td>PA admin / Panorama</td>
+            <td>Branch DC replication, Day 1 monitoring gap</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-yellow">P2 — Before Day 2</span></td>
+            <td>Expand No-NAT-Internal source address from <code>10.36.128.64/27 + 10.36.128.96/27</code> to <code>10.0.0.0/8</code> to cover all internal RFC1918 sources</td>
+            <td>PA admin</td>
+            <td>Incorrect source NAT for non-hub subnets</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-yellow">P2 — Before Day 2</span></td>
+            <td>Establish repadmin baseline with timestamps: <code>repadmin /showrepl /csv > baseline_pre_eoia.csv</code>. Use this to distinguish pre-existing vs EOIA-caused 1722 errors in monitoring gaps.</td>
+            <td>AD team</td>
+            <td>Monitoring gap accuracy</td>
+          </tr>
+          <tr>
+            <td><span class="tag tag-blue">P3 — Assess separately</span></td>
+            <td>Review WE EOIA RFC (FW EOIA WE_FINAL_v4.xlsx) — WE NGFW has identical stripped state; same blockers likely apply</td>
+            <td>Network team</td>
+            <td>WE EOIA Day 1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Interaction Map -->
+  <section>
+    <h2 class="section-title"><span class="num">7</span> EOIA Change × Known Issue Interaction Map</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>EOIA Change</th><th>Current Environment Issue</th><th>Interaction</th><th>Net Effect</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Day 1: Add 10.0.0.0/8 → eth1/2</td>
+            <td>Zero IPSec tunnels on NGFW</td>
+            <td>Route installed, traffic arrives on eth1/2, NGFW has no tunnels</td>
+            <td><span class="tag tag-red">Branch traffic still dropped — no improvement</span></td>
+          </tr>
+          <tr>
+            <td>Day 1: Add 10.0.0.0/8 → eth1/2</td>
+            <td>Zone mismatches on 17 security rules</td>
+            <td>Traffic now arrives on DMZBE, rules expect DMZFE — no match</td>
+            <td><span class="tag tag-red">Silent policy drop for affected traffic flows</span></td>
+          </tr>
+          <tr>
+            <td>Day 1: Azure GATEWAY2025 DC3/DC4 routes → eth1/2</td>
+            <td>NE NGFW missing 10.36.0.0/17 WE route</td>
+            <td>ExpressRoute→DC3/DC4 works; DC3/DC4 reply to WE dropped</td>
+            <td><span class="tag tag-red">Hub DC replication breaks for ExpressRoute-sourced sessions</span></td>
+          </tr>
+          <tr>
+            <td>Day 1: Azure GATEWAY2025 DC3/DC4 routes → eth1/2</td>
+            <td>Stale 1722 errors on hub DCs</td>
+            <td>New replication failures (real, not stale) appear alongside old stale ones</td>
+            <td><span class="tag tag-yellow">Monitoring gap AD health check becomes unreliable</span></td>
+          </tr>
+          <tr>
+            <td>Day 1: DMZBE NSG Allow-OnPrem-VPN-Inbound</td>
+            <td>DMZBE NSG missing on-prem allow</td>
+            <td>Correctly addresses pre-existing gap</td>
+            <td><span class="tag tag-green">Positive — fixes pre-existing NSG issue ✅</span></td>
+          </tr>
+          <tr>
+            <td>Day 2: No-NAT-Internal rule</td>
+            <td>Day 1 not fully validated (1722s outstanding)</td>
+            <td>NAT change adds complexity while routing state unclear</td>
+            <td><span class="tag tag-yellow">Risk amplification — defer Day 2</span></td>
+          </tr>
+          <tr>
+            <td>Day 3: Security profiles</td>
+            <td>All pre-existing issues</td>
+            <td>Purely policy inspection change, no routing dependency</td>
+            <td><span class="tag tag-green">Safe to proceed once Day 1+2 stable ✅</span></td>
+          </tr>
+          <tr>
+            <td>Day 1: 10.36.0.0/17 route (if added)</td>
+            <td>NE NGFW missing WE route</td>
+            <td>Resolves the hub-DC return-path drop</td>
+            <td><span class="tag tag-green">Positive — pre-condition fix ✅</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Generated by Cline · 2026-05-14 · RFC: FW EOIA NE_FINAL_v4 · Missing routes: NE Palo Alto · Read-only Azure analysis + NGFW config dump
+  </footer>
+
+</div>
+</body>
+</html>
