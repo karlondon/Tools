@@ -16,4 +16,4 @@ Thumbs.db
 # Python
 __pycache__/
 *.pyc
-*.pyo
+*.pyoprivate-key-pair/narrativeai-app_accessKeys.csv
