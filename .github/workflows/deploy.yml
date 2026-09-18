@@ -41,6 +41,17 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
       
+      - name: Verify index.html exists locally
+        run: |
+          echo "📋 Checking local index.html..."
+          ls -lh NarrativeAI/index.html
+          echo "📊 File size and line count:"
+          wc -c NarrativeAI/index.html
+          wc -l NarrativeAI/index.html
+          echo "🔍 Checking for tier-select dropdown..."
+          grep -c "tier-select" NarrativeAI/index.html && echo "✅ Found tier-select dropdown" || echo "❌ Warning: tier-select not found"
+
+      
       - name: Deploy to production server
         env:
           DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
@@ -54,6 +65,20 @@ jobs:
           
           # Deploy files
           scp -i ~/.ssh/deploy_key -r NarrativeAI/* "$DEPLOY_USER@$DEPLOY_HOST:/home/ubuntu/NarrativeAI/"
+           
+           # Verify index.html was deployed
+           echo "📋 Verifying index.html on server..."
+           if [ -f /home/ubuntu/NarrativeAI/index.html ]; then
+             echo "✅ index.html exists on server"
+             ls -lh /home/ubuntu/NarrativeAI/index.html
+             echo "🔍 Checking for tier-select in deployed file..."
+             grep -c "tier-select" /home/ubuntu/NarrativeAI/index.html && echo "✅ Tier selection features found!" || echo "❌ Warning: tier-select not found in deployed file"
+           else
+             echo "❌ ERROR: index.html not found on server!"
+             ls -la /home/ubuntu/NarrativeAI/
+             exit 1
+           fi
+
           
           # Restart the backend service
           ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" << 'EOF'
