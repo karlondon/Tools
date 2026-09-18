@@ -1,0 +1,68 @@
+name: Deploy NarrativeAI to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Deploy to production server
+        env:
+          DEPLOY_KEY: ${{ secrets.DEPLOY_KEY }}
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          
+          # Deploy files
+          scp -i ~/.ssh/deploy_key -r NarrativeAI/* "$DEPLOY_USER@$DEPLOY_HOST:/home/ubuntu/NarrativeAI/"
+          
+          # Restart the backend service
+          ssh -i ~/.ssh/deploy_key "$DEPLOY_USER@$DEPLOY_HOST" << 'EOF'
+          cd /home/ubuntu/NarrativeAI
+          
+          # Kill old process
+          pkill -f "python3 main.py" || true
+          sleep 2
+          
+          # Start new process
+          nohup python3 main.py > /tmp/narrativeai.log 2>&1 &
+          sleep 3
+          
+          # Verify process is running
+          if pgrep -f "python3 main.py" > /dev/null; then
+            echo "✅ NarrativeAI backend started successfully on port 8000"
+          else
+            echo "❌ Failed to start backend"
+            exit 1
+          fi
+          EOF
+      
+      - name: Verify deployment
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          echo "Waiting for service to be ready..."
+          sleep 5
+          
+          # Check if backend is responding
+          response=$(curl -s -o /dev/null -w "%{http_code}" "http://$DEPLOY_HOST:8000/api/free-tier" || echo "000")
+          if [ "$response" = "200" ]; then
+            echo "✅ Deployment successful! Backend is responding."
+          else
+            echo "⚠️ Backend returned status: $response"
+            echo "Check logs on server with: tail -f /tmp/narrativeai.log"
+          fi
